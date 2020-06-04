@@ -19,32 +19,21 @@ impl CompressionContext {
                 binding::LZ4F_getVersion(),
             )
         };
-        Self::result(Self { ctx }, code)
+        Self::make_result(Self { ctx }, code)
     }
 
-    fn result<T>(data: T, code: size_t) -> Result<T> {
-        unsafe {
-            if binding::LZ4F_isError(code) != 0 {
-                Err(CStr::from_ptr(binding::LZ4F_getErrorName(code))
-                    .to_str()
-                    .map_err(|_| "Invalid UTF-8")?)
-            } else {
-                Ok(data)
-            }
-        }
-    }
-
-    pub fn begin(&mut self, dst: &mut [u8], opt: Option<&binding::Preferences>) -> Result<usize> {
+    pub fn begin(&mut self, dst: &mut [u8], prefs: Option<&binding::Preferences>) -> Result<usize> {
         let code = unsafe {
             binding::LZ4F_compressBegin(
                 self.ctx,
                 dst.as_mut_ptr() as *mut c_void,
                 dst.len() as size_t,
-                opt.map(|p| p as *const binding::Preferences)
+                prefs
+                    .map(|p| p as *const binding::Preferences)
                     .unwrap_or(std::ptr::null()),
             )
         };
-        Self::result(code as usize, code)
+        Self::make_result(code as usize, code)
     }
 
     pub fn update(
@@ -64,7 +53,7 @@ impl CompressionContext {
                     .unwrap_or(std::ptr::null()),
             )
         };
-        Self::result(code as usize, code)
+        Self::make_result(code as usize, code)
     }
 
     pub fn flush(
@@ -81,7 +70,7 @@ impl CompressionContext {
                     .unwrap_or(std::ptr::null()),
             )
         };
-        Self::result(code as usize, code)
+        Self::make_result(code as usize, code)
     }
 
     pub fn end(
@@ -98,7 +87,30 @@ impl CompressionContext {
                     .unwrap_or(std::ptr::null()),
             )
         };
-        Self::result(code as usize, code)
+        Self::make_result(code as usize, code)
+    }
+
+    pub fn compress_bound(src_size: usize, prefs: Option<&binding::Preferences>) -> usize {
+        unsafe {
+            binding::LZ4F_compressBound(
+                src_size as size_t,
+                prefs
+                    .map(|p| p as *const binding::Preferences)
+                    .unwrap_or(std::ptr::null()),
+            )
+        }
+    }
+
+    fn make_result<T>(data: T, code: size_t) -> Result<T> {
+        unsafe {
+            if binding::LZ4F_isError(code) != 0 {
+                Err(CStr::from_ptr(binding::LZ4F_getErrorName(code))
+                    .to_str()
+                    .map_err(|_| "Invalid UTF-8")?)
+            } else {
+                Ok(data)
+            }
+        }
     }
 }
 
