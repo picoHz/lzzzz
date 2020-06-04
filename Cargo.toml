@@ -3,6 +3,7 @@ name = "lzzzz"
 version = "0.1.0"
 authors = ["picoHz <picoHz@outlook.com>"]
 edition = "2018"
+include = ["src/**/*", "build.rs", "vendor/liblz4/lib/*", "Cargo.toml"]
 
 [dependencies]
 libc = "0.2.71"
