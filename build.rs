@@ -11,7 +11,7 @@ fn main() -> Result<(), Error> {
     for path in &sources {
         println!("cargo:rerun-if-changed={}", path.display());
     }
-    
+
     Build::new()
         .files(sources)
         .try_compile("lz4")

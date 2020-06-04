@@ -1,13 +1,6 @@
-mod sys;
+#![deny(unsafe_code)]
 
-pub fn version_number() -> u32 {
-    unsafe { sys::LZ4_versionNumber() as u32 }
-}
+pub mod lz4f;
+pub(crate) mod sys;
 
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        assert_eq!(crate::version_number(), 10902);
-    }
-}
+type Result<T> = std::result::Result<T, &'static str>;
