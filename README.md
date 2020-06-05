@@ -1,4 +1,4 @@
-# Lzzzz
+# Lzzzz 😴
 Yet another liblz4 bindings 
 
 Lzzzz supports the following LZ4 modes:
