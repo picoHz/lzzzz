@@ -182,7 +182,7 @@ enum State {
 /// }
 /// ```
 ///
-/// Write the compressed `"Hello world!"` to `foo.lz4`.
+/// Read and compress data from `foo.txt`.
 ///
 /// ```
 /// use lzzzz::lz4f::{BlockSize, FrameCompressorBuilder};
