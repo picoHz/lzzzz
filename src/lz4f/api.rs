@@ -1,6 +1,6 @@
 //! LZ4F Low-level API
 //!
-//! This module provides a memory-safe thin wrapper of liblz4.
+//! This module provides a thin memory-safe wrapper of liblz4.
 
 #![allow(unsafe_code)]
 
