@@ -1,10 +1,17 @@
 # Lzzzz 😴
 Yet another liblz4 bindings 
 
-Lzzzz supports the following LZ4 modes:
+Lzzzz provides verious LZ4 API:
 
-- LZ4 Frame Compression / Decompression
-- LZ4 Block Compression / Decompression
-- LZ4 Streaming Compression / Decompression
-- LZ4_HC Block Compression
-- LZ4_HC Streaming Compression
+### Basic
+- `lz4::compress` / `lz4::decompress`
+- `lz4f::compress` / `lz4f::decompress`
+- `lz4_hc::compress` / `lz4_hc::decompress`
+
+### Advanced
+- `lz4f::FrameCompressor` / `lz4f::FrameDecompressor`
+
+### Low-level
+- `lz4::api`
+- `lz4f::api::CompressionContext` / `lz4f::api::DecompressionContext`
+- `lz4_hc::api`
