@@ -3,7 +3,7 @@
 pub mod api;
 mod binding;
 
-use crate::{LZ4Error, Result};
+use crate::Result;
 use api::{CompressionContext, Preferences, HEADER_SIZE_MAX};
 use libc::{c_int, c_uint, c_ulonglong};
 use std::{cmp, io};
@@ -138,6 +138,7 @@ impl LZ4FrameCompressorBuilder {
 /// fn main() -> std::io::Result<()> {
 ///     let mut output = File::create("foo.lz4")?;
 ///     let mut comp = LZ4FrameCompressorBuilder::new()
+///         .block_size(BlockSize::Max1MB)
 ///         .build(&mut output)?;
 ///
 ///     writeln!(comp, "Hello world!")
@@ -149,6 +150,7 @@ pub struct LZ4FrameCompressor<W: io::Write> {
     buffer: Vec<u8>,
     writer: W,
     state: State,
+    prev_src_size: usize,
 }
 
 impl<W: io::Write> LZ4FrameCompressor<W> {
@@ -159,6 +161,7 @@ impl<W: io::Write> LZ4FrameCompressor<W> {
             buffer: Vec::new(),
             writer,
             state: State::Created,
+            prev_src_size: 0,
         })
     }
 
@@ -166,27 +169,36 @@ impl<W: io::Write> LZ4FrameCompressor<W> {
     ///
     /// Dropping a `LZ4FrameCompressor` automatically finalize a frame
     /// so you don't have to call this unless you need a `Result`.
-    pub fn end(mut self) -> Result<usize> {
+    pub fn end(mut self) -> Result<()> {
         self.finalize()
     }
 
     fn grow_buffer(&mut self, src_size: usize) {
-        let len = CompressionContext::compress_bound(src_size, Some(&self.pref));
-        let len = cmp::max(len, HEADER_SIZE_MAX);
-        if len > self.buffer.len() {
-            self.buffer.resize_with(len, Default::default);
+        if src_size > self.prev_src_size {
+            let len = CompressionContext::compress_bound(src_size, Some(&self.pref));
+            let len = cmp::max(len, HEADER_SIZE_MAX);
+            if len > self.buffer.len() {
+                self.buffer.reserve(len - self.buffer.len());
+
+                #[allow(unsafe_code)]
+                unsafe {
+                    self.buffer.set_len(len)
+                };
+            }
+            self.prev_src_size = src_size;
         }
     }
 
-    fn finalize(&mut self) -> Result<usize> {
+    fn finalize(&mut self) -> Result<()> {
         match self.state {
             State::Initialized => {
                 self.state = State::Finalized;
                 let len = self.ctx.end(&mut self.buffer, None)?;
-                Ok(self.writer.write_all(&self.buffer[..len]).map(|_| len)?)
+                self.writer.write_all(&self.buffer[..len])?;
+                Ok(())
             }
-            State::Finalized => Err(LZ4Error::from("already finalized")),
-            _ => Ok(0),
+            State::Finalized => unreachable!(),
+            _ => Ok(()),
         }
     }
 }
