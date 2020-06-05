@@ -5,7 +5,7 @@
 #![allow(unsafe_code)]
 
 use super::{
-    binding, AutoFlush, BlockChecksum, BlockMode, BlockSize, ContentChecksum, PreferDecSpeed,
+    binding, AutoFlush, BlockChecksum, BlockMode, BlockSize, ContentChecksum, FavorDecSpeed,
 };
 use crate::{LZ4Error, Result};
 
@@ -54,7 +54,7 @@ pub struct Preferences {
     pub frame_info: FrameInfo,
     pub compression_level: c_int,
     pub auto_flush: AutoFlush,
-    pub favor_dec_speed: PreferDecSpeed,
+    pub favor_dec_speed: FavorDecSpeed,
     pub _reserved: [c_uint; 3],
 }
 
@@ -64,7 +64,7 @@ impl Default for Preferences {
             frame_info: FrameInfo::default(),
             compression_level: 0,
             auto_flush: AutoFlush::Disabled,
-            favor_dec_speed: PreferDecSpeed::Disabled,
+            favor_dec_speed: FavorDecSpeed::Disabled,
             _reserved: [0; 3],
         }
     }

@@ -71,7 +71,7 @@ pub enum AutoFlush {
 /// Only works for high compression modes (>= LZ4HC_CLEVEL_OPT_MIN)
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 #[repr(C)]
-pub enum PreferDecSpeed {
+pub enum FavorDecSpeed {
     Disabled = 0,
     Enabled = 1,
 }
@@ -130,7 +130,7 @@ impl FrameCompressorBuilder {
     }
 
     /// Set the decompression speed mode flag.
-    pub fn favor_dec_speed(mut self, dec_speed: PreferDecSpeed) -> Self {
+    pub fn favor_dec_speed(mut self, dec_speed: FavorDecSpeed) -> Self {
         self.pref.favor_dec_speed = dec_speed;
         self
     }
