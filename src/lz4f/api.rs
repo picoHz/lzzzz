@@ -1,44 +1,21 @@
+//! LZ4F Low-level API
+//!
+//! This module provides a memory-safe thin wrapper of liblz4.
+
 #![allow(unsafe_code)]
 
-mod binding;
+use super::{binding, BlockChecksum, BlockMode, BlockSize, ContentChecksum};
 use crate::{LZ4Error, Result};
 
 use libc::{c_int, c_uint, c_ulonglong, c_void, size_t};
 use std::ffi::CStr;
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-#[repr(C)]
-pub enum BlockSize {
-    Default = 0,
-    Max64KB = 4,
-    Max256KB = 5,
-    Max1MB = 6,
-    Max4MB = 7,
-}
+pub const HEADER_SIZE_MIN: usize = 7;
+pub const HEADER_SIZE_MAX: usize = 19;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 #[repr(C)]
-pub enum BlockMode {
-    Linked = 0,
-    Independent = 1,
-}
-
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-#[repr(C)]
-pub enum ContentChecksum {
-    Disabled = 0,
-    Enabled = 1,
-}
-
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-#[repr(C)]
-pub enum BlockChecksum {
-    Disabled = 0,
-    Enabled = 1,
-}
-
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-#[repr(C)]
+/// Compression frame type
 pub enum FrameType {
     Frame = 0,
     SkippableFrame = 1,
@@ -53,7 +30,7 @@ pub struct FrameInfo {
     pub frame_type: FrameType,
     pub content_size: c_ulonglong,
     pub dict_id: c_uint,
-    pub block_ckecksum: BlockChecksum,
+    pub block_checksum: BlockChecksum,
 }
 
 impl Default for FrameInfo {
@@ -65,7 +42,7 @@ impl Default for FrameInfo {
             frame_type: FrameType::Frame,
             content_size: 0,
             dict_id: 0,
-            block_ckecksum: BlockChecksum::Disabled,
+            block_checksum: BlockChecksum::Disabled,
         }
     }
 }
@@ -189,10 +166,10 @@ impl CompressionContext {
     fn make_result<T>(data: T, code: size_t) -> Result<T> {
         unsafe {
             if binding::LZ4F_isError(code) != 0 {
-                Err(LZ4Error::new(
+                Err(LZ4Error::from(
                     CStr::from_ptr(binding::LZ4F_getErrorName(code))
                         .to_str()
-                        .map_err(|_| LZ4Error::new("Invalid UTF-8"))?,
+                        .map_err(|_| LZ4Error::from("Invalid UTF-8"))?,
                 ))
             } else {
                 Ok(data)
