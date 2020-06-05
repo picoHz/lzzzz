@@ -54,11 +54,11 @@ pub enum BlockChecksum {
 }
 
 #[derive(Debug, Default, Copy, Clone)]
+/// LZ4 Frame Compressor Builder
 pub struct LZ4FrameCompressorBuilder {
     pref: Preferences,
 }
 
-/// LZ4 Frame Compressor Builder
 impl LZ4FrameCompressorBuilder {
     /// Create a new `LZ4FrameCompressorBuilder` instance with the default configuration.
     pub fn new() -> Self {

@@ -5,8 +5,6 @@ pub mod lz4hc;
 
 use std::{convert, fmt, io};
 
-pub use lz4f::{LZ4FrameCompressor, LZ4FrameCompressorBuilder};
-
 #[derive(Debug)]
 pub enum LZ4Error {
     LZ4(&'static str),
