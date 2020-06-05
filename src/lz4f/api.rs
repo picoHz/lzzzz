@@ -8,7 +8,7 @@ use super::{binding, BlockChecksum, BlockMode, BlockSize, ContentChecksum};
 use crate::{LZ4Error, Result};
 
 use libc::{c_int, c_uint, c_ulonglong, c_void, size_t};
-use std::ffi::CStr;
+use std::{ffi::CStr, sync::atomic::AtomicPtr};
 
 pub const HEADER_SIZE_MIN: usize = 7;
 pub const HEADER_SIZE_MAX: usize = 19;
@@ -186,3 +186,5 @@ impl Drop for CompressionContext {
         }
     }
 }
+
+pub struct DictionaryHandle(AtomicPtr<()>);

@@ -4,9 +4,9 @@ pub mod api;
 mod binding;
 
 use crate::Result;
-use api::{CompressionContext, Preferences, HEADER_SIZE_MAX};
+use api::{CompressionContext, DictionaryHandle, Preferences, HEADER_SIZE_MAX};
 use libc::{c_int, c_uint, c_ulonglong};
-use std::{cmp, io};
+use std::{cmp, io, sync::Arc};
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 #[repr(C)]
@@ -53,18 +53,17 @@ pub enum BlockChecksum {
     Enabled = 1,
 }
 
-#[derive(Debug, Default, Copy, Clone)]
+#[derive(Default, Clone)]
 /// LZ4 Frame Compressor Builder
 pub struct LZ4FrameCompressorBuilder {
     pref: Preferences,
+    dict: Option<Dictionary>,
 }
 
 impl LZ4FrameCompressorBuilder {
     /// Create a new `LZ4FrameCompressorBuilder` instance with the default configuration.
     pub fn new() -> Self {
-        Self {
-            pref: Preferences::default(),
-        }
+        Default::default()
     }
 
     /// Set the block size.
@@ -107,9 +106,10 @@ impl LZ4FrameCompressorBuilder {
         self
     }
 
-    /// Set the dictionary ID.
-    pub fn dict_id(mut self, id: u32) -> Self {
-        self.pref.frame_info.dict_id = id as c_uint;
+    /// Set the dictionary and the dictionary ID.
+    pub fn dictionary(mut self, dict: Dictionary, dict_id: u32) -> Self {
+        self.pref.frame_info.dict_id = dict_id as c_uint;
+        self.dict = Some(dict);
         self
     }
 
@@ -227,4 +227,16 @@ impl<W: io::Write> Drop for LZ4FrameCompressor<W> {
     fn drop(&mut self) {
         let _ = self.finalize();
     }
+}
+
+/// Dictionary
+///
+/// A `Dictionary` can be shared by multiple threads safely.
+#[derive(Clone)]
+pub struct Dictionary {
+    dict: Arc<DictionaryHandle>,
+}
+
+impl Dictionary {
+    pub fn new(data: &[u8]) {}
 }
