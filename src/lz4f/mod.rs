@@ -1,4 +1,62 @@
 //! LZ4 Frame Compressor/Decompressor
+//! 
+//! # Examples
+//!
+//! Write the compressed `"Hello world!"` to `foo.lz4`.
+//!
+//! ```
+//! use lzzzz::lz4f::{BlockSize, FrameCompressorBuilder};
+//! use std::{fs::File, io::prelude::*};
+//!
+//! fn main() -> std::io::Result<()> {
+//!     let mut output = File::create("foo.lz4")?;
+//!     let mut comp = FrameCompressorBuilder::new()
+//!         .block_size(BlockSize::Max1MB)
+//!         .build(&mut output)?;
+//!
+//!     writeln!(comp, "Hello world!")
+//! }
+//! ```
+//!
+//! Read and compress data from a slice.
+//!
+//! ```
+//! use lzzzz::lz4f::{BlockSize, FrameCompressorBuilder};
+//! use std::io::prelude::*;
+//!
+//! fn main() -> std::io::Result<()> {
+//!     let input = b"Hello world!";
+//!     let mut comp = FrameCompressorBuilder::new()
+//!         .block_size(BlockSize::Max1MB)
+//!         .build(&input[..])?;
+//!     
+//!     let mut buffer = Vec::new();
+//!     comp.read_to_end(&mut buffer)?;
+//!     Ok(())
+//! }
+//! ```
+//! 
+//! Parallel compression with rayon.
+//!
+//! ```
+//! use lzzzz::lz4f::{BlockSize, FrameCompressorBuilder};
+//! use rayon::prelude::*;
+//! use std::io::prelude::*;
+//!
+//! let input: Vec<_> = (0..5).map(|n| format!("Hello world {}!", n)).collect();
+//! let builder = FrameCompressorBuilder::new().block_size(BlockSize::Max1MB);
+//!
+//! let result: Vec<std::io::Result<_>> = input
+//!     .into_par_iter()
+//!     .map_with(builder, |b, data| {
+//!         let mut buffer = Vec::new();
+//!         b.build(data.as_bytes())?.read_to_end(&mut buffer)?;
+//!         Ok(buffer)
+//!     })
+//!     .collect();
+//!
+//! println!("{:?}", result);
+//! ```
 
 pub mod api;
 mod binding;
@@ -165,64 +223,6 @@ enum State {
 }
 
 /// LZ4 Frame Compressor
-///
-/// # Examples
-///
-/// Write the compressed `"Hello world!"` to `foo.lz4`.
-///
-/// ```
-/// use lzzzz::lz4f::{BlockSize, FrameCompressorBuilder};
-/// use std::{fs::File, io::prelude::*};
-///
-/// fn main() -> std::io::Result<()> {
-///     let mut output = File::create("foo.lz4")?;
-///     let mut comp = FrameCompressorBuilder::new()
-///         .block_size(BlockSize::Max1MB)
-///         .build(&mut output)?;
-///
-///     writeln!(comp, "Hello world!")
-/// }
-/// ```
-///
-/// Read and compress data from a slice.
-///
-/// ```
-/// use lzzzz::lz4f::{BlockSize, FrameCompressorBuilder};
-/// use std::io::prelude::*;
-///
-/// fn main() -> std::io::Result<()> {
-///     let input = b"Hello world!";
-///     let mut comp = FrameCompressorBuilder::new()
-///         .block_size(BlockSize::Max1MB)
-///         .build(&input[..])?;
-///     
-///     let mut buffer = Vec::new();
-///     comp.read_to_end(&mut buffer)?;
-///     Ok(())
-/// }
-/// ```
-/// 
-/// Parallel compression with rayon.
-///
-/// ```
-/// use lzzzz::lz4f::{BlockSize, FrameCompressorBuilder};
-/// use rayon::prelude::*;
-/// use std::io::prelude::*;
-///
-/// let input: Vec<_> = (0..5).map(|n| format!("Hello world {}!", n)).collect();
-/// let builder = FrameCompressorBuilder::new().block_size(BlockSize::Max1MB);
-///
-/// let result: Vec<std::io::Result<_>> = input
-///     .into_par_iter()
-///     .map_with(builder, |b, data| {
-///         let mut buffer = Vec::new();
-///         b.build(data.as_bytes())?.read_to_end(&mut buffer)?;
-///         Ok(buffer)
-///     })
-///     .collect();
-///
-/// println!("{:?}", result);
-/// ```
 pub struct FrameCompressor<D> {
     pref: Preferences,
     ctx: CompressionContext,
