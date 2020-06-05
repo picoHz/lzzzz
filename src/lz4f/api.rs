@@ -193,7 +193,7 @@ impl Drop for CompressionContext {
     }
 }
 
-pub struct DictionaryHandle(NonNull<u8>);
+pub(crate) struct DictionaryHandle(NonNull<u8>);
 
 unsafe impl Send for DictionaryHandle {}
 unsafe impl Sync for DictionaryHandle {}
