@@ -159,7 +159,6 @@ enum State {
     WriteActive,
     WriteFinalized,
     ReadActive,
-    ReadFinalized,
 }
 
 /// LZ4 Frame Compressor
@@ -266,7 +265,7 @@ impl<D: io::Write> FrameCompressor<D> {
 
     fn ensure_write(&self) {
         match self.state {
-            State::ReadActive | State::ReadFinalized => panic!("Read operations are not permitted"),
+            State::ReadActive => panic!("Read operations are not permitted"),
             _ => (),
         }
     }
