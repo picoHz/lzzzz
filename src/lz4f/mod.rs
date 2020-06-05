@@ -3,7 +3,7 @@
 pub mod api;
 mod binding;
 
-use crate::Result;
+use crate::{LZ4Error, Result};
 use api::{CompressionContext, DictionaryHandle, Preferences, HEADER_SIZE_MAX};
 use libc::{c_int, c_uint, c_ulonglong};
 use std::{cmp, io, sync::Arc};
@@ -294,6 +294,10 @@ impl<D: io::Write> io::Write for FrameCompressor<D> {
 }
 
 impl<D: io::Read> FrameCompressor<D> {
+    pub fn required_buffer_size(&self, read_size: usize) -> usize {
+        CompressionContext::compress_bound(read_size, Some(&self.pref)) as usize
+    }
+
     fn ensure_read(&self) {
         match self.state {
             State::WriteActive | State::WriteFinalized => {
@@ -303,26 +307,34 @@ impl<D: io::Read> FrameCompressor<D> {
         }
     }
 
-    fn resize_buffer(&mut self, dst_size: usize) {
-        if dst_size < self.prev_size {
-            let len = CompressionContext::compress_bound(8, Some(&self.pref));
-            if len > self.buffer.len() {
-                self.buffer.reserve(len - self.buffer.len());
-            }
+    fn resize_buffer(&mut self, dst_size: usize) -> Result<()> {
+        if self.prev_size == 0 || dst_size < self.prev_size {
+            let len = (7..)
+                .map(|n| 1 << n)
+                .find(|size| self.required_buffer_size(*size << 1) > dst_size)
+                .filter(|len| *len > (1 << 7));
+            if let Some(len) = len {
+                if len > self.buffer.len() {
+                    self.buffer.reserve(len - self.buffer.len());
+                }
 
-            #[allow(unsafe_code)]
-            unsafe {
-                self.buffer.set_len(len)
-            };
-            self.prev_size = dst_size;
+                #[allow(unsafe_code)]
+                unsafe {
+                    self.buffer.set_len(len)
+                };
+                self.prev_size = dst_size;
+            } else {
+                return Err(LZ4Error::from("too small buffer"));
+            }
         }
+        Ok(())
     }
 }
 
 impl<D: io::Read> io::Read for FrameCompressor<D> {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         self.ensure_read();
-        self.resize_buffer(buf.len());
+        self.resize_buffer(buf.len())?;
         let header_len = if let State::Created = self.state {
             self.state = State::ReadActive;
             self.ctx.begin(buf, Some(&self.pref))?
@@ -404,5 +416,26 @@ pub struct Dictionary(Arc<DictionaryHandle>);
 impl Dictionary {
     pub fn new(data: &[u8]) -> Self {
         Self(Arc::new(DictionaryHandle::new(data)))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn call_c_api() {
+        use crate::lz4f::{BlockSize, FrameCompressorBuilder};
+        use std::{fs::File, io::prelude::*};
+
+        fn main() -> std::io::Result<()> {
+            let mut input = File::open("foo.txt")?;
+            let mut comp = FrameCompressorBuilder::new()
+                .block_size(BlockSize::Max1MB)
+                .build(&mut input)?;
+
+            let mut buffer = Vec::new();
+            comp.read_to_end(&mut buffer)?;
+            Ok(())
+        }
+        main();
     }
 }
