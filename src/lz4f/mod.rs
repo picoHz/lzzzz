@@ -60,7 +60,7 @@
 pub mod api;
 mod binding;
 
-use crate::{LZ4Error, Result};
+use crate::Result;
 use api::{CompressionContext, DictionaryHandle, Preferences, HEADER_SIZE_MAX};
 use libc::{c_int, c_uint, c_ulonglong};
 use std::{cmp, io, ops, sync::Arc};
@@ -214,23 +214,25 @@ impl FrameCompressorBuilder {
     }
 }
 
-enum State {
+enum State<D> {
     Created,
-    WriteActive,
+    WriteActive {
+        finalizer: fn(&mut FrameCompressor<D>) -> Result<()>,
+    },
     WriteFinalized,
-    ReadActive,
+    ReadActive {
+        buffered: ops::Range<usize>,
+    },
 }
 
 /// LZ4 Frame Compressor
 pub struct FrameCompressor<D> {
     pref: Preferences,
     ctx: CompressionContext,
-    buffer: Vec<u8>,
     device: D,
-    state: State,
+    state: State<D>,
+    buffer: Vec<u8>,
     prev_size: usize,
-    buffered: ops::Range<usize>,
-    finalizer: Option<fn(&mut Self) -> Result<()>>,
 }
 
 impl<D> FrameCompressor<D> {
@@ -238,12 +240,10 @@ impl<D> FrameCompressor<D> {
         Ok(Self {
             pref,
             ctx: CompressionContext::new()?,
-            buffer: Vec::new(),
             device,
             state: State::Created,
+            buffer: Vec::new(),
             prev_size: 0,
-            buffered: 0..0,
-            finalizer: None,
         })
     }
 
@@ -276,7 +276,7 @@ impl<D: io::Write> FrameCompressor<D> {
     fn finalize_write(&mut self) -> Result<()> {
         self.ensure_write();
         match self.state {
-            State::WriteActive => {
+            State::WriteActive { .. } => {
                 self.state = State::WriteFinalized;
                 let len = self.ctx.end(&mut self.buffer, None)?;
                 self.device.write_all(&self.buffer[..len])?;
@@ -288,7 +288,7 @@ impl<D: io::Write> FrameCompressor<D> {
     }
 
     fn ensure_write(&self) {
-        if let State::ReadActive = self.state {
+        if let State::ReadActive { .. } = self.state {
             panic!("Read operations are not permitted")
         }
     }
@@ -299,8 +299,9 @@ impl<D: io::Write> io::Write for FrameCompressor<D> {
         self.ensure_write();
         self.grow_buffer(src.len());
         if let State::Created = self.state {
-            self.finalizer = Some(Self::finalize_write);
-            self.state = State::WriteActive;
+            self.state = State::WriteActive {
+                finalizer: FrameCompressor::<D>::finalize_write,
+            };
             let len = self.ctx.begin(&mut self.buffer, Some(&self.pref))?;
             self.device.write(&self.buffer[..len])?;
         }
@@ -320,7 +321,7 @@ impl<D: io::Write> io::Write for FrameCompressor<D> {
 impl<D: io::Read> FrameCompressor<D> {
     fn ensure_read(&self) {
         match self.state {
-            State::WriteActive | State::WriteFinalized => {
+            State::WriteActive { .. } | State::WriteFinalized => {
                 panic!("Write operations are not permitted")
             }
             _ => (),
@@ -332,22 +333,26 @@ impl<D: io::Read> io::Read for FrameCompressor<D> {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         self.ensure_read();
 
-        let len = self.buffered.end - self.buffered.start;
-        if len > 0 {
-            let min_len = cmp::min(len, buf.len());
-            buf[..min_len]
-                .copy_from_slice(&self.buffer[self.buffered.start..self.buffered.start + min_len]);
-            self.buffered = if min_len < len {
-                self.buffered.start + min_len..self.buffered.end
-            } else {
-                0..0
-            };
-            return Ok(min_len);
+        if let State::ReadActive { buffered } = &self.state {
+            let len = buffered.end - buffered.start;
+            if len > 0 {
+                let min_len = cmp::min(len, buf.len());
+                buf[..min_len]
+                    .copy_from_slice(&self.buffer[buffered.start..buffered.start + min_len]);
+                self.state = State::ReadActive {
+                    buffered: if min_len < len {
+                        buffered.start + min_len..buffered.end
+                    } else {
+                        0..0
+                    },
+                };
+                return Ok(min_len);
+            }
         }
 
         let mut tmp = [0u8; 2048];
         let header_len = if let State::Created = self.state {
-            self.state = State::ReadActive;
+            self.state = State::ReadActive { buffered: 0..0 };
             self.grow_buffer(0);
             self.ctx.begin(&mut self.buffer, Some(&self.pref))?
         } else {
@@ -366,7 +371,9 @@ impl<D: io::Read> io::Read for FrameCompressor<D> {
         let min_len = cmp::min(len, buf.len());
         buf[..min_len].copy_from_slice(&self.buffer[..min_len]);
         if min_len < len {
-            self.buffered = min_len..len;
+            self.state = State::ReadActive {
+                buffered: min_len..len,
+            };
         }
         Ok(min_len)
     }
@@ -374,9 +381,12 @@ impl<D: io::Read> io::Read for FrameCompressor<D> {
 
 impl<D> Drop for FrameCompressor<D> {
     fn drop(&mut self) {
-        if let Some(finalizer) = self.finalizer {
-            let _ = (finalizer)(self);
-        }
+        let finalizer = if let State::WriteActive { finalizer } = &self.state {
+            finalizer
+        } else {
+            return;
+        };
+        let _ = (finalizer)(self);
     }
 }
 
