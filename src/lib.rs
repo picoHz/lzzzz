@@ -1,7 +1,6 @@
 #![deny(unsafe_code)]
 
-pub mod lz4f;
-pub(crate) mod sys;
+pub mod api;
 
 use std::fmt;
 use std::io;

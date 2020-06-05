@@ -1,6 +1,6 @@
 #![allow(unsafe_code)]
 
-use super::binding;
+mod binding;
 use crate::{Result, LZ4Error};
 
 use libc::{c_int, c_uint, c_ulonglong, c_void, size_t};

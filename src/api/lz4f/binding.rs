@@ -1,6 +1,4 @@
-#![allow(unsafe_code)]
-
-use super::api::{CompressionOptions, Preferences};
+use super::{CompressionOptions, Preferences};
 use libc::{c_char, c_uint, c_void, size_t};
 
 #[repr(C)]

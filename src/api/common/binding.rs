@@ -1,5 +1,3 @@
-#![allow(unsafe_code)]
-
 use libc::c_int;
 
 #[link(name = "lz4")]
