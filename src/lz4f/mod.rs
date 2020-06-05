@@ -25,7 +25,7 @@
 //! use std::io::prelude::*;
 //!
 //! fn main() -> std::io::Result<()> {
-//!     let input = b"Hello world!";
+//!     let input = b"Goodnight world!";
 //!     let mut comp = FrameCompressorBuilder::new()
 //!         .block_size(BlockSize::Max1MB)
 //!         .build(&input[..])?;
@@ -36,26 +36,25 @@
 //! }
 //! ```
 //!
-//! Parallel compression with rayon.
+//! Parallelly count and compress sheep with rayon.
 //!
 //! ```
 //! use lzzzz::lz4f::{BlockSize, FrameCompressorBuilder};
 //! use rayon::prelude::*;
 //! use std::io::prelude::*;
 //!
-//! let input: Vec<_> = (0..5).map(|n| format!("Hello world {}!", n)).collect();
 //! let builder = FrameCompressorBuilder::new().block_size(BlockSize::Max1MB);
-//!
-//! let result: Vec<std::io::Result<_>> = input
+//! let all_ok = (1..100)
 //!     .into_par_iter()
-//!     .map_with(builder, |b, data| {
+//!     .map(|n| format!("{} 🐑...", n))
+//!     .map_with(builder, |b, data| -> std::io::Result<_> {
 //!         let mut buffer = Vec::new();
 //!         b.build(data.as_bytes())?.read_to_end(&mut buffer)?;
 //!         Ok(buffer)
 //!     })
-//!     .collect();
+//!     .all(|r| r.is_ok());
 //!
-//! println!("{:?}", result);
+//! assert!(all_ok);
 //! ```
 
 pub mod api;
