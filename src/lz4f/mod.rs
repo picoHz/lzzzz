@@ -440,3 +440,27 @@ impl Dictionary {
         Self(Arc::new(DictionaryHandle::new(data)))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::CompressionLevel;
+    use rand::{distributions::Standard, rngs::SmallRng, Rng, SeedableRng};
+    use rayon::prelude::*;
+
+    #[test]
+    fn parallel_compression() {
+        let all_ok = (0..4095usize)
+            .into_par_iter()
+            .map(|n| {
+                let mut rng = SmallRng::seed_from_u64(n as u64);
+                let level = CompressionLevel::Custom(rng.gen_range(
+                    -CompressionLevel::Max.as_i32(),
+                    CompressionLevel::Max.as_i32(),
+                ));
+                let data: Vec<u8> = rng.sample_iter(Standard).take(n).collect();
+                super::compress(&data, level)
+            })
+            .all(|r| r.is_ok());
+        assert!(all_ok);
+    }
+}
