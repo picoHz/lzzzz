@@ -5,7 +5,7 @@ fn main() -> Result<(), Error> {
         .files(
             globwalk::glob("vendor/liblz4/lib/**/*.c")?
                 .filter_map(Result::ok)
-                .map(|entry| entry.into_path())
+                .map(globwalk::DirEntry::into_path)
                 .inspect(|path| println!("cargo:rerun-if-changed={}", path.display())),
         )
         .try_compile("lz4")
