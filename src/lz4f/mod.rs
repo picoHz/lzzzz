@@ -457,7 +457,7 @@ mod tests {
                     -CompressionLevel::Max.as_i32(),
                     CompressionLevel::Max.as_i32(),
                 ));
-                let data: Vec<u8> = rng.sample_iter(Standard).take(n).collect();
+                let data: Vec<_> = rng.sample_iter(Standard).take(n).collect();
                 super::compress(&data, level)
             })
             .all(|r| r.is_ok());
