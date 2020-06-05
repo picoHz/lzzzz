@@ -8,14 +8,14 @@ use api::{CompressionContext, DictionaryHandle, Preferences, HEADER_SIZE_MAX};
 use libc::{c_int, c_uint, c_ulonglong};
 use std::{cmp, io, sync::Arc};
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-#[repr(C)]
 /// Compression block size
 ///
 /// **From lz4frame.h:**
 /// The larger the block size, the (slightly) better the compression ratio,
 /// though there are diminishing returns.
 /// Larger blocks also increase memory usage on both compression and decompression sides.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[repr(C)]
 pub enum BlockSize {
     Default = 0,
     Max64KB = 4,
@@ -24,31 +24,54 @@ pub enum BlockSize {
     Max4MB = 7,
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-#[repr(C)]
 /// Compression block mode
 ///
 /// **From lz4frame.h:**
 /// Linked blocks sharply reduce inefficiencies when using small blocks,
 /// they compress better.
 /// However, some LZ4 decoders are only compatible with independent blocks.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[repr(C)]
 pub enum BlockMode {
     Linked = 0,
     Independent = 1,
 }
 
+/// Compression content checksum
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 #[repr(C)]
-/// Compression content checksum
 pub enum ContentChecksum {
     Disabled = 0,
     Enabled = 1,
 }
 
+/// Compression block checksum
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 #[repr(C)]
-/// Compression block checksum
 pub enum BlockChecksum {
+    Disabled = 0,
+    Enabled = 1,
+}
+
+/// Auto flush flag
+///
+/// **From lz4frame.h:**
+/// 1: always flush; reduces usage of internal buffers
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[repr(C)]
+pub enum AutoFlush {
+    Disabled = 0,
+    Enabled = 1,
+}
+
+/// Decompression speed flag
+///
+/// **From lz4frame.h:**
+/// 1: parser favors decompression speed vs compression ratio.
+/// Only works for high compression modes (>= LZ4HC_CLEVEL_OPT_MIN)
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[repr(C)]
+pub enum PreferDecSpeed {
     Disabled = 0,
     Enabled = 1,
 }
@@ -103,6 +126,18 @@ impl LZ4FrameCompressorBuilder {
     /// values < 0 trigger "fast acceleration"
     pub fn compression_level(mut self, level: i32) -> Self {
         self.pref.compression_level = level as c_int;
+        self
+    }
+
+    /// Set the decompression speed mode flag.
+    pub fn favor_dec_speed(mut self, dec_speed: PreferDecSpeed) -> Self {
+        self.pref.favor_dec_speed = dec_speed;
+        self
+    }
+
+    /// Set the auto flush flag.
+    pub fn auto_flush(mut self, auto_flush: AutoFlush) -> Self {
+        self.pref.auto_flush = auto_flush;
         self
     }
 
@@ -233,10 +268,10 @@ impl<W: io::Write> Drop for LZ4FrameCompressor<W> {
 ///
 /// A `Dictionary` can be shared by multiple threads safely.
 #[derive(Clone)]
-pub struct Dictionary {
-    dict: Arc<DictionaryHandle>,
-}
+pub struct Dictionary(Arc<DictionaryHandle>);
 
 impl Dictionary {
-    pub fn new(data: &[u8]) {}
+    pub fn new(data: &[u8]) -> Self {
+        Self(Arc::new(DictionaryHandle::new(data)))
+    }
 }

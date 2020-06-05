@@ -4,11 +4,13 @@
 
 #![allow(unsafe_code)]
 
-use super::{binding, BlockChecksum, BlockMode, BlockSize, ContentChecksum};
+use super::{
+    binding, AutoFlush, BlockChecksum, BlockMode, BlockSize, ContentChecksum, PreferDecSpeed,
+};
 use crate::{LZ4Error, Result};
 
 use libc::{c_int, c_uint, c_ulonglong, c_void, size_t};
-use std::{ffi::CStr, sync::atomic::AtomicPtr};
+use std::ffi::CStr;
 
 pub const HEADER_SIZE_MIN: usize = 7;
 pub const HEADER_SIZE_MAX: usize = 19;
@@ -52,8 +54,8 @@ impl Default for FrameInfo {
 pub struct Preferences {
     pub frame_info: FrameInfo,
     pub compression_level: c_int,
-    pub auto_flush: c_uint,
-    pub favor_dec_speed: c_uint,
+    pub auto_flush: AutoFlush,
+    pub favor_dec_speed: PreferDecSpeed,
     pub _reserved: [c_uint; 3],
 }
 
@@ -187,4 +189,13 @@ impl Drop for CompressionContext {
     }
 }
 
-pub struct DictionaryHandle(AtomicPtr<()>);
+pub struct DictionaryHandle(*mut ());
+
+unsafe impl Send for DictionaryHandle {}
+unsafe impl Sync for DictionaryHandle {}
+
+impl DictionaryHandle {
+    pub fn new(data: &[u8]) -> Self {
+        todo!();
+    }
+}

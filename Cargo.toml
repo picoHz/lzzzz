@@ -8,7 +8,9 @@ include = ["src/**/*", "build.rs", "vendor/liblz4/lib/*", "Cargo.toml"]
 [dependencies]
 libc = "0.2.71"
 
+[dev-dependencies]
+rayon = "1.3.0"
+
 [build-dependencies]
 cc = "1.0.54"
 globwalk = "0.8.0"
-
