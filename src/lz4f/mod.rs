@@ -181,17 +181,17 @@ enum State {
 /// }
 /// ```
 ///
-/// Read and compress data from `foo.txt`.
+/// Read and compress data from a slice.
 ///
 /// ```
 /// use lzzzz::lz4f::{BlockSize, FrameCompressorBuilder};
-/// use std::{fs::File, io::prelude::*};
+/// use std::io::prelude::*;
 ///
 /// fn main() -> std::io::Result<()> {
-///     let mut input = File::open("foo.txt")?;
+///     let input = b"Hello world!";
 ///     let mut comp = FrameCompressorBuilder::new()
 ///         .block_size(BlockSize::Max1MB)
-///         .build(&mut input)?;
+///         .build(&input[..])?;
 ///     
 ///     let mut buffer = Vec::new();
 ///     comp.read_to_end(&mut buffer)?;
