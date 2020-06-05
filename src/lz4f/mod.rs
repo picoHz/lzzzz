@@ -53,12 +53,6 @@ pub enum BlockChecksum {
     Enabled = 1,
 }
 
-enum State {
-    Created,
-    Initialized,
-    Finalized,
-}
-
 #[derive(Debug, Default, Copy, Clone)]
 pub struct LZ4FrameCompressorBuilder {
     pref: Preferences,
@@ -123,6 +117,12 @@ impl LZ4FrameCompressorBuilder {
     pub fn build<W: io::Write>(self, writer: W) -> Result<LZ4FrameCompressor<W>> {
         LZ4FrameCompressor::new(writer, self.pref)
     }
+}
+
+enum State {
+    Created,
+    Active,
+    Finalized,
 }
 
 /// LZ4 Frame Compressor
@@ -191,10 +191,11 @@ impl<W: io::Write> LZ4FrameCompressor<W> {
 
     fn finalize(&mut self) -> Result<()> {
         match self.state {
-            State::Initialized => {
+            State::Active => {
                 self.state = State::Finalized;
                 let len = self.ctx.end(&mut self.buffer, None)?;
                 self.writer.write_all(&self.buffer[..len])?;
+                self.writer.flush()?;
                 Ok(())
             }
             State::Finalized => unreachable!(),
@@ -207,7 +208,7 @@ impl<W: io::Write> io::Write for LZ4FrameCompressor<W> {
     fn write(&mut self, src: &[u8]) -> io::Result<usize> {
         self.grow_buffer(src.len());
         if let State::Created = self.state {
-            self.state = State::Initialized;
+            self.state = State::Active;
             let len = self.ctx.begin(&mut self.buffer, Some(&self.pref))?;
             self.writer.write(&self.buffer[..len])?;
         }
