@@ -330,31 +330,27 @@ impl<D: io::Read> io::Read for FrameCompressor<D> {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         self.ensure_read();
 
-        if let State::ReadActive { buffered } = &self.state {
-            let len = buffered.end - buffered.start;
-            if len > 0 {
-                let min_len = cmp::min(len, buf.len());
-                buf[..min_len]
-                    .copy_from_slice(&self.buffer[buffered.start..buffered.start + min_len]);
-                self.state = State::ReadActive {
-                    buffered: if min_len < len {
-                        buffered.start + min_len..buffered.end
-                    } else {
-                        0..0
-                    },
-                };
-                return Ok(min_len);
-            }
-        }
-
-        let mut tmp = [0u8; 2048];
         let header_len = if let State::Created = self.state {
             self.state = State::ReadActive { buffered: 0..0 };
             self.grow_buffer(0);
             self.ctx.begin(&mut self.buffer, Some(&self.pref))?
+        } else if let State::ReadActive { buffered } = &self.state {
+            let len = buffered.end - buffered.start;
+            let min_len = cmp::min(len, buf.len());
+            buf[..min_len].copy_from_slice(&self.buffer[buffered.start..buffered.start + min_len]);
+            self.state = State::ReadActive {
+                buffered: if min_len < len {
+                    buffered.start + min_len..buffered.end
+                } else {
+                    0..0
+                },
+            };
+            return Ok(min_len);
         } else {
             0
         };
+
+        let mut tmp = [0u8; 2048];
         let len = self.device.read(&mut tmp[..])?;
         self.grow_buffer(len);
 
