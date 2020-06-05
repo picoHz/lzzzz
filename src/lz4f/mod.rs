@@ -275,16 +275,13 @@ impl<D: io::Write> FrameCompressor<D> {
 
     fn finalize_write(&mut self) -> Result<()> {
         self.ensure_write();
-        match self.state {
-            State::WriteActive { .. } => {
-                self.state = State::WriteFinalized;
-                let len = self.ctx.end(&mut self.buffer, None)?;
-                self.device.write_all(&self.buffer[..len])?;
-                self.device.flush()?;
-                Ok(())
-            }
-            _ => Ok(()),
+        if let State::WriteActive { .. } = &self.state {
+            self.state = State::WriteFinalized;
+            let len = self.ctx.end(&mut self.buffer, None)?;
+            self.device.write_all(&self.buffer[..len])?;
+            self.device.flush()?;
         }
+        Ok(())
     }
 
     fn ensure_write(&self) {
