@@ -7,6 +7,7 @@ keywords = ["lz4", "lz4f", "lz4-hc", "compression", "decompression"]
 categories = ["compression", "api-bindings"]
 repository = "https://github.com/picoHz/lzzzz"
 homepage = "https://github.com/picoHz/lzzzz"
+documentation = "https://docs.rs/lzzzz"
 include = ["src/**/*", "build.rs", "vendor/liblz4/lib/*", "Cargo.toml"]
 
 [dependencies]
