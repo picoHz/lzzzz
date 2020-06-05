@@ -265,6 +265,17 @@ impl<W: io::Write> Drop for FrameCompressor<W> {
     }
 }
 
+pub fn compress(data: &[u8], compression_level: i32) -> Result<Vec<u8>> {
+    use std::io::Write;
+    let mut buf = Vec::new();
+    let mut comp = FrameCompressorBuilder::new()
+        .compression_level(compression_level)
+        .build(&mut buf)?;
+    comp.write_all(data)?;
+    comp.end()?;
+    Ok(buf)
+}
+
 /// Dictionary
 ///
 /// A `Dictionary` can be shared by multiple threads safely.
