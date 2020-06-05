@@ -264,6 +264,20 @@ impl<W: io::Write> Drop for FrameCompressor<W> {
     }
 }
 
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum CompressionLevel {
+    Accelerated = -1,
+    Default = 0,
+    High = 10,
+    Max = 12,
+}
+
+impl Default for CompressionLevel {
+    fn default() -> Self {
+        Self::Default
+    }
+}
+
 /// Compress a buffer into a `Vec<u8>`
 ///
 /// # Examples
@@ -271,14 +285,14 @@ impl<W: io::Write> Drop for FrameCompressor<W> {
 /// ```
 /// use lzzzz::lz4f;
 ///
-/// let compressed = lz4f::compress(b"Hello world!", 0);
+/// let compressed = lz4f::compress(b"Hello world!", lz4f::CompressionLevel::Default);
 /// println!("{:?}", compressed);
 /// ```
-pub fn compress(data: &[u8], compression_level: i32) -> Result<Vec<u8>> {
+pub fn compress(data: &[u8], compression_level: CompressionLevel) -> Result<Vec<u8>> {
     use std::io::Write;
     let mut buf = Vec::new();
     let mut comp = FrameCompressorBuilder::new()
-        .compression_level(compression_level)
+        .compression_level(compression_level as i32)
         .build(&mut buf)?;
     comp.write_all(data)?;
     comp.end()?;
