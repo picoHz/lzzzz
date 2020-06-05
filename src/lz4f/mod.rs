@@ -254,7 +254,8 @@ impl<W: io::Write> io::Write for LZ4FrameCompressor<W> {
 
     fn flush(&mut self) -> io::Result<()> {
         let len = self.ctx.flush(&mut self.buffer, None)?;
-        self.writer.write_all(&self.buffer[..len])
+        self.writer.write_all(&self.buffer[..len])?;
+        self.writer.flush()
     }
 }
 
