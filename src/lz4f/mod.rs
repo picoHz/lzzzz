@@ -124,8 +124,8 @@ impl FrameCompressorBuilder {
     /// **From lz4frame.h:**
     /// 0: default (fast mode); values > LZ4HC_CLEVEL_MAX count as LZ4HC_CLEVEL_MAX;
     /// values < 0 trigger "fast acceleration"
-    pub fn compression_level(mut self, level: i32) -> Self {
-        self.pref.compression_level = level as c_int;
+    pub fn compression_level(mut self, level: CompressionLevel) -> Self {
+        self.pref.compression_level = level.as_i32() as c_int;
         self
     }
 
