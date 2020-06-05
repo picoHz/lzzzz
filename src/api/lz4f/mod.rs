@@ -1,7 +1,7 @@
 #![allow(unsafe_code)]
 
 mod binding;
-use crate::{Result, LZ4Error};
+use crate::{LZ4Error, Result};
 
 use libc::{c_int, c_uint, c_ulonglong, c_void, size_t};
 use std::ffi::CStr;
@@ -47,13 +47,13 @@ pub enum FrameType {
 #[derive(Debug, Copy, Clone)]
 #[repr(C)]
 pub struct FrameInfo {
-    block_size: BlockSize,
-    block_mode: BlockMode,
-    content_checksum: ContentChecksum,
-    frame_type: FrameType,
-    content_size: c_ulonglong,
-    dict_id: c_uint,
-    block_ckecksum: BlockChecksum,
+    pub block_size: BlockSize,
+    pub block_mode: BlockMode,
+    pub content_checksum: ContentChecksum,
+    pub frame_type: FrameType,
+    pub content_size: c_ulonglong,
+    pub dict_id: c_uint,
+    pub block_ckecksum: BlockChecksum,
 }
 
 impl Default for FrameInfo {
@@ -73,11 +73,11 @@ impl Default for FrameInfo {
 #[derive(Debug, Copy, Clone)]
 #[repr(C)]
 pub struct Preferences {
-    frame_info: FrameInfo,
-    compression_level: c_int,
-    auto_flush: c_uint,
-    favor_dec_speed: c_uint,
-    _reserved: [c_uint; 3],
+    pub frame_info: FrameInfo,
+    pub compression_level: c_int,
+    pub auto_flush: c_uint,
+    pub favor_dec_speed: c_uint,
+    pub _reserved: [c_uint; 3],
 }
 
 impl Default for Preferences {
@@ -95,8 +95,8 @@ impl Default for Preferences {
 #[derive(Debug, Copy, Clone)]
 #[repr(C)]
 pub struct CompressionOptions {
-    stable_src: c_uint,
-    _reserved: [c_uint; 3],
+    pub stable_src: c_uint,
+    pub _reserved: [c_uint; 3],
 }
 
 pub struct CompressionContext {
@@ -189,9 +189,11 @@ impl CompressionContext {
     fn make_result<T>(data: T, code: size_t) -> Result<T> {
         unsafe {
             if binding::LZ4F_isError(code) != 0 {
-                Err(LZ4Error::new(CStr::from_ptr(binding::LZ4F_getErrorName(code))
-                    .to_str()
-                    .map_err(|_| LZ4Error::new("Invalid UTF-8"))?))
+                Err(LZ4Error::new(
+                    CStr::from_ptr(binding::LZ4F_getErrorName(code))
+                        .to_str()
+                        .map_err(|_| LZ4Error::new("Invalid UTF-8"))?,
+                ))
             } else {
                 Ok(data)
             }
