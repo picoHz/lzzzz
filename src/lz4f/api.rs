@@ -17,7 +17,6 @@ pub const HEADER_SIZE_MAX: usize = 19;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 #[repr(C)]
-/// Compression frame type
 pub enum FrameType {
     Frame = 0,
     SkippableFrame = 1,
