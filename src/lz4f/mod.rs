@@ -149,7 +149,10 @@ impl FrameCompressorBuilder {
     }
 
     /// Create a new `FrameCompressor` instance with this configuration.
-    pub fn build<D>(self, device: D) -> Result<FrameCompressor<D>> {
+    ///
+    /// The `device` should implement either `Read` or `Write`,
+    /// or the returned `FrameCompressor` become useless.
+    pub fn build<D>(&self, device: D) -> Result<FrameCompressor<D>> {
         FrameCompressor::new(device, self.pref)
     }
 }
@@ -197,6 +200,28 @@ enum State {
 ///     comp.read_to_end(&mut buffer)?;
 ///     Ok(())
 /// }
+/// ```
+/// 
+/// Parallel compression with rayon.
+///
+/// ```
+/// use lzzzz::lz4f::{BlockSize, FrameCompressorBuilder};
+/// use rayon::prelude::*;
+/// use std::io::prelude::*;
+///
+/// let input: Vec<_> = (0..5).map(|n| format!("Hello world {}!", n)).collect();
+/// let builder = FrameCompressorBuilder::new().block_size(BlockSize::Max1MB);
+///
+/// let result: Vec<std::io::Result<_>> = input
+///     .into_par_iter()
+///     .map_with(builder, |b, data| {
+///         let mut buffer = Vec::new();
+///         b.build(data.as_bytes())?.read_to_end(&mut buffer)?;
+///         Ok(buffer)
+///     })
+///     .collect();
+///
+/// println!("{:?}", result);
 /// ```
 pub struct FrameCompressor<D> {
     pref: Preferences,
@@ -413,26 +438,5 @@ pub struct Dictionary(Arc<DictionaryHandle>);
 impl Dictionary {
     pub fn new(data: &[u8]) -> Self {
         Self(Arc::new(DictionaryHandle::new(data)))
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn call_c_api() {
-        use crate::lz4f::{BlockSize, FrameCompressorBuilder};
-        use std::{fs::File, io::prelude::*};
-
-        fn main() -> std::io::Result<()> {
-            let mut input = File::open("foo.txt")?;
-            let mut comp = FrameCompressorBuilder::new()
-                .block_size(BlockSize::Max1MB)
-                .build(&mut input)?;
-
-            let mut buffer = Vec::new();
-            comp.read_to_end(&mut buffer)?;
-            Ok(())
-        }
-        main();
     }
 }
