@@ -6,7 +6,7 @@ mod binding;
 use crate::{LZ4Error, Result};
 use api::{CompressionContext, DictionaryHandle, Preferences, HEADER_SIZE_MAX};
 use libc::{c_int, c_uint, c_ulonglong};
-use std::{cmp, io, sync::Arc};
+use std::{cmp, io, ops, sync::Arc};
 
 /// Compression block size
 ///
@@ -206,6 +206,7 @@ pub struct FrameCompressor<D> {
     device: D,
     state: State,
     prev_size: usize,
+    buffered: ops::Range<usize>,
     finalizer: Option<fn(&mut Self) -> Result<()>>,
 }
 
@@ -218,8 +219,25 @@ impl<D> FrameCompressor<D> {
             device,
             state: State::Created,
             prev_size: 0,
+            buffered: 0..0,
             finalizer: None,
         })
+    }
+
+    fn grow_buffer(&mut self, src_size: usize) {
+        if src_size == 0 || src_size > self.prev_size {
+            let len =
+                CompressionContext::compress_bound(src_size + HEADER_SIZE_MAX, Some(&self.pref));
+            if len > self.buffer.len() {
+                self.buffer.reserve(len - self.buffer.len());
+
+                #[allow(unsafe_code)]
+                unsafe {
+                    self.buffer.set_len(len)
+                };
+            }
+            self.prev_size = src_size;
+        }
     }
 }
 
@@ -250,22 +268,6 @@ impl<D: io::Write> FrameCompressor<D> {
         match self.state {
             State::ReadActive | State::ReadFinalized => panic!("Read operations are not permitted"),
             _ => (),
-        }
-    }
-
-    fn grow_buffer(&mut self, src_size: usize) {
-        if src_size > self.prev_size {
-            let len = CompressionContext::compress_bound(src_size, Some(&self.pref));
-            let len = cmp::max(len, HEADER_SIZE_MAX);
-            if len > self.buffer.len() {
-                self.buffer.reserve(len - self.buffer.len());
-
-                #[allow(unsafe_code)]
-                unsafe {
-                    self.buffer.set_len(len)
-                };
-            }
-            self.prev_size = src_size;
         }
     }
 }
@@ -334,21 +336,44 @@ impl<D: io::Read> FrameCompressor<D> {
 impl<D: io::Read> io::Read for FrameCompressor<D> {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         self.ensure_read();
-        self.resize_buffer(buf.len())?;
+
+        let len = self.buffered.end - self.buffered.start;
+        if len > 0 {
+            let min_len = cmp::min(len, buf.len());
+            buf[..min_len]
+                .copy_from_slice(&self.buffer[self.buffered.start..self.buffered.start + min_len]);
+            self.buffered = if min_len < len {
+                self.buffered.start + min_len..self.buffered.end
+            } else {
+                0..0
+            };
+            return Ok(min_len);
+        }
+
+        let mut tmp = [0u8; 2048];
         let header_len = if let State::Created = self.state {
             self.state = State::ReadActive;
-            self.ctx.begin(buf, Some(&self.pref))?
+            self.grow_buffer(0);
+            self.ctx.begin(&mut self.buffer, Some(&self.pref))?
         } else {
             0
         };
-        let len = self.device.read(&mut self.buffer)?;
+        let len = self.device.read(&mut tmp[..])?;
+        self.grow_buffer(len);
+
         let len = if len == 0 {
-            self.ctx.flush(&mut buf[header_len..], None)?
+            self.ctx.flush(&mut self.buffer[header_len..], None)?
         } else {
             self.ctx
-                .update(&mut buf[header_len..], &self.buffer[..len], None)?
+                .update(&mut self.buffer[header_len..], &tmp[..len], None)?
         };
-        Ok(header_len + len)
+        let len = header_len + len;
+        let min_len = cmp::min(len, buf.len());
+        buf[..min_len].copy_from_slice(&self.buffer[..min_len]);
+        if min_len < len {
+            self.buffered = min_len..len;
+        }
+        Ok(min_len)
     }
 }
 
