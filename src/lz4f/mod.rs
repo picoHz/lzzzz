@@ -267,7 +267,7 @@ impl<W: io::Write> Drop for FrameCompressor<W> {
 /// Compression level.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum CompressionLevel {
-    Accelerated(u32),
+    Custom(i32),
     Default,
     High,
     Max,
@@ -276,7 +276,7 @@ pub enum CompressionLevel {
 impl CompressionLevel {
     fn as_i32(self) -> i32 {
         match self {
-            Self::Accelerated(level) => -(level as i32),
+            Self::Custom(level) => level,
             Self::Default => 0,
             Self::High => 10,
             Self::Max => 12,
