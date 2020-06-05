@@ -21,3 +21,4 @@ Sometimes, participants violating the Code of Conduct are unaware that their beh
 
 ---
 This statement is based on [p5.js Code of Conduct](https://github.com/processing/p5.js/blob/master/CODE_OF_CONDUCT.md).
+Licensed under [CC BY-SA 4.0](http://creativecommons.org/licenses/by-sa/4.0/).
