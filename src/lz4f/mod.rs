@@ -251,7 +251,7 @@ impl<D> FrameCompressor<D> {
     fn grow_buffer(&mut self, src_size: usize) {
         if src_size == 0 || src_size > self.prev_size {
             let len =
-                CompressionContext::compress_bound(src_size + HEADER_SIZE_MAX, Some(&self.pref));
+                CompressionContext::compress_bound(src_size, Some(&self.pref)) + HEADER_SIZE_MAX;
             if len > self.buffer.len() {
                 self.buffer.reserve(len - self.buffer.len());
 
@@ -289,9 +289,8 @@ impl<D: io::Write> FrameCompressor<D> {
     }
 
     fn ensure_write(&self) {
-        match self.state {
-            State::ReadActive => panic!("Read operations are not permitted"),
-            _ => (),
+        if let State::ReadActive = self.state {
+            panic!("Read operations are not permitted")
         }
     }
 }
