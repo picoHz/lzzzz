@@ -249,7 +249,7 @@ impl<D> FrameCompressor<D> {
     }
 
     fn grow_buffer(&mut self, src_size: usize) {
-        if src_size == 0 || src_size > self.prev_size {
+        if self.prev_size == 0 || src_size + 1 > self.prev_size {
             let len =
                 CompressionContext::compress_bound(src_size, Some(&self.pref)) + HEADER_SIZE_MAX;
             if len > self.buffer.len() {
@@ -260,7 +260,7 @@ impl<D> FrameCompressor<D> {
                     self.buffer.set_len(len)
                 };
             }
-            self.prev_size = src_size;
+            self.prev_size = src_size + 1;
         }
     }
 }
