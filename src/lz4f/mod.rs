@@ -149,15 +149,17 @@ impl FrameCompressorBuilder {
     }
 
     /// Create a new `FrameCompressor` instance with this configuration.
-    pub fn build<W: io::Write>(self, writer: W) -> Result<FrameCompressor<W>> {
-        FrameCompressor::new(writer, self.pref)
+    pub fn build<D>(self, device: D) -> Result<FrameCompressor<D>> {
+        FrameCompressor::new(device, self.pref)
     }
 }
 
 enum State {
     Created,
-    Active,
-    Finalized,
+    WriteActive,
+    WriteFinalized,
+    ReadActive,
+    ReadFinalized,
 }
 
 /// LZ4 Frame Compressor
@@ -179,37 +181,80 @@ enum State {
 ///     writeln!(comp, "Hello world!")
 /// }
 /// ```
-pub struct FrameCompressor<W: io::Write> {
+///
+/// Write the compressed `"Hello world!"` to `foo.lz4`.
+///
+/// ```
+/// use lzzzz::lz4f::{BlockSize, FrameCompressorBuilder};
+/// use std::{fs::File, io::prelude::*};
+///
+/// fn main() -> std::io::Result<()> {
+///     let mut input = File::open("foo.txt")?;
+///     let mut comp = FrameCompressorBuilder::new()
+///         .block_size(BlockSize::Max1MB)
+///         .build(&mut input)?;
+///     
+///     let mut buffer = Vec::new();
+///     comp.read_to_end(&mut buffer)?;
+///     Ok(())
+/// }
+/// ```
+pub struct FrameCompressor<D> {
     pref: Preferences,
     ctx: CompressionContext,
     buffer: Vec<u8>,
-    writer: W,
+    device: D,
     state: State,
-    prev_src_size: usize,
+    prev_size: usize,
+    finalizer: Option<fn(&mut Self) -> Result<()>>,
 }
 
-impl<W: io::Write> FrameCompressor<W> {
-    fn new(writer: W, pref: Preferences) -> Result<Self> {
+impl<D> FrameCompressor<D> {
+    fn new(device: D, pref: Preferences) -> Result<Self> {
         Ok(Self {
             pref,
             ctx: CompressionContext::new()?,
             buffer: Vec::new(),
-            writer,
+            device,
             state: State::Created,
-            prev_src_size: 0,
+            prev_size: 0,
+            finalizer: None,
         })
     }
+}
 
+impl<D: io::Write> FrameCompressor<D> {
     /// Finalize this LZ4 frame explicitly.
     ///
     /// Dropping a `FrameCompressor` automatically finalize a frame
     /// so you don't have to call this unless you need a `Result`.
     pub fn end(mut self) -> Result<()> {
-        self.finalize()
+        self.finalize_write()
+    }
+
+    fn finalize_write(&mut self) -> Result<()> {
+        self.ensure_write();
+        match self.state {
+            State::WriteActive => {
+                self.state = State::WriteFinalized;
+                let len = self.ctx.end(&mut self.buffer, None)?;
+                self.device.write_all(&self.buffer[..len])?;
+                self.device.flush()?;
+                Ok(())
+            }
+            _ => Ok(()),
+        }
+    }
+
+    fn ensure_write(&self) {
+        match self.state {
+            State::ReadActive | State::ReadFinalized => panic!("Read operations are not permitted"),
+            _ => (),
+        }
     }
 
     fn grow_buffer(&mut self, src_size: usize) {
-        if src_size > self.prev_src_size {
+        if src_size > self.prev_size {
             let len = CompressionContext::compress_bound(src_size, Some(&self.pref));
             let len = cmp::max(len, HEADER_SIZE_MAX);
             if len > self.buffer.len() {
@@ -220,47 +265,86 @@ impl<W: io::Write> FrameCompressor<W> {
                     self.buffer.set_len(len)
                 };
             }
-            self.prev_src_size = src_size;
-        }
-    }
-
-    fn finalize(&mut self) -> Result<()> {
-        match self.state {
-            State::Active => {
-                self.state = State::Finalized;
-                let len = self.ctx.end(&mut self.buffer, None)?;
-                self.writer.write_all(&self.buffer[..len])?;
-                self.writer.flush()?;
-                Ok(())
-            }
-            _ => Ok(()),
+            self.prev_size = src_size;
         }
     }
 }
 
-impl<W: io::Write> io::Write for FrameCompressor<W> {
+impl<D: io::Write> io::Write for FrameCompressor<D> {
     fn write(&mut self, src: &[u8]) -> io::Result<usize> {
+        self.ensure_write();
         self.grow_buffer(src.len());
         if let State::Created = self.state {
-            self.state = State::Active;
+            self.finalizer = Some(Self::finalize_write);
+            self.state = State::WriteActive;
             let len = self.ctx.begin(&mut self.buffer, Some(&self.pref))?;
-            self.writer.write(&self.buffer[..len])?;
+            self.device.write(&self.buffer[..len])?;
         }
         let len = self.ctx.update(&mut self.buffer, src, None)?;
-        self.writer.write(&self.buffer[..len])?;
+        self.device.write(&self.buffer[..len])?;
         Ok(src.len())
     }
 
     fn flush(&mut self) -> io::Result<()> {
+        self.ensure_write();
         let len = self.ctx.flush(&mut self.buffer, None)?;
-        self.writer.write_all(&self.buffer[..len])?;
-        self.writer.flush()
+        self.device.write_all(&self.buffer[..len])?;
+        self.device.flush()
     }
 }
 
-impl<W: io::Write> Drop for FrameCompressor<W> {
+impl<D: io::Read> FrameCompressor<D> {
+    fn ensure_read(&self) {
+        match self.state {
+            State::WriteActive | State::WriteFinalized => {
+                panic!("Write operations are not permitted")
+            }
+            _ => (),
+        }
+    }
+
+    fn resize_buffer(&mut self, dst_size: usize) {
+        if dst_size < self.prev_size {
+            let len = CompressionContext::compress_bound(8, Some(&self.pref));
+            if len > self.buffer.len() {
+                self.buffer.reserve(len - self.buffer.len());
+            }
+
+            #[allow(unsafe_code)]
+            unsafe {
+                self.buffer.set_len(len)
+            };
+            self.prev_size = dst_size;
+        }
+    }
+}
+
+impl<D: io::Read> io::Read for FrameCompressor<D> {
+    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+        self.ensure_read();
+        self.resize_buffer(buf.len());
+        let header_len = if let State::Created = self.state {
+            self.state = State::ReadActive;
+            self.ctx.begin(buf, Some(&self.pref))?
+        } else {
+            0
+        };
+        let len = self.device.read(&mut self.buffer)?;
+        let len = if len == 0 {
+            self.ctx.flush(&mut buf[header_len..], None)?
+        } else {
+            self.ctx
+                .update(&mut buf[header_len..], &self.buffer[..len], None)?
+        };
+        Ok(header_len + len)
+    }
+}
+
+impl<D> Drop for FrameCompressor<D> {
     fn drop(&mut self) {
-        let _ = self.finalize();
+        if let Some(finalizer) = self.finalizer {
+            let _ = (finalizer)(self);
+        }
     }
 }
 
@@ -304,7 +388,7 @@ pub fn compress(data: &[u8], compression_level: CompressionLevel) -> Result<Vec<
     use std::io::Write;
     let mut buf = Vec::new();
     let mut comp = FrameCompressorBuilder::new()
-        .compression_level(compression_level.as_i32())
+        .compression_level(compression_level)
         .build(&mut buf)?;
     comp.write_all(data)?;
     comp.end()?;
