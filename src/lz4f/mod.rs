@@ -264,12 +264,24 @@ impl<W: io::Write> Drop for FrameCompressor<W> {
     }
 }
 
+/// Compression level.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum CompressionLevel {
-    Accelerated = -1,
-    Default = 0,
-    High = 10,
-    Max = 12,
+    Accelerated(u32),
+    Default,
+    High,
+    Max,
+}
+
+impl CompressionLevel {
+    fn as_i32(self) -> i32 {
+        match self {
+            Self::Accelerated(level) => -(level as i32),
+            Self::Default => 0,
+            Self::High => 10,
+            Self::Max => 12,
+        }
+    }
 }
 
 impl Default for CompressionLevel {
@@ -292,7 +304,7 @@ pub fn compress(data: &[u8], compression_level: CompressionLevel) -> Result<Vec<
     use std::io::Write;
     let mut buf = Vec::new();
     let mut comp = FrameCompressorBuilder::new()
-        .compression_level(compression_level as i32)
+        .compression_level(compression_level.as_i32())
         .build(&mut buf)?;
     comp.write_all(data)?;
     comp.end()?;
