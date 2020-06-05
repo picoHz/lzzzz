@@ -10,7 +10,7 @@ use super::{
 use crate::{LZ4Error, Result};
 
 use libc::{c_int, c_uint, c_ulonglong, c_void, size_t};
-use std::ffi::CStr;
+use std::{ffi::CStr, ptr::NonNull};
 
 pub const HEADER_SIZE_MIN: usize = 7;
 pub const HEADER_SIZE_MAX: usize = 19;
@@ -64,8 +64,8 @@ impl Default for Preferences {
         Self {
             frame_info: FrameInfo::default(),
             compression_level: 0,
-            auto_flush: 0,
-            favor_dec_speed: 0,
+            auto_flush: AutoFlush::Disabled,
+            favor_dec_speed: PreferDecSpeed::Disabled,
             _reserved: [0; 3],
         }
     }
@@ -79,7 +79,7 @@ pub struct CompressionOptions {
 }
 
 pub struct CompressionContext {
-    ctx: *mut binding::CompressionContext,
+    ctx: NonNull<binding::CompressionContext>,
 }
 
 impl CompressionContext {
@@ -91,13 +91,19 @@ impl CompressionContext {
                 binding::LZ4F_getVersion(),
             )
         };
-        Self::make_result(Self { ctx }, code)
+        Self::make_result(
+            Self {
+                ctx: NonNull::new(ctx)
+                    .ok_or_else(|| LZ4Error::from("LZ4F_createCompressionContext returns NULL"))?,
+            },
+            code,
+        )
     }
 
     pub fn begin(&mut self, dst: &mut [u8], prefs: Option<&Preferences>) -> Result<usize> {
         let code = unsafe {
             binding::LZ4F_compressBegin(
-                self.ctx,
+                self.ctx.as_ptr(),
                 dst.as_mut_ptr() as *mut c_void,
                 dst.len() as size_t,
                 prefs
@@ -116,7 +122,7 @@ impl CompressionContext {
     ) -> Result<usize> {
         let code = unsafe {
             binding::LZ4F_compressUpdate(
-                self.ctx,
+                self.ctx.as_ptr(),
                 dst.as_mut_ptr() as *mut c_void,
                 dst.len() as size_t,
                 src.as_ptr() as *const c_void,
@@ -131,7 +137,7 @@ impl CompressionContext {
     pub fn flush(&mut self, dst: &mut [u8], opt: Option<&CompressionOptions>) -> Result<usize> {
         let code = unsafe {
             binding::LZ4F_flush(
-                self.ctx,
+                self.ctx.as_ptr(),
                 dst.as_mut_ptr() as *mut c_void,
                 dst.len() as size_t,
                 opt.map(|p| p as *const CompressionOptions)
@@ -144,7 +150,7 @@ impl CompressionContext {
     pub fn end(&mut self, dst: &mut [u8], opt: Option<&CompressionOptions>) -> Result<usize> {
         let code = unsafe {
             binding::LZ4F_compressEnd(
-                self.ctx,
+                self.ctx.as_ptr(),
                 dst.as_mut_ptr() as *mut c_void,
                 dst.len() as size_t,
                 opt.map(|p| p as *const CompressionOptions)
@@ -182,14 +188,13 @@ impl CompressionContext {
 
 impl Drop for CompressionContext {
     fn drop(&mut self) {
-        debug_assert!(!self.ctx.is_null());
         unsafe {
-            binding::LZ4F_freeCompressionContext(self.ctx);
+            binding::LZ4F_freeCompressionContext(self.ctx.as_ptr());
         }
     }
 }
 
-pub struct DictionaryHandle(*mut ());
+pub struct DictionaryHandle(NonNull<u8>);
 
 unsafe impl Send for DictionaryHandle {}
 unsafe impl Sync for DictionaryHandle {}
