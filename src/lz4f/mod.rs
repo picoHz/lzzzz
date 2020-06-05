@@ -78,13 +78,13 @@ pub enum PreferDecSpeed {
 
 #[derive(Default, Clone)]
 /// LZ4 Frame Compressor Builder
-pub struct LZ4FrameCompressorBuilder {
+pub struct FrameCompressorBuilder {
     pref: Preferences,
     dict: Option<Dictionary>,
 }
 
-impl LZ4FrameCompressorBuilder {
-    /// Create a new `LZ4FrameCompressorBuilder` instance with the default configuration.
+impl FrameCompressorBuilder {
+    /// Create a new `FrameCompressorBuilder` instance with the default configuration.
     pub fn new() -> Self {
         Default::default()
     }
@@ -148,9 +148,9 @@ impl LZ4FrameCompressorBuilder {
         self
     }
 
-    /// Create a new `LZ4FrameCompressor` instance with this configuration.
-    pub fn build<W: io::Write>(self, writer: W) -> Result<LZ4FrameCompressor<W>> {
-        LZ4FrameCompressor::new(writer, self.pref)
+    /// Create a new `FrameCompressor` instance with this configuration.
+    pub fn build<W: io::Write>(self, writer: W) -> Result<FrameCompressor<W>> {
+        FrameCompressor::new(writer, self.pref)
     }
 }
 
@@ -167,19 +167,19 @@ enum State {
 /// Write the compressed `"Hello world!"` to `foo.lz4`.
 ///
 /// ```
-/// use lzzzz::lz4f::{BlockSize, LZ4FrameCompressorBuilder};
+/// use lzzzz::lz4f::{BlockSize, FrameCompressorBuilder};
 /// use std::{fs::File, io::prelude::*};
 ///
 /// fn main() -> std::io::Result<()> {
 ///     let mut output = File::create("foo.lz4")?;
-///     let mut comp = LZ4FrameCompressorBuilder::new()
+///     let mut comp = FrameCompressorBuilder::new()
 ///         .block_size(BlockSize::Max1MB)
 ///         .build(&mut output)?;
 ///
 ///     writeln!(comp, "Hello world!")
 /// }
 /// ```
-pub struct LZ4FrameCompressor<W: io::Write> {
+pub struct FrameCompressor<W: io::Write> {
     pref: Preferences,
     ctx: CompressionContext,
     buffer: Vec<u8>,
@@ -188,7 +188,7 @@ pub struct LZ4FrameCompressor<W: io::Write> {
     prev_src_size: usize,
 }
 
-impl<W: io::Write> LZ4FrameCompressor<W> {
+impl<W: io::Write> FrameCompressor<W> {
     fn new(writer: W, pref: Preferences) -> Result<Self> {
         Ok(Self {
             pref,
@@ -202,7 +202,7 @@ impl<W: io::Write> LZ4FrameCompressor<W> {
 
     /// Finalize this LZ4 frame explicitly.
     ///
-    /// Dropping a `LZ4FrameCompressor` automatically finalize a frame
+    /// Dropping a `FrameCompressor` automatically finalize a frame
     /// so you don't have to call this unless you need a `Result`.
     pub fn end(mut self) -> Result<()> {
         self.finalize()
@@ -239,7 +239,7 @@ impl<W: io::Write> LZ4FrameCompressor<W> {
     }
 }
 
-impl<W: io::Write> io::Write for LZ4FrameCompressor<W> {
+impl<W: io::Write> io::Write for FrameCompressor<W> {
     fn write(&mut self, src: &[u8]) -> io::Result<usize> {
         self.grow_buffer(src.len());
         if let State::Created = self.state {
@@ -259,7 +259,7 @@ impl<W: io::Write> io::Write for LZ4FrameCompressor<W> {
     }
 }
 
-impl<W: io::Write> Drop for LZ4FrameCompressor<W> {
+impl<W: io::Write> Drop for FrameCompressor<W> {
     fn drop(&mut self) {
         let _ = self.finalize();
     }
