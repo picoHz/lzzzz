@@ -296,10 +296,6 @@ impl<D: io::Write> io::Write for FrameCompressor<D> {
 }
 
 impl<D: io::Read> FrameCompressor<D> {
-    pub fn required_buffer_size(&self, read_size: usize) -> usize {
-        CompressionContext::compress_bound(read_size, Some(&self.pref)) as usize
-    }
-
     fn ensure_read(&self) {
         match self.state {
             State::WriteActive | State::WriteFinalized => {
@@ -307,29 +303,6 @@ impl<D: io::Read> FrameCompressor<D> {
             }
             _ => (),
         }
-    }
-
-    fn resize_buffer(&mut self, dst_size: usize) -> Result<()> {
-        if self.prev_size == 0 || dst_size < self.prev_size {
-            let len = (7..)
-                .map(|n| 1 << n)
-                .find(|size| self.required_buffer_size(*size << 1) > dst_size)
-                .filter(|len| *len > (1 << 7));
-            if let Some(len) = len {
-                if len > self.buffer.len() {
-                    self.buffer.reserve(len - self.buffer.len());
-                }
-
-                #[allow(unsafe_code)]
-                unsafe {
-                    self.buffer.set_len(len)
-                };
-                self.prev_size = dst_size;
-            } else {
-                return Err(LZ4Error::from("too small buffer"));
-            }
-        }
-        Ok(())
     }
 }
 
