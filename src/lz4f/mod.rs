@@ -233,7 +233,6 @@ impl<W: io::Write> FrameCompressor<W> {
                 self.writer.flush()?;
                 Ok(())
             }
-            State::Finalized => unreachable!(),
             _ => Ok(()),
         }
     }
@@ -265,6 +264,16 @@ impl<W: io::Write> Drop for FrameCompressor<W> {
     }
 }
 
+/// Compress a buffer into a `Vec<u8>`
+///
+/// # Examples
+///
+/// ```
+/// use lzzzz::lz4f;
+///
+/// let compressed = lz4f::compress(b"Hello world!", 0);
+/// println!("{:?}", compressed);
+/// ```
 pub fn compress(data: &[u8], compression_level: i32) -> Result<Vec<u8>> {
     use std::io::Write;
     let mut buf = Vec::new();
