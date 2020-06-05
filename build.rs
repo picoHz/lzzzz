@@ -1,13 +1,7 @@
-use std::io::{Error, ErrorKind};
-
-fn main() -> Result<(), Error> {
+fn main() -> Result<(), cc::Error> {
+    let files = &["lz4hc.c", "lz4frame.c", "xxhash.c", "lz4.c"][..];
+    let dir = std::path::Path::new("./vendor/liblz4/lib/");
     cc::Build::new()
-        .files(
-            globwalk::glob("vendor/liblz4/lib/**/*.c")?
-                .filter_map(Result::ok)
-                .map(globwalk::DirEntry::into_path)
-                .inspect(|path| println!("cargo:rerun-if-changed={}", path.display())),
-        )
+        .files(files.iter().map(|file| dir.join(file)))
         .try_compile("lz4")
-        .map_err(|err| Error::new(ErrorKind::Other, err))
 }

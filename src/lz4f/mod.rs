@@ -1,5 +1,5 @@
 //! LZ4 Frame Compressor/Decompressor
-//! 
+//!
 //! # Examples
 //!
 //! Write the compressed `"Hello world!"` to `foo.lz4`.
@@ -29,13 +29,13 @@
 //!     let mut comp = FrameCompressorBuilder::new()
 //!         .block_size(BlockSize::Max1MB)
 //!         .build(&input[..])?;
-//!     
+//!
 //!     let mut buffer = Vec::new();
 //!     comp.read_to_end(&mut buffer)?;
 //!     Ok(())
 //! }
 //! ```
-//! 
+//!
 //! Parallel compression with rayon.
 //!
 //! ```
