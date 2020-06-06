@@ -508,6 +508,14 @@ impl<'a, D> FrameDecompressor<'a, D> {
             dict,
         })
     }
+
+    pub fn set_dict(&mut self, dict: &'a [u8]) {
+        self.dict = dict;
+    }
+
+    pub fn frame_info(&mut self) -> Result<FrameInfo> {
+        todo!();
+    }
 }
 
 /// A user-defined dictionary for the efficient compression.
