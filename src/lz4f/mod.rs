@@ -61,7 +61,7 @@ pub mod api;
 mod binding;
 
 use crate::Result;
-use api::{CompressionContext, DictionaryHandle, Preferences, HEADER_SIZE_MAX};
+use api::{CompressionContext, DictionaryHandle, LZ4Buffer, Preferences};
 use libc::{c_int, c_uint, c_ulonglong};
 use std::{cmp, io, ops, sync::Arc};
 
@@ -233,8 +233,7 @@ pub struct FrameCompressor<D> {
     ctx: CompressionContext,
     device: D,
     state: State<D>,
-    buffer: Vec<u8>,
-    prev_size: usize,
+    buffer: LZ4Buffer,
 }
 
 impl<D> FrameCompressor<D> {
@@ -244,25 +243,8 @@ impl<D> FrameCompressor<D> {
             ctx: CompressionContext::new()?,
             device,
             state: State::Created { dict },
-            buffer: Vec::new(),
-            prev_size: 0,
+            buffer: LZ4Buffer::new(),
         })
-    }
-
-    fn grow_buffer(&mut self, src_size: usize) {
-        if self.prev_size == 0 || src_size + 1 > self.prev_size {
-            let len =
-                CompressionContext::compress_bound(src_size, Some(&self.pref)) + HEADER_SIZE_MAX;
-            if len > self.buffer.len() {
-                self.buffer.reserve(len - self.buffer.len());
-
-                #[allow(unsafe_code)]
-                unsafe {
-                    self.buffer.set_len(len)
-                };
-            }
-            self.prev_size = src_size + 1;
-        }
     }
 }
 
@@ -296,7 +278,7 @@ impl<D: io::Write> FrameCompressor<D> {
 impl<D: io::Write> io::Write for FrameCompressor<D> {
     fn write(&mut self, src: &[u8]) -> io::Result<usize> {
         self.ensure_write();
-        self.grow_buffer(src.len());
+        self.buffer.grow(src.len(), Some(&self.pref));
         if let State::Created { dict } = &mut self.state {
             let dict = dict.take();
             self.state = State::WriteActive {
@@ -336,7 +318,7 @@ impl<D: io::Read> io::Read for FrameCompressor<D> {
         let header_len = if let State::Created { dict } = &mut self.state {
             let dict = dict.take();
             self.state = State::ReadActive { buffered: 0..0 };
-            self.grow_buffer(0);
+            self.buffer.grow(0, Some(&self.pref));
             self.ctx.begin(&mut self.buffer, Some(&self.pref), dict)?
         } else if let State::ReadActive { buffered } = &self.state {
             let len = buffered.end - buffered.start;
@@ -356,7 +338,7 @@ impl<D: io::Read> io::Read for FrameCompressor<D> {
 
         let mut tmp = [0u8; 2048];
         let len = self.device.read(&mut tmp[..])?;
-        self.grow_buffer(len);
+        self.buffer.grow(len, Some(&self.pref));
 
         let len = if len == 0 {
             self.ctx.flush(&mut self.buffer[header_len..], None)?
