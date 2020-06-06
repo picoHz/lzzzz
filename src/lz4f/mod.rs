@@ -176,8 +176,34 @@ impl FrameInfo {
     }
 }
 
-#[derive(Default, Clone)]
+/// Compression level.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum CompressionLevel {
+    Custom(i32),
+    Default,
+    High,
+    Max,
+}
+
+impl CompressionLevel {
+    fn as_i32(self) -> i32 {
+        match self {
+            Self::Custom(level) => level,
+            Self::Default => 0,
+            Self::High => 10,
+            Self::Max => 12,
+        }
+    }
+}
+
+impl Default for CompressionLevel {
+    fn default() -> Self {
+        Self::Default
+    }
+}
+
 /// A builder struct to customize `FrameCompressor<D>`.
+#[derive(Default, Clone)]
 pub struct FrameCompressorBuilder {
     pref: Preferences,
     dict: Option<Dictionary>,
@@ -251,7 +277,7 @@ impl FrameCompressorBuilder {
     }
 }
 
-enum State<D> {
+enum CompressorState<D> {
     Created {
         dict: Option<Dictionary>,
     },
@@ -275,7 +301,7 @@ pub struct FrameCompressor<D> {
     pref: Preferences,
     ctx: CompressionContext,
     device: D,
-    state: State<D>,
+    state: CompressorState<D>,
     buffer: LZ4Buffer,
 }
 
@@ -285,7 +311,7 @@ impl<D> FrameCompressor<D> {
             pref,
             ctx: CompressionContext::new()?,
             device,
-            state: State::Created { dict },
+            state: CompressorState::Created { dict },
             buffer: LZ4Buffer::new(),
         })
     }
@@ -302,8 +328,8 @@ impl<D: io::Write> FrameCompressor<D> {
 
     fn finalize_write(&mut self) -> Result<()> {
         self.ensure_write();
-        if let State::WriteActive { .. } = &self.state {
-            self.state = State::WriteFinalized;
+        if let CompressorState::WriteActive { .. } = &self.state {
+            self.state = CompressorState::WriteFinalized;
             let len = self.ctx.end(&mut self.buffer, None)?;
             self.device.write_all(&self.buffer[..len])?;
             self.device.flush()?;
@@ -312,7 +338,7 @@ impl<D: io::Write> FrameCompressor<D> {
     }
 
     fn ensure_write(&self) {
-        if let State::ReadActive { .. } = self.state {
+        if let CompressorState::ReadActive { .. } = self.state {
             panic!("Read operations are not permitted")
         }
     }
@@ -322,9 +348,9 @@ impl<D: io::Write> io::Write for FrameCompressor<D> {
     fn write(&mut self, src: &[u8]) -> io::Result<usize> {
         self.ensure_write();
         self.buffer.grow(src.len(), Some(&self.pref));
-        if let State::Created { dict } = &mut self.state {
+        if let CompressorState::Created { dict } = &mut self.state {
             let dict = dict.take();
-            self.state = State::WriteActive {
+            self.state = CompressorState::WriteActive {
                 finalizer: FrameCompressor::<D>::finalize_write,
             };
             let len = self.ctx.begin(&mut self.buffer, Some(&self.pref), dict)?;
@@ -346,7 +372,7 @@ impl<D: io::Write> io::Write for FrameCompressor<D> {
 impl<D: io::Read> FrameCompressor<D> {
     fn ensure_read(&self) {
         match self.state {
-            State::WriteActive { .. } | State::WriteFinalized => {
+            CompressorState::WriteActive { .. } | CompressorState::WriteFinalized => {
                 panic!("Write operations are not permitted")
             }
             _ => (),
@@ -358,16 +384,16 @@ impl<D: io::Read> io::Read for FrameCompressor<D> {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         self.ensure_read();
 
-        let header_len = if let State::Created { dict } = &mut self.state {
+        let header_len = if let CompressorState::Created { dict } = &mut self.state {
             let dict = dict.take();
-            self.state = State::ReadActive { buffered: 0..0 };
+            self.state = CompressorState::ReadActive { buffered: 0..0 };
             self.buffer.grow(0, Some(&self.pref));
             self.ctx.begin(&mut self.buffer, Some(&self.pref), dict)?
-        } else if let State::ReadActive { buffered } = &self.state {
+        } else if let CompressorState::ReadActive { buffered } = &self.state {
             let len = buffered.end - buffered.start;
             let min_len = cmp::min(len, buf.len());
             buf[..min_len].copy_from_slice(&self.buffer[buffered.start..buffered.start + min_len]);
-            self.state = State::ReadActive {
+            self.state = CompressorState::ReadActive {
                 buffered: if min_len < len {
                     buffered.start + min_len..buffered.end
                 } else {
@@ -393,7 +419,7 @@ impl<D: io::Read> io::Read for FrameCompressor<D> {
         let min_len = cmp::min(len, buf.len());
         buf[..min_len].copy_from_slice(&self.buffer[..min_len]);
         if min_len < len {
-            self.state = State::ReadActive {
+            self.state = CompressorState::ReadActive {
                 buffered: min_len..len,
             };
         }
@@ -405,7 +431,7 @@ impl<D: io::BufRead> io::BufRead for FrameCompressor<D> {
     fn fill_buf(&mut self) -> io::Result<&[u8]> {
         use std::io::Read;
         self.read(&mut [])?;
-        if let State::ReadActive { buffered } = &self.state {
+        if let CompressorState::ReadActive { buffered } = &self.state {
             Ok(&self.buffer[buffered.clone()])
         } else {
             Ok(&[])
@@ -414,9 +440,9 @@ impl<D: io::BufRead> io::BufRead for FrameCompressor<D> {
 
     fn consume(&mut self, amt: usize) {
         self.ensure_read();
-        if let State::ReadActive { buffered } = &self.state {
+        if let CompressorState::ReadActive { buffered } = &self.state {
             let len = buffered.end - buffered.start;
-            self.state = State::ReadActive {
+            self.state = CompressorState::ReadActive {
                 buffered: if amt >= len {
                     0..0
                 } else {
@@ -429,38 +455,12 @@ impl<D: io::BufRead> io::BufRead for FrameCompressor<D> {
 
 impl<D> Drop for FrameCompressor<D> {
     fn drop(&mut self) {
-        let finalizer = if let State::WriteActive { finalizer } = &self.state {
+        let finalizer = if let CompressorState::WriteActive { finalizer } = &self.state {
             finalizer
         } else {
             return;
         };
         let _ = (finalizer)(self);
-    }
-}
-
-/// Compression level.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-pub enum CompressionLevel {
-    Custom(i32),
-    Default,
-    High,
-    Max,
-}
-
-impl CompressionLevel {
-    fn as_i32(self) -> i32 {
-        match self {
-            Self::Custom(level) => level,
-            Self::Default => 0,
-            Self::High => 10,
-            Self::Max => 12,
-        }
-    }
-}
-
-impl Default for CompressionLevel {
-    fn default() -> Self {
-        Self::Default
     }
 }
 
@@ -482,6 +482,51 @@ pub fn compress(src: &[u8], dst: &mut Vec<u8>, compression_level: CompressionLev
     writer.write_all(src)?;
     writer.end()?;
     Ok(())
+}
+
+/// A builder struct to customize `FrameDecompressor<D>`.
+#[derive(Default, Clone)]
+pub struct FrameDecompressorBuilder {
+    dict: Option<Dictionary>,
+}
+
+impl FrameDecompressorBuilder {
+    /// Create a new `FrameDecompressorBuilder` instance with the default configuration.
+    pub fn new() -> Self {
+        Default::default()
+    }
+
+    /// Set the dictionary.
+    pub fn dictionary(mut self, dict: Dictionary) -> Self {
+        self.dict = Some(dict);
+        self
+    }
+
+    /// Create a new `FrameDecompressor<D>` instance with this configuration.
+    ///
+    /// To make I/O operations to the returned `FrameDecompressor<D>`,
+    /// the `device` should implement `Read`, `BufRead` or `Write`.
+    pub fn build<D>(&self, device: D) -> Result<FrameDecompressor<D>> {
+        FrameDecompressor::new(device, self.dict.clone())
+    }
+}
+
+enum DecompressorState {
+    Created { dict: Option<Dictionary> },
+}
+
+pub struct FrameDecompressor<D> {
+    device: D,
+    state: DecompressorState,
+}
+
+impl<D> FrameDecompressor<D> {
+    fn new(device: D, dict: Option<Dictionary>) -> Result<Self> {
+        Ok(Self {
+            device,
+            state: DecompressorState::Created { dict },
+        })
+    }
 }
 
 /// A user-defined dictionary for the efficient compression.
