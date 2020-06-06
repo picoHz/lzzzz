@@ -60,7 +60,7 @@
 pub mod api;
 mod binding;
 
-use crate::Result;
+use crate::{lz4f::api::FrameType, Result};
 use api::{CompressionContext, DictionaryHandle, LZ4Buffer, Preferences};
 use libc::{c_int, c_uint, c_ulonglong};
 use std::{cmp, io, ops, sync::Arc};
@@ -131,6 +131,18 @@ pub enum AutoFlush {
 pub enum FavorDecSpeed {
     Disabled = 0,
     Enabled = 1,
+}
+
+#[derive(Debug, Copy, Clone)]
+#[repr(C)]
+pub struct FrameInfo {
+    block_size: BlockSize,
+    block_mode: BlockMode,
+    content_checksum: ContentChecksum,
+    frame_type: FrameType,
+    content_size: c_ulonglong,
+    dict_id: c_uint,
+    block_checksum: BlockChecksum,
 }
 
 #[derive(Default, Clone)]
@@ -449,12 +461,12 @@ pub fn compress(data: &[u8], compression_level: CompressionLevel) -> Result<Vec<
 }
 
 /// A user-defined dictionary for the efficient compression.
-/// 
+///
 /// **Cited from lz4frame.h:**
-/// 
+///
 /// A Dictionary is useful for the compression of small messages (KB range).
 /// It dramatically improves compression efficiency.
-/// 
+///
 /// LZ4 can ingest any input as dictionary, though only the last 64 KB are useful.
 /// Best results are generally achieved by using Zstandard's Dictionary Builder
 /// to generate a high-quality dictionary from a set of samples.
