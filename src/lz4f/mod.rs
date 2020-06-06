@@ -444,7 +444,7 @@ impl Dictionary {
 
 #[cfg(test)]
 mod tests {
-    use super::CompressionLevel;
+    use super::{CompressionLevel, Dictionary};
     use rand::{distributions::Standard, rngs::SmallRng, Rng, SeedableRng};
     use rayon::prelude::*;
 
@@ -463,5 +463,12 @@ mod tests {
             })
             .all(|r| r.is_ok());
         assert!(all_ok);
+    }
+
+    #[test]
+    fn create_dictionary() {
+        let rng = SmallRng::seed_from_u64(0);
+        let data: Vec<_> = rng.sample_iter(Standard).take(2048).collect();
+        Dictionary::new(&data);
     }
 }
