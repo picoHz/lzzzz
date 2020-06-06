@@ -20,8 +20,9 @@ impl Default for CompressionMode {
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum CompressionLevel {
     Custom(i32),
+    Min,
     Default,
-    High,
+    OptMin,
     Max,
 }
 
