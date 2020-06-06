@@ -67,7 +67,7 @@ use std::{cmp, io, ops, sync::Arc};
 
 /// Compression block size
 ///
-/// **From lz4frame.h:**
+/// **Cited from lz4frame.h:**
 /// The larger the block size, the (slightly) better the compression ratio,
 /// though there are diminishing returns.
 /// Larger blocks also increase memory usage on both compression and decompression sides.
@@ -83,7 +83,7 @@ pub enum BlockSize {
 
 /// Compression block mode
 ///
-/// **From lz4frame.h:**
+/// **Cited from lz4frame.h:**
 /// Linked blocks sharply reduce inefficiencies when using small blocks,
 /// they compress better.
 /// However, some LZ4 decoders are only compatible with independent blocks.
@@ -112,7 +112,7 @@ pub enum BlockChecksum {
 
 /// Auto flush flag
 ///
-/// **From lz4frame.h:**
+/// **Cited from lz4frame.h:**
 /// 1: always flush; reduces usage of internal buffers
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 #[repr(C)]
@@ -123,7 +123,7 @@ pub enum AutoFlush {
 
 /// Decompression speed flag
 ///
-/// **From lz4frame.h:**
+/// **Cited from lz4frame.h:**
 /// 1: parser favors decompression speed vs compression ratio.
 /// Only works for high compression modes (>= LZ4HC_CLEVEL_OPT_MIN)
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
@@ -178,7 +178,7 @@ impl FrameCompressorBuilder {
 
     /// Set the compression level.
     ///
-    /// **From lz4frame.h:**
+    /// **Cited from lz4frame.h:**
     /// 0: default (fast mode); values > LZ4HC_CLEVEL_MAX count as LZ4HC_CLEVEL_MAX;
     /// values < 0 trigger "fast acceleration"
     pub fn compression_level(mut self, level: CompressionLevel) -> Self {
@@ -227,8 +227,6 @@ enum State<D> {
     },
 }
 
-/// LZ4 Frame Compressor
-///
 /// The `FrameCompressor<D>` provides a transparent compression to any reader and writer.
 ///
 /// If the underlying I/O device `D` implements `Read`, `BufRead` or `Write`,
@@ -450,9 +448,19 @@ pub fn compress(data: &[u8], compression_level: CompressionLevel) -> Result<Vec<
     Ok(buf)
 }
 
-/// Dictionary
+/// A user-defined dictionary for the efficient compression.
+/// 
+/// A `Dictionary` holds a pointer to dictionary data as an `Arc<_>`,
+/// and automatically releases the data when no threads refer the dictionary.
 ///
-/// A `Dictionary` can be shared by multiple threads safely.
+/// **Cited from lz4frame.h:**
+/// 
+/// A Dictionary is useful for the compression of small messages (KB range).
+/// It dramatically improves compression efficiency.
+/// 
+/// LZ4 can ingest any input as dictionary, though only the last 64 KB are useful.
+/// Best results are generally achieved by using Zstandard's Dictionary Builder
+/// to generate a high-quality dictionary from a set of samples.
 #[derive(Clone)]
 pub struct Dictionary(Arc<DictionaryHandle>);
 
