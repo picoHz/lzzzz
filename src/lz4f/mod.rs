@@ -215,7 +215,9 @@ impl FrameCompressorBuilder {
 }
 
 enum State<D> {
-    Created,
+    Created {
+        dict: Option<Dictionary>,
+    },
     WriteActive {
         finalizer: fn(&mut FrameCompressor<D>) -> Result<()>,
     },
@@ -229,7 +231,6 @@ enum State<D> {
 pub struct FrameCompressor<D> {
     pref: Preferences,
     ctx: CompressionContext,
-    dict: Option<Dictionary>,
     device: D,
     state: State<D>,
     buffer: Vec<u8>,
@@ -241,9 +242,8 @@ impl<D> FrameCompressor<D> {
         Ok(Self {
             pref,
             ctx: CompressionContext::new()?,
-            dict,
             device,
-            state: State::Created,
+            state: State::Created { dict },
             buffer: Vec::new(),
             prev_size: 0,
         })
@@ -297,13 +297,12 @@ impl<D: io::Write> io::Write for FrameCompressor<D> {
     fn write(&mut self, src: &[u8]) -> io::Result<usize> {
         self.ensure_write();
         self.grow_buffer(src.len());
-        if let State::Created = self.state {
+        if let State::Created { dict } = &mut self.state {
+            let dict = dict.take();
             self.state = State::WriteActive {
                 finalizer: FrameCompressor::<D>::finalize_write,
             };
-            let len = self
-                .ctx
-                .begin(&mut self.buffer, Some(&self.pref), self.dict.take())?;
+            let len = self.ctx.begin(&mut self.buffer, Some(&self.pref), dict)?;
             self.device.write(&self.buffer[..len])?;
         }
         let len = self.ctx.update(&mut self.buffer, src, None)?;
@@ -334,11 +333,11 @@ impl<D: io::Read> io::Read for FrameCompressor<D> {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         self.ensure_read();
 
-        let header_len = if let State::Created = self.state {
+        let header_len = if let State::Created { dict } = &mut self.state {
+            let dict = dict.take();
             self.state = State::ReadActive { buffered: 0..0 };
             self.grow_buffer(0);
-            self.ctx
-                .begin(&mut self.buffer, Some(&self.pref), self.dict.take())?
+            self.ctx.begin(&mut self.buffer, Some(&self.pref), dict)?
         } else if let State::ReadActive { buffered } = &self.state {
             let len = buffered.end - buffered.start;
             let min_len = cmp::min(len, buf.len());
