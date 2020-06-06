@@ -5,7 +5,8 @@
 #![allow(unsafe_code)]
 
 use super::{
-    binding, AutoFlush, BlockChecksum, BlockMode, BlockSize, ContentChecksum, FavorDecSpeed,
+    binding, AutoFlush, BlockChecksum, BlockMode, BlockSize, ContentChecksum, Dictionary,
+    FavorDecSpeed,
 };
 use crate::{LZ4Error, Result};
 
@@ -78,7 +79,10 @@ pub struct CompressionOptions {
     pub _reserved: [c_uint; 3],
 }
 
-pub struct CompressionContext(NonNull<CompressionCtx>);
+pub struct CompressionContext {
+    ctx: NonNull<CompressionCtx>,
+    dict: Option<Dictionary>,
+}
 
 impl CompressionContext {
     pub fn new() -> Result<Self> {
@@ -89,20 +93,43 @@ impl CompressionContext {
                 binding::LZ4F_getVersion(),
             )
         };
-        Self::make_result(Self(NonNull::new(ctx).unwrap()), code)
+        Self::make_result(
+            Self {
+                ctx: NonNull::new(ctx).unwrap(),
+                dict: None,
+            },
+            code,
+        )
     }
 
-    pub fn begin(&mut self, dst: &mut [u8], prefs: Option<&Preferences>) -> Result<usize> {
+    pub fn begin(
+        &mut self,
+        dst: &mut [u8],
+        prefs: Option<&Preferences>,
+        dict: Option<Dictionary>,
+    ) -> Result<usize> {
+        let prefs = prefs
+            .map(|p| p as *const Preferences)
+            .unwrap_or(std::ptr::null());
         let code = unsafe {
-            binding::LZ4F_compressBegin(
-                self.0.as_ptr(),
-                dst.as_mut_ptr() as *mut c_void,
-                dst.len() as size_t,
-                prefs
-                    .map(|p| p as *const Preferences)
-                    .unwrap_or(std::ptr::null()),
-            )
+            if let Some(dict) = &dict {
+                binding::LZ4F_compressBegin_usingCDict(
+                    self.ctx.as_ptr(),
+                    dst.as_mut_ptr() as *mut c_void,
+                    dst.len() as size_t,
+                    (*dict.0).0.as_ptr(),
+                    prefs,
+                )
+            } else {
+                binding::LZ4F_compressBegin(
+                    self.ctx.as_ptr(),
+                    dst.as_mut_ptr() as *mut c_void,
+                    dst.len() as size_t,
+                    prefs,
+                )
+            }
         };
+        self.dict = dict;
         Self::make_result(code as usize, code)
     }
 
@@ -114,7 +141,7 @@ impl CompressionContext {
     ) -> Result<usize> {
         let code = unsafe {
             binding::LZ4F_compressUpdate(
-                self.0.as_ptr(),
+                self.ctx.as_ptr(),
                 dst.as_mut_ptr() as *mut c_void,
                 dst.len() as size_t,
                 src.as_ptr() as *const c_void,
@@ -129,7 +156,7 @@ impl CompressionContext {
     pub fn flush(&mut self, dst: &mut [u8], opt: Option<&CompressionOptions>) -> Result<usize> {
         let code = unsafe {
             binding::LZ4F_flush(
-                self.0.as_ptr(),
+                self.ctx.as_ptr(),
                 dst.as_mut_ptr() as *mut c_void,
                 dst.len() as size_t,
                 opt.map(|p| p as *const CompressionOptions)
@@ -142,7 +169,7 @@ impl CompressionContext {
     pub fn end(&mut self, dst: &mut [u8], opt: Option<&CompressionOptions>) -> Result<usize> {
         let code = unsafe {
             binding::LZ4F_compressEnd(
-                self.0.as_ptr(),
+                self.ctx.as_ptr(),
                 dst.as_mut_ptr() as *mut c_void,
                 dst.len() as size_t,
                 opt.map(|p| p as *const CompressionOptions)
@@ -181,7 +208,7 @@ impl CompressionContext {
 impl Drop for CompressionContext {
     fn drop(&mut self) {
         unsafe {
-            binding::LZ4F_freeCompressionContext(self.0.as_ptr());
+            binding::LZ4F_freeCompressionContext(self.ctx.as_ptr());
         }
     }
 }

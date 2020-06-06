@@ -24,6 +24,13 @@ extern "C" {
         dst_capacity: size_t,
         prefs: *const Preferences,
     ) -> size_t;
+    pub fn LZ4F_compressBegin_usingCDict(
+        ctx: *mut CompressionCtx,
+        dst_buffer: *mut c_void,
+        dst_capacity: size_t,
+        dist: *const CompressionDict,
+        prefs: *const Preferences,
+    ) -> size_t;
     pub fn LZ4F_compressBound(src_size: size_t, prefs: *const Preferences) -> size_t;
     pub fn LZ4F_compressUpdate(
         ctx: *mut CompressionCtx,

@@ -210,7 +210,7 @@ impl FrameCompressorBuilder {
     /// The `device` should implement either `Read` or `Write`,
     /// or the returned `FrameCompressor` become useless.
     pub fn build<D>(&self, device: D) -> Result<FrameCompressor<D>> {
-        FrameCompressor::new(device, self.pref)
+        FrameCompressor::new(device, self.pref, self.dict.clone())
     }
 }
 
@@ -229,6 +229,7 @@ enum State<D> {
 pub struct FrameCompressor<D> {
     pref: Preferences,
     ctx: CompressionContext,
+    dict: Option<Dictionary>,
     device: D,
     state: State<D>,
     buffer: Vec<u8>,
@@ -236,10 +237,11 @@ pub struct FrameCompressor<D> {
 }
 
 impl<D> FrameCompressor<D> {
-    fn new(device: D, pref: Preferences) -> Result<Self> {
+    fn new(device: D, pref: Preferences, dict: Option<Dictionary>) -> Result<Self> {
         Ok(Self {
             pref,
             ctx: CompressionContext::new()?,
+            dict,
             device,
             state: State::Created,
             buffer: Vec::new(),
@@ -299,7 +301,9 @@ impl<D: io::Write> io::Write for FrameCompressor<D> {
             self.state = State::WriteActive {
                 finalizer: FrameCompressor::<D>::finalize_write,
             };
-            let len = self.ctx.begin(&mut self.buffer, Some(&self.pref))?;
+            let len = self
+                .ctx
+                .begin(&mut self.buffer, Some(&self.pref), self.dict.take())?;
             self.device.write(&self.buffer[..len])?;
         }
         let len = self.ctx.update(&mut self.buffer, src, None)?;
@@ -333,7 +337,8 @@ impl<D: io::Read> io::Read for FrameCompressor<D> {
         let header_len = if let State::Created = self.state {
             self.state = State::ReadActive { buffered: 0..0 };
             self.grow_buffer(0);
-            self.ctx.begin(&mut self.buffer, Some(&self.pref))?
+            self.ctx
+                .begin(&mut self.buffer, Some(&self.pref), self.dict.take())?
         } else if let State::ReadActive { buffered } = &self.state {
             let len = buffered.end - buffered.start;
             let min_len = cmp::min(len, buf.len());
@@ -444,10 +449,10 @@ impl Dictionary {
 
 #[cfg(test)]
 mod tests {
-    use super::{CompressionLevel, FrameCompressorBuilder, Dictionary};
+    use super::{CompressionLevel, Dictionary, FrameCompressorBuilder};
     use rand::{distributions::Standard, rngs::SmallRng, Rng, SeedableRng};
-    use std::io::prelude::*;
     use rayon::prelude::*;
+    use std::io::prelude::*;
 
     #[test]
     fn parallel_compression() {
@@ -489,6 +494,5 @@ mod tests {
     }
 
     #[test]
-    fn create_dictionary() {
-    }
+    fn create_dictionary() {}
 }
