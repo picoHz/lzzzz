@@ -207,8 +207,8 @@ impl FrameCompressorBuilder {
 
     /// Create a new `FrameCompressor` instance with this configuration.
     ///
-    /// The `device` should implement either `Read` or `Write`,
-    /// or the returned `FrameCompressor` become useless.
+    /// To make I/O operations to the returned `FrameCompressor`,
+    /// the `device` should implement `Read`, `BufRead` or `Write`.
     pub fn build<D>(&self, device: D) -> Result<FrameCompressor<D>> {
         FrameCompressor::new(device, self.pref, self.dict.clone())
     }
