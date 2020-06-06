@@ -3,7 +3,7 @@
 pub mod common;
 pub mod lz4;
 pub mod lz4f;
-pub mod lz4hc;
+pub mod lz4_hc;
 
 use std::{convert, fmt, io};
 
