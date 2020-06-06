@@ -228,8 +228,13 @@ enum State<D> {
 }
 
 /// LZ4 Frame Compressor
-/// 
-/// Note that this does't mean "Bidirectional stream".
+///
+/// The `FrameCompressor<D>` provides a transparent compression to any reader and writer.
+///
+/// If the underlying I/O device `D` implements `Read`, `BufRead` or `Write`,
+/// the `FrameCompressor<D>` also implements `Read`, `BufRead` or `Write`.
+///
+/// Note that this doesn't mean "Bidirectional stream".
 /// Making read and write operations on a same instance causes a panic!
 pub struct FrameCompressor<D> {
     pref: Preferences,
