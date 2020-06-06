@@ -83,6 +83,13 @@ pub struct CompressionOptions {
     pub _reserved: [c_uint; 3],
 }
 
+#[derive(Debug, Copy, Clone)]
+#[repr(C)]
+pub struct DecompressionOptions {
+    pub stable_dst: c_uint,
+    pub _reserved: [c_uint; 3],
+}
+
 pub struct CompressionContext {
     ctx: NonNull<CompressionCtx>,
     dict: Option<Dictionary>,

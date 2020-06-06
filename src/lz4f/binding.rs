@@ -1,10 +1,15 @@
 #![allow(unsafe_code)]
 
-use super::api::{CompressionOptions, Preferences};
+use super::api::{CompressionOptions, DecompressionOptions, FrameInfo, Preferences};
 use libc::{c_char, c_uint, c_void, size_t};
 
 #[repr(C)]
 pub struct CompressionCtx {
+    _private: [u8; 0],
+}
+
+#[repr(C)]
+pub struct DecompressionCtx {
     _private: [u8; 0],
 }
 
@@ -16,6 +21,7 @@ pub struct CompressionDict {
 #[link(name = "lz4")]
 extern "C" {
     pub fn LZ4F_getVersion() -> c_uint;
+
     pub fn LZ4F_createCompressionContext(ctx: *mut *mut CompressionCtx, version: c_uint) -> size_t;
     pub fn LZ4F_freeCompressionContext(ctx: *mut CompressionCtx);
     pub fn LZ4F_compressBegin(
@@ -52,8 +58,40 @@ extern "C" {
         dst_capacity: size_t,
         opt: *const CompressionOptions,
     ) -> size_t;
+
+    pub fn LZ4F_createDecompressionContext(
+        ctx: *mut *mut DecompressionCtx,
+        version: c_uint,
+    ) -> size_t;
+    pub fn LZ4F_freeDecompressionContext(ctx: *mut DecompressionCtx) -> size_t;
+    pub fn LZ4F_getFrameInfo(
+        ctx: *mut DecompressionCtx,
+        frame_info_ptr: *mut FrameInfo,
+        src_buffer: *const c_void,
+        src_size_ptr: *mut size_t,
+    ) -> size_t;
+    pub fn LZ4F_decompress(
+        ctx: *mut DecompressionCtx,
+        dst_buffer: *mut c_void,
+        dst_size_ptr: *mut size_t,
+        src_buffer: *const c_void,
+        src_size_ptr: *mut size_t,
+        opt: *const DecompressionOptions,
+    ) -> size_t;
+    pub fn LZ4F_decompress_usingDict(
+        ctx: *mut DecompressionCtx,
+        dst_buffer: *mut c_void,
+        dst_size_ptr: *mut size_t,
+        src_buffer: *const c_void,
+        src_size_ptr: *mut size_t,
+        dst_buffer: *mut c_void,
+        dst_capacity: size_t,
+        opt: *const DecompressionOptions,
+    ) -> size_t;
+
     pub fn LZ4F_createCDict(dict_buffer: *const c_void, dict_size: size_t) -> *mut CompressionDict;
     pub fn LZ4F_freeCDict(dict: *mut CompressionDict);
+
     pub fn LZ4F_isError(code: size_t) -> c_uint;
     pub fn LZ4F_getErrorName(code: size_t) -> *const c_char;
 }
