@@ -1,5 +1,7 @@
 #![deny(unsafe_code)]
 
+pub mod common;
+pub mod lz4;
 pub mod lz4f;
 pub mod lz4hc;
 
