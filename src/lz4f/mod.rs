@@ -5,14 +5,12 @@
 //! Write the compressed `"Hello world!"` to `foo.lz4`.
 //!
 //! ```
-//! use lzzzz::lz4f::{BlockSize, FrameCompressorBuilder};
+//! use lzzzz::lz4f::FrameCompressor;
 //! use std::{fs::File, io::prelude::*};
 //!
 //! fn main() -> std::io::Result<()> {
 //!     let mut output = File::create("foo.lz4")?;
-//!     let mut comp = FrameCompressorBuilder::new()
-//!         .block_size(BlockSize::Max1MB)
-//!         .build(&mut output)?;
+//!     let mut comp = FrameCompressor::new(&mut output)?;
 //!
 //!     writeln!(comp, "Hello world!")
 //! }
@@ -21,14 +19,12 @@
 //! Read and compress data from a slice.
 //!
 //! ```
-//! use lzzzz::lz4f::{BlockSize, FrameCompressorBuilder};
+//! use lzzzz::lz4f::FrameCompressor;
 //! use std::io::prelude::*;
 //!
 //! fn main() -> std::io::Result<()> {
 //!     let input = b"Goodnight world!";
-//!     let mut comp = FrameCompressorBuilder::new()
-//!         .block_size(BlockSize::Max1MB)
-//!         .build(&input[..])?;
+//!     let mut comp = FrameCompressor::new(&input[..])?;
 //!
 //!     let mut buffer = Vec::new();
 //!     comp.read_to_end(&mut buffer)?;
@@ -273,7 +269,7 @@ impl FrameCompressorBuilder {
     /// To make I/O operations to the returned `FrameCompressor<D>`,
     /// the `device` should implement `Read`, `BufRead` or `Write`.
     pub fn build<D>(&self, device: D) -> Result<FrameCompressor<D>> {
-        FrameCompressor::new(device, self.pref, self.dict.clone())
+        FrameCompressor::with_pref(device, self.pref, self.dict.clone())
     }
 }
 
@@ -304,7 +300,12 @@ pub struct FrameCompressor<D> {
 }
 
 impl<D> FrameCompressor<D> {
-    fn new(device: D, pref: Preferences, dict: Option<Dictionary>) -> Result<Self> {
+    /// Create a new `FrameCompressor<D>` instance with the default configuration.
+    pub fn new(device: D) -> Result<Self> {
+        Self::with_pref(device, Preferences::default(), None)
+    }
+
+    fn with_pref(device: D, pref: Preferences, dict: Option<Dictionary>) -> Result<Self> {
         Ok(Self {
             pref,
             ctx: CompressionContext::new(dict)?,
@@ -480,39 +481,30 @@ pub fn compress(src: &[u8], dst: &mut Vec<u8>, compression_level: CompressionLev
     Ok(())
 }
 
-/// A builder struct to customize `FrameDecompressor<D>`.
-#[derive(Default, Clone)]
-pub struct FrameDecompressorBuilder {}
-
-impl FrameDecompressorBuilder {
-    /// Create a new `FrameDecompressorBuilder` instance with the default configuration.
-    pub fn new() -> Self {
-        Default::default()
-    }
-
-    /// Create a new `FrameDecompressor<D>` instance with this configuration.
-    ///
-    /// To make I/O operations to the returned `FrameDecompressor<D>`,
-    /// the `device` should implement `Read`, `BufRead` or `Write`.
-    pub fn build<D>(&self, device: D) -> Result<FrameDecompressor<D>> {
-        FrameDecompressor::new(device)
-    }
-}
-
 enum DecompressorState {
     Created,
 }
 
-pub struct FrameDecompressor<D> {
+pub struct FrameDecompressor<'a, D> {
     device: D,
     state: DecompressorState,
+    dict: &'a [u8],
 }
 
-impl<D> FrameDecompressor<D> {
-    fn new(device: D) -> Result<Self> {
+impl<'a, D> FrameDecompressor<'a, D> {
+    pub fn new(device: D) -> Result<Self> {
         Ok(Self {
             device,
             state: DecompressorState::Created,
+            dict: &[],
+        })
+    }
+
+    pub fn with_dict(device: D, dict: &'a [u8]) -> Result<Self> {
+        Ok(Self {
+            device,
+            state: DecompressorState::Created,
+            dict,
         })
     }
 }
