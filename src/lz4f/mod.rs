@@ -450,9 +450,6 @@ pub fn compress(data: &[u8], compression_level: CompressionLevel) -> Result<Vec<
 
 /// A user-defined dictionary for the efficient compression.
 /// 
-/// A `Dictionary` holds a pointer to dictionary data as an `Arc<_>`,
-/// and automatically releases the data when no threads refer the dictionary.
-///
 /// **Cited from lz4frame.h:**
 /// 
 /// A Dictionary is useful for the compression of small messages (KB range).
