@@ -133,6 +133,7 @@ pub enum FavorDecSpeed {
     Enabled = 1,
 }
 
+/// Frame parameters
 #[derive(Debug, Copy, Clone)]
 #[repr(C)]
 pub struct FrameInfo {
@@ -143,6 +144,36 @@ pub struct FrameInfo {
     content_size: c_ulonglong,
     dict_id: c_uint,
     block_checksum: BlockChecksum,
+}
+
+impl FrameInfo {
+    pub fn block_size(&self) -> BlockSize {
+        self.block_size
+    }
+
+    pub fn block_mode(&self) -> BlockMode {
+        self.block_mode
+    }
+
+    pub fn content_checksum(&self) -> ContentChecksum {
+        self.content_checksum
+    }
+
+    pub fn frame_type(&self) -> FrameType {
+        self.frame_type
+    }
+
+    pub fn content_size(&self) -> usize {
+        self.content_size as usize
+    }
+
+    pub fn dict_id(&self) -> u32 {
+        self.dict_id as u32
+    }
+
+    pub fn block_checksum(&self) -> BlockChecksum {
+        self.block_checksum
+    }
 }
 
 #[derive(Default, Clone)]
@@ -179,12 +210,6 @@ impl FrameCompressorBuilder {
     /// Set the block checksum.
     pub fn block_checksum(mut self, checksum: BlockChecksum) -> Self {
         self.pref.frame_info.block_checksum = checksum;
-        self
-    }
-
-    /// Set the size of uncompressed content.
-    pub fn content_size(mut self, size: usize) -> Self {
-        self.pref.frame_info.content_size = size as c_ulonglong;
         self
     }
 
