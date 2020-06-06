@@ -482,9 +482,7 @@ pub fn compress(src: &[u8], dst: &mut Vec<u8>, compression_level: CompressionLev
 
 /// A builder struct to customize `FrameDecompressor<D>`.
 #[derive(Default, Clone)]
-pub struct FrameDecompressorBuilder {
-    dict: Option<Dictionary>,
-}
+pub struct FrameDecompressorBuilder {}
 
 impl FrameDecompressorBuilder {
     /// Create a new `FrameDecompressorBuilder` instance with the default configuration.
@@ -492,18 +490,12 @@ impl FrameDecompressorBuilder {
         Default::default()
     }
 
-    /// Set the dictionary.
-    pub fn dictionary(mut self, dict: Dictionary) -> Self {
-        self.dict = Some(dict);
-        self
-    }
-
     /// Create a new `FrameDecompressor<D>` instance with this configuration.
     ///
     /// To make I/O operations to the returned `FrameDecompressor<D>`,
     /// the `device` should implement `Read`, `BufRead` or `Write`.
     pub fn build<D>(&self, device: D) -> Result<FrameDecompressor<D>> {
-        FrameDecompressor::new(device, self.dict.clone())
+        FrameDecompressor::new(device)
     }
 }
 
@@ -517,7 +509,7 @@ pub struct FrameDecompressor<D> {
 }
 
 impl<D> FrameDecompressor<D> {
-    fn new(device: D, dict: Option<Dictionary>) -> Result<Self> {
+    fn new(device: D) -> Result<Self> {
         Ok(Self {
             device,
             state: DecompressorState::Created,

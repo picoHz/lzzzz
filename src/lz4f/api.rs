@@ -92,11 +92,10 @@ pub struct DecompressionOptions {
 
 pub struct DecompressionContext {
     ctx: NonNull<DecompressionCtx>,
-    dict: Option<Dictionary>,
 }
 
 impl DecompressionContext {
-    pub fn new(dict: Option<Dictionary>) -> Result<Self> {
+    pub fn new() -> Result<Self> {
         let mut ctx: *mut DecompressionCtx = std::ptr::null_mut();
         let code = unsafe {
             binding::LZ4F_createDecompressionContext(
@@ -107,7 +106,6 @@ impl DecompressionContext {
         make_result(
             Self {
                 ctx: NonNull::new(ctx).unwrap(),
-                dict,
             },
             code,
         )
