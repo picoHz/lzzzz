@@ -53,7 +53,7 @@
 //! assert!(all_ok);
 //! ```
 
-pub mod api;
+mod api;
 mod binding;
 
 use crate::{lz4f::api::FrameType, Result};

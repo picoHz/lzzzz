@@ -10,8 +10,3 @@ Lzzzz provides verious LZ4 API:
 
 ### Advanced
 - `lz4f::FrameCompressor` / `lz4f::FrameDecompressor`
-
-### Low-level
-- `lz4::api`
-- `lz4f::api::CompressionContext` / `lz4f::api::DecompressionContext`
-- `lz4_hc::api`
