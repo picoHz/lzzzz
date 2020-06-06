@@ -84,8 +84,8 @@ extern "C" {
         dst_size_ptr: *mut size_t,
         src_buffer: *const c_void,
         src_size_ptr: *mut size_t,
-        dst_buffer: *mut c_void,
-        dst_capacity: size_t,
+        dict: *const c_void,
+        dict_size: size_t,
         opt: *const DecompressionOptions,
     ) -> size_t;
 

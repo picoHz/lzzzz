@@ -10,7 +10,7 @@ use super::{
 };
 use crate::{LZ4Error, Result};
 
-use binding::{CompressionCtx, CompressionDict};
+use binding::{CompressionCtx, CompressionDict, DecompressionCtx};
 use libc::{c_int, c_uint, c_ulonglong, c_void, size_t};
 use std::{
     ffi::CStr,
@@ -90,13 +90,67 @@ pub struct DecompressionOptions {
     pub _reserved: [c_uint; 3],
 }
 
+pub struct DecompressionContext {
+    ctx: NonNull<DecompressionCtx>,
+    dict: Option<Dictionary>,
+}
+
+impl DecompressionContext {
+    pub fn new(dict: Option<Dictionary>) -> Result<Self> {
+        let mut ctx: *mut DecompressionCtx = std::ptr::null_mut();
+        let code = unsafe {
+            binding::LZ4F_createDecompressionContext(
+                &mut ctx as *mut *mut DecompressionCtx,
+                binding::LZ4F_getVersion(),
+            )
+        };
+        make_result(
+            Self {
+                ctx: NonNull::new(ctx).unwrap(),
+                dict,
+            },
+            code,
+        )
+    }
+
+    pub fn decompress(
+        &mut self,
+        dst: &mut [u8],
+        src: &[u8],
+        opt: Option<&DecompressionOptions>,
+    ) -> Result<usize> {
+        let mut dst_size = dst.len();
+        let mut src_size = src.len();
+        let code = unsafe {
+            binding::LZ4F_decompress(
+                self.ctx.as_ptr(),
+                dst.as_mut_ptr() as *mut c_void,
+                &mut dst_size as *mut size_t,
+                src.as_ptr() as *const c_void,
+                &mut src_size as *mut size_t,
+                opt.map(|p| p as *const DecompressionOptions)
+                    .unwrap_or(std::ptr::null()),
+            )
+        };
+        make_result(code as usize, code)
+    }
+}
+
+impl Drop for DecompressionContext {
+    fn drop(&mut self) {
+        unsafe {
+            binding::LZ4F_freeDecompressionContext(self.ctx.as_ptr());
+        }
+    }
+}
+
 pub struct CompressionContext {
     ctx: NonNull<CompressionCtx>,
     dict: Option<Dictionary>,
 }
 
 impl CompressionContext {
-    pub fn new() -> Result<Self> {
+    pub fn new(dict: Option<Dictionary>) -> Result<Self> {
         let mut ctx: *mut CompressionCtx = std::ptr::null_mut();
         let code = unsafe {
             binding::LZ4F_createCompressionContext(
@@ -104,26 +158,21 @@ impl CompressionContext {
                 binding::LZ4F_getVersion(),
             )
         };
-        Self::make_result(
+        make_result(
             Self {
                 ctx: NonNull::new(ctx).unwrap(),
-                dict: None,
+                dict,
             },
             code,
         )
     }
 
-    pub fn begin(
-        &mut self,
-        dst: &mut [u8],
-        prefs: Option<&Preferences>,
-        dict: Option<Dictionary>,
-    ) -> Result<usize> {
+    pub fn begin(&mut self, dst: &mut [u8], prefs: Option<&Preferences>) -> Result<usize> {
         let prefs = prefs
             .map(|p| p as *const Preferences)
             .unwrap_or(std::ptr::null());
         let code = unsafe {
-            if let Some(dict) = &dict {
+            if let Some(dict) = &self.dict {
                 binding::LZ4F_compressBegin_usingCDict(
                     self.ctx.as_ptr(),
                     dst.as_mut_ptr() as *mut c_void,
@@ -140,8 +189,7 @@ impl CompressionContext {
                 )
             }
         };
-        self.dict = dict;
-        Self::make_result(code as usize, code)
+        make_result(code as usize, code)
     }
 
     pub fn update(
@@ -161,7 +209,7 @@ impl CompressionContext {
                     .unwrap_or(std::ptr::null()),
             )
         };
-        Self::make_result(code as usize, code)
+        make_result(code as usize, code)
     }
 
     pub fn flush(&mut self, dst: &mut [u8], opt: Option<&CompressionOptions>) -> Result<usize> {
@@ -174,7 +222,7 @@ impl CompressionContext {
                     .unwrap_or(std::ptr::null()),
             )
         };
-        Self::make_result(code as usize, code)
+        make_result(code as usize, code)
     }
 
     pub fn end(&mut self, dst: &mut [u8], opt: Option<&CompressionOptions>) -> Result<usize> {
@@ -187,7 +235,7 @@ impl CompressionContext {
                     .unwrap_or(std::ptr::null()),
             )
         };
-        Self::make_result(code as usize, code)
+        make_result(code as usize, code)
     }
 
     pub fn compress_bound(src_size: usize, prefs: Option<&Preferences>) -> usize {
@@ -200,18 +248,18 @@ impl CompressionContext {
             )
         }
     }
+}
 
-    fn make_result<T>(data: T, code: size_t) -> Result<T> {
-        unsafe {
-            if binding::LZ4F_isError(code) != 0 {
-                Err(LZ4Error::from(
-                    CStr::from_ptr(binding::LZ4F_getErrorName(code))
-                        .to_str()
-                        .map_err(|_| LZ4Error::from("Invalid UTF-8"))?,
-                ))
-            } else {
-                Ok(data)
-            }
+fn make_result<T>(data: T, code: size_t) -> Result<T> {
+    unsafe {
+        if binding::LZ4F_isError(code) != 0 {
+            Err(LZ4Error::from(
+                CStr::from_ptr(binding::LZ4F_getErrorName(code))
+                    .to_str()
+                    .map_err(|_| LZ4Error::from("Invalid UTF-8"))?,
+            ))
+        } else {
+            Ok(data)
         }
     }
 }

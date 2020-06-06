@@ -278,9 +278,7 @@ impl FrameCompressorBuilder {
 }
 
 enum CompressorState<D> {
-    Created {
-        dict: Option<Dictionary>,
-    },
+    Created,
     WriteActive {
         finalizer: fn(&mut FrameCompressor<D>) -> Result<()>,
     },
@@ -309,9 +307,9 @@ impl<D> FrameCompressor<D> {
     fn new(device: D, pref: Preferences, dict: Option<Dictionary>) -> Result<Self> {
         Ok(Self {
             pref,
-            ctx: CompressionContext::new()?,
+            ctx: CompressionContext::new(dict)?,
             device,
-            state: CompressorState::Created { dict },
+            state: CompressorState::Created,
             buffer: LZ4Buffer::new(),
         })
     }
@@ -348,12 +346,11 @@ impl<D: io::Write> io::Write for FrameCompressor<D> {
     fn write(&mut self, src: &[u8]) -> io::Result<usize> {
         self.ensure_write();
         self.buffer.grow(src.len(), Some(&self.pref));
-        if let CompressorState::Created { dict } = &mut self.state {
-            let dict = dict.take();
+        if let CompressorState::Created = self.state {
             self.state = CompressorState::WriteActive {
                 finalizer: FrameCompressor::<D>::finalize_write,
             };
-            let len = self.ctx.begin(&mut self.buffer, Some(&self.pref), dict)?;
+            let len = self.ctx.begin(&mut self.buffer, Some(&self.pref))?;
             self.device.write(&self.buffer[..len])?;
         }
         let len = self.ctx.update(&mut self.buffer, src, None)?;
@@ -384,11 +381,10 @@ impl<D: io::Read> io::Read for FrameCompressor<D> {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         self.ensure_read();
 
-        let header_len = if let CompressorState::Created { dict } = &mut self.state {
-            let dict = dict.take();
+        let header_len = if let CompressorState::Created = self.state {
             self.state = CompressorState::ReadActive { buffered: 0..0 };
             self.buffer.grow(0, Some(&self.pref));
-            self.ctx.begin(&mut self.buffer, Some(&self.pref), dict)?
+            self.ctx.begin(&mut self.buffer, Some(&self.pref))?
         } else if let CompressorState::ReadActive { buffered } = &self.state {
             let len = buffered.end - buffered.start;
             let min_len = cmp::min(len, buf.len());
@@ -512,7 +508,7 @@ impl FrameDecompressorBuilder {
 }
 
 enum DecompressorState {
-    Created { dict: Option<Dictionary> },
+    Created,
 }
 
 pub struct FrameDecompressor<D> {
@@ -524,7 +520,7 @@ impl<D> FrameDecompressor<D> {
     fn new(device: D, dict: Option<Dictionary>) -> Result<Self> {
         Ok(Self {
             device,
-            state: DecompressorState::Created { dict },
+            state: DecompressorState::Created,
         })
     }
 }
