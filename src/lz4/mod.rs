@@ -31,3 +31,16 @@ pub fn compress(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> Result<usi
         Err(LZ4Error::from("Failed"))
     }
 }
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum DecompressionMode<'a> {
+    Default,
+    Partial,
+    Dictionary(&'a [u8]),
+}
+
+impl<'a> Default for DecompressionMode<'a> {
+    fn default() -> Self {
+        Self::Default
+    }
+}
