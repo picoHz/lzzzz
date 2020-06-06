@@ -358,6 +358,32 @@ impl<D: io::Read> io::Read for FrameCompressor<D> {
     }
 }
 
+impl<D: io::BufRead> io::BufRead for FrameCompressor<D> {
+    fn fill_buf(&mut self) -> io::Result<&[u8]> {
+        use std::io::Read;
+        self.read(&mut [])?;
+        if let State::ReadActive { buffered } = &self.state {
+            Ok(&self.buffer[buffered.clone()])
+        } else {
+            Ok(&[])
+        }
+    }
+
+    fn consume(&mut self, amt: usize) {
+        self.ensure_read();
+        if let State::ReadActive { buffered } = &self.state {
+            let len = buffered.end - buffered.start;
+            self.state = State::ReadActive {
+                buffered: if amt >= len {
+                    0..0
+                } else {
+                    buffered.start + amt..buffered.end
+                },
+            };
+        }
+    }
+}
+
 impl<D> Drop for FrameCompressor<D> {
     fn drop(&mut self) {
         let finalizer = if let State::WriteActive { finalizer } = &self.state {
@@ -475,5 +501,21 @@ mod tests {
     }
 
     #[test]
-    fn create_dictionary() {}
+    fn bufread() {
+        use crate::lz4f::{BlockSize, FrameCompressorBuilder};
+        use std::io::{prelude::*, BufReader};
+
+        fn main() -> std::io::Result<()> {
+            let input = b"Goodnight world!";
+            let mut reader = BufReader::new(&input[..]);
+            let mut comp = FrameCompressorBuilder::new()
+                .block_size(BlockSize::Max1MB)
+                .build(reader)?;
+
+            let mut buffer = Vec::new();
+            comp.read_until(b'-', &mut buffer)?;
+            Ok(())
+        }
+        main();
+    }
 }
