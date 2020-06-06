@@ -228,6 +228,9 @@ enum State<D> {
 }
 
 /// LZ4 Frame Compressor
+/// 
+/// Note that this does't mean "Bidirectional stream".
+/// Making read and write operations on a same instance causes a panic!
 pub struct FrameCompressor<D> {
     pref: Preferences,
     ctx: CompressionContext,
