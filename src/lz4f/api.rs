@@ -2,7 +2,7 @@
 
 use super::{
     binding, AutoFlush, BlockChecksum, BlockMode, BlockSize, ContentChecksum, Dictionary,
-    FavorDecSpeed,
+    FavorDecSpeed, FrameInfo, Preferences,
 };
 use crate::{LZ4Error, Result};
 
@@ -22,54 +22,6 @@ pub const HEADER_SIZE_MAX: usize = 19;
 pub enum FrameType {
     Frame = 0,
     SkippableFrame = 1,
-}
-
-#[derive(Debug, Copy, Clone)]
-#[repr(C)]
-pub struct FrameInfo {
-    pub block_size: BlockSize,
-    pub block_mode: BlockMode,
-    pub content_checksum: ContentChecksum,
-    pub frame_type: FrameType,
-    pub content_size: c_ulonglong,
-    pub dict_id: c_uint,
-    pub block_checksum: BlockChecksum,
-}
-
-impl Default for FrameInfo {
-    fn default() -> Self {
-        Self {
-            block_size: BlockSize::Default,
-            block_mode: BlockMode::Linked,
-            content_checksum: ContentChecksum::Disabled,
-            frame_type: FrameType::Frame,
-            content_size: 0,
-            dict_id: 0,
-            block_checksum: BlockChecksum::Disabled,
-        }
-    }
-}
-
-#[derive(Debug, Copy, Clone)]
-#[repr(C)]
-pub struct Preferences {
-    pub frame_info: FrameInfo,
-    pub compression_level: c_int,
-    pub auto_flush: AutoFlush,
-    pub favor_dec_speed: FavorDecSpeed,
-    pub _reserved: [c_uint; 3],
-}
-
-impl Default for Preferences {
-    fn default() -> Self {
-        Self {
-            frame_info: FrameInfo::default(),
-            compression_level: 0,
-            auto_flush: AutoFlush::Disabled,
-            favor_dec_speed: FavorDecSpeed::Disabled,
-            _reserved: [0; 3],
-        }
-    }
 }
 
 #[derive(Debug, Copy, Clone)]

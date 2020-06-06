@@ -57,7 +57,7 @@ mod api;
 mod binding;
 
 use crate::{lz4f::api::FrameType, Result};
-use api::{CompressionContext, DictionaryHandle, LZ4Buffer, Preferences};
+use api::{CompressionContext, DictionaryHandle, LZ4Buffer};
 use libc::{c_int, c_uint, c_ulonglong};
 use std::{cmp, io, ops, sync::Arc};
 
@@ -142,6 +142,20 @@ pub struct FrameInfo {
     block_checksum: BlockChecksum,
 }
 
+impl Default for FrameInfo {
+    fn default() -> Self {
+        Self {
+            block_size: BlockSize::Default,
+            block_mode: BlockMode::Linked,
+            content_checksum: ContentChecksum::Disabled,
+            frame_type: FrameType::Frame,
+            content_size: 0,
+            dict_id: 0,
+            block_checksum: BlockChecksum::Disabled,
+        }
+    }
+}
+
 impl FrameInfo {
     pub fn block_size(&self) -> BlockSize {
         self.block_size
@@ -169,6 +183,28 @@ impl FrameInfo {
 
     pub fn block_checksum(&self) -> BlockChecksum {
         self.block_checksum
+    }
+}
+
+#[derive(Debug, Copy, Clone)]
+#[repr(C)]
+pub struct Preferences {
+    frame_info: FrameInfo,
+    compression_level: c_int,
+    auto_flush: AutoFlush,
+    favor_dec_speed: FavorDecSpeed,
+    _reserved: [c_uint; 3],
+}
+
+impl Default for Preferences {
+    fn default() -> Self {
+        Self {
+            frame_info: FrameInfo::default(),
+            compression_level: 0,
+            auto_flush: AutoFlush::Disabled,
+            favor_dec_speed: FavorDecSpeed::Disabled,
+            _reserved: [0; 3],
+        }
     }
 }
 
