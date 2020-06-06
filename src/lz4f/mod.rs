@@ -444,8 +444,9 @@ impl Dictionary {
 
 #[cfg(test)]
 mod tests {
-    use super::{CompressionLevel, Dictionary};
+    use super::{CompressionLevel, FrameCompressorBuilder, Dictionary};
     use rand::{distributions::Standard, rngs::SmallRng, Rng, SeedableRng};
+    use std::io::prelude::*;
     use rayon::prelude::*;
 
     #[test]
@@ -466,9 +467,28 @@ mod tests {
     }
 
     #[test]
-    fn create_dictionary() {
+    fn parallel_compression_with_dict() {
         let rng = SmallRng::seed_from_u64(0);
         let data: Vec<_> = rng.sample_iter(Standard).take(2048).collect();
-        Dictionary::new(&data);
+        let dict = Dictionary::new(&data);
+
+        let builder = FrameCompressorBuilder::new().dictionary(dict, 1);
+        let all_ok = (0..4095usize)
+            .into_par_iter()
+            .map(|n| {
+                let rng = SmallRng::seed_from_u64(n as u64);
+                rng.sample_iter(Standard).take(n).collect::<Vec<_>>()
+            })
+            .map_with(builder, |b, data| -> std::io::Result<_> {
+                let mut buffer = Vec::new();
+                b.build(data.as_slice())?.read_to_end(&mut buffer)?;
+                Ok(buffer)
+            })
+            .all(|r| r.is_ok());
+        assert!(all_ok);
+    }
+
+    #[test]
+    fn create_dictionary() {
     }
 }
