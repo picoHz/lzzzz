@@ -471,18 +471,17 @@ impl Default for CompressionLevel {
 /// ```
 /// use lzzzz::lz4f;
 ///
-/// let compressed = lz4f::compress(b"Hello world!", lz4f::CompressionLevel::Default);
-/// println!("{:?}", compressed);
+/// let mut buf = Vec::new();
+/// lz4f::compress(b"Hello world!", &mut buf, lz4f::CompressionLevel::Default);
 /// ```
-pub fn compress(data: &[u8], compression_level: CompressionLevel) -> Result<Vec<u8>> {
+pub fn compress(src: &[u8], dst: &mut Vec<u8>, compression_level: CompressionLevel) -> Result<()> {
     use std::io::Write;
-    let mut buf = Vec::new();
-    let mut comp = FrameCompressorBuilder::new()
+    let mut writer = FrameCompressorBuilder::new()
         .compression_level(compression_level)
-        .build(&mut buf)?;
-    comp.write_all(data)?;
-    comp.end()?;
-    Ok(buf)
+        .build(dst)?;
+    writer.write_all(src)?;
+    writer.end()?;
+    Ok(())
 }
 
 /// A user-defined dictionary for the efficient compression.
@@ -521,8 +520,9 @@ mod tests {
                     -CompressionLevel::Max.as_i32(),
                     CompressionLevel::Max.as_i32(),
                 ));
-                let data: Vec<_> = rng.sample_iter(Standard).take(n).collect();
-                super::compress(&data, level)
+                let src: Vec<_> = rng.sample_iter(Standard).take(n).collect();
+                let mut dst = Vec::new();
+                super::compress(&src, &mut dst, level)
             })
             .all(|r| r.is_ok());
         assert!(all_ok);
@@ -557,7 +557,7 @@ mod tests {
 
         fn main() -> std::io::Result<()> {
             let input = b"Goodnight world!";
-            let mut reader = BufReader::new(&input[..]);
+            let reader = BufReader::new(&input[..]);
             let mut comp = FrameCompressorBuilder::new()
                 .block_size(BlockSize::Max1MB)
                 .build(reader)?;
