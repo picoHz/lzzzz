@@ -134,7 +134,7 @@ pub enum FavorDecSpeed {
 }
 
 #[derive(Default, Clone)]
-/// LZ4 Frame Compressor Builder
+/// A builder struct to customize `FrameCompressor<D>`.
 pub struct FrameCompressorBuilder {
     pref: Preferences,
     dict: Option<Dictionary>,
@@ -205,9 +205,9 @@ impl FrameCompressorBuilder {
         self
     }
 
-    /// Create a new `FrameCompressor` instance with this configuration.
+    /// Create a new `FrameCompressor<D>` instance with this configuration.
     ///
-    /// To make I/O operations to the returned `FrameCompressor`,
+    /// To make I/O operations to the returned `FrameCompressor<D>`,
     /// the `device` should implement `Read`, `BufRead` or `Write`.
     pub fn build<D>(&self, device: D) -> Result<FrameCompressor<D>> {
         FrameCompressor::new(device, self.pref, self.dict.clone())
