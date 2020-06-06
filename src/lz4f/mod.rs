@@ -485,6 +485,7 @@ enum DecompressorState {
     Created,
 }
 
+/// The `FrameCompressor<D>` provides a transparent decompression to any reader and writer.
 pub struct FrameDecompressor<'a, D> {
     device: D,
     state: DecompressorState,
