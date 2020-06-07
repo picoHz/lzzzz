@@ -4,10 +4,7 @@ mod api;
 mod binding;
 
 use crate::{
-    lz4f::{
-        api::{FrameType, Pref},
-        FrameInfo, Preferences,
-    },
+    lz4f::{api::Pref, FrameInfo, Preferences},
     Result,
 };
 use api::{CompressionContext, DictionaryHandle, LZ4Buffer};

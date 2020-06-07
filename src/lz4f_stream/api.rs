@@ -2,7 +2,7 @@
 
 use super::{
     binding,
-    binding::{CompressionCtx, CompressionOptions, DecompressionCtx},
+    binding::{CompressionCtx, CompressionOptions},
     Dictionary,
 };
 use crate::{
@@ -10,14 +10,13 @@ use crate::{
     LZ4Error, Result,
 };
 
-use libc::{c_int, c_uint, c_ulonglong, c_void, size_t};
+use libc::{c_ulonglong, c_void, size_t};
 use std::{
     ffi::CStr,
     ops::{Deref, DerefMut},
     ptr::NonNull,
 };
 
-pub const HEADER_SIZE_MIN: usize = 7;
 pub const HEADER_SIZE_MAX: usize = 19;
 
 pub struct CompressionContext {

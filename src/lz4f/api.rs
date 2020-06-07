@@ -1,18 +1,7 @@
 #![allow(unsafe_code)]
 
-use super::{
-    binding, AutoFlush, BlockChecksum, BlockMode, BlockSize, ContentChecksum, FavorDecSpeed,
-    FrameInfo, Preferences,
-};
-use crate::{LZ4Error, Result};
-
-use binding::{CompressionCtx, CompressionDict, DecompressionCtx};
-use libc::{c_int, c_uint, c_ulonglong, c_void, size_t};
-use std::{
-    ffi::CStr,
-    ops::{Deref, DerefMut},
-    ptr::NonNull,
-};
+use super::{AutoFlush, FavorDecSpeed, FrameInfo};
+use libc::{c_int, c_uint};
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 #[repr(C)]

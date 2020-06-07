@@ -1,7 +1,7 @@
 #![allow(unsafe_code)]
 
 use crate::lz4f::{api::Pref, binding::CompressionDict, FrameInfo};
-use libc::{c_int, c_uint, c_ulonglong, c_void, size_t};
+use libc::{c_uint, c_void, size_t};
 
 #[repr(C)]
 pub struct CompressionCtx {

@@ -2,10 +2,9 @@
 
 use super::binding;
 
-use libc::{c_char, c_int, c_uint, c_void, size_t};
+use libc::{c_char, c_int, c_void};
 use std::{
     cell::{RefCell, RefMut},
-    ops::Deref,
     rc::Rc,
 };
 

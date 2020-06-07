@@ -1,6 +1,6 @@
 #![allow(unsafe_code)]
 
-use libc::{c_char, c_int, c_uint, c_void, size_t};
+use libc::{c_char, c_int, c_void, size_t};
 
 const LZ4HC_HASH_LOG: usize = 15;
 const LZ4HC_HASHTABLESIZE: usize = 1 << LZ4HC_HASH_LOG;

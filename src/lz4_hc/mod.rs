@@ -1,16 +1,11 @@
 //! LZ4_HC Block Compressor
 //!
-//! The `lz4_hc` module doesn't provide decompression functionarities.
+//! The `lz4_hc` module doesn't provide decompression functionalities.
 //! Use the `lz4` module instead.
 mod api;
 mod binding;
 
 use crate::Result;
-use std::{
-    cell::{RefCell, RefMut},
-    ops::Deref,
-    rc::Rc,
-};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CompressionMode {

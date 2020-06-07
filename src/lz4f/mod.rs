@@ -59,7 +59,7 @@ pub(crate) mod binding;
 use crate::{lz4f::api::FrameType, Result};
 use api::Pref;
 use libc::{c_int, c_uint, c_ulonglong};
-use std::{cmp, io, ops, sync::Arc};
+use std::{ops, sync::Arc};
 
 /// Compression block size
 ///

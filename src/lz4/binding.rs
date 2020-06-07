@@ -1,6 +1,6 @@
 #![allow(unsafe_code)]
 
-use libc::{c_char, c_int, c_uint, c_void, size_t};
+use libc::{c_char, c_int, c_void};
 
 const LZ4_MEMORY_USAGE: usize = 14;
 const LZ4_MEMORY_SIZE_U64: usize = (1 << (LZ4_MEMORY_USAGE - 3)) + 4;

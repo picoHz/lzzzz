@@ -3,11 +3,6 @@ mod api;
 mod binding;
 
 use crate::{LZ4Error, Result};
-use std::{
-    cell::{RefCell, RefMut},
-    ops::Deref,
-    rc::Rc,
-};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CompressionMode {
