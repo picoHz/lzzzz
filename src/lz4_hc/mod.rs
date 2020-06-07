@@ -59,6 +59,11 @@ pub fn compress(
     todo!();
 }
 
+/// ExtSate
+/// 
+/// To reduce allocation overhead, the `ExtState` is implemented as a shared buffer. 
+/// No matter how many times you call `ExtSate::new()` or `ExtSate::clone()`, 
+/// the heap allocation occurs only once per thread.
 #[derive(Debug, Default, Clone, PartialEq, Eq)]
 pub struct ExtSate(Rc<RefCell<Option<Box<[u8]>>>>);
 
@@ -76,4 +81,4 @@ impl ExtSate {
     }
 }
 
-thread_local!(static EXT_STATE: ExtSate = ExtSate::new());
+thread_local!(static EXT_STATE: ExtSate = Default::default());
