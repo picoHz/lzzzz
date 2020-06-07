@@ -57,7 +57,7 @@ pub(crate) mod api;
 pub(crate) mod binding;
 
 use crate::{lz4f::api::FrameType, Result};
-use api::{CompressionContext, DictionaryHandle, LZ4Buffer, Pref};
+use api::Pref;
 use libc::{c_int, c_uint, c_ulonglong};
 use std::{cmp, io, ops, sync::Arc};
 
@@ -190,7 +190,6 @@ impl FrameInfo {
 #[repr(C)]
 pub struct Preferences {
     pub(crate) inner: Pref,
-    pub(crate) dict: Option<Dictionary>,
 }
 
 /// Compression level.
@@ -277,13 +276,6 @@ impl PreferencesBuilder {
         self
     }
 
-    /// Set the dictionary and the dictionary ID.
-    pub fn dictionary(mut self, dict: Dictionary, dict_id: u32) -> Self {
-        self.pref.inner.frame_info.dict_id = dict_id as c_uint;
-        self.pref.dict = Some(dict);
-        self
-    }
-
     /// Create a new `FrameCompressor<D>` instance with this configuration.
     ///
     /// To make I/O operations to the returned `FrameCompressor<D>`,
@@ -348,25 +340,6 @@ impl<'a> Default for DecompressionMode<'a> {
 
 pub fn decompress(src: &[u8], dst: &mut Vec<u8>, mode: DecompressionMode) -> Result<()> {
     todo!();
-}
-
-/// A user-defined dictionary for the efficient compression.
-///
-/// **Cited from lz4frame.h:**
-///
-/// A Dictionary is useful for the compression of small messages (KB range).
-/// It dramatically improves compression efficiency.
-///
-/// LZ4 can ingest any input as dictionary, though only the last 64 KB are useful.
-/// Best results are generally achieved by using Zstandard's Dictionary Builder
-/// to generate a high-quality dictionary from a set of samples.
-#[derive(Clone)]
-pub struct Dictionary(pub(crate) Arc<DictionaryHandle>);
-
-impl Dictionary {
-    pub fn new(data: &[u8]) -> Self {
-        Self(Arc::new(DictionaryHandle::new(data)))
-    }
 }
 
 /*

@@ -2,10 +2,11 @@
 
 use super::{
     binding,
-    binding::{CompressionCtx, CompressionOptions, DecompressionCtx, DecompressionOptions},
+    binding::{CompressionCtx, CompressionOptions, DecompressionCtx},
+    Dictionary,
 };
 use crate::{
-    lz4f::{api::Pref, binding::CompressionDict, Dictionary},
+    lz4f::{api::Pref, binding::CompressionDict},
     LZ4Error, Result,
 };
 

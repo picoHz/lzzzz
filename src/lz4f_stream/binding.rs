@@ -20,13 +20,6 @@ pub struct CompressionOptions {
     pub _reserved: [c_uint; 3],
 }
 
-#[derive(Debug, Copy, Clone)]
-#[repr(C)]
-pub struct DecompressionOptions {
-    pub stable_dst: c_uint,
-    pub _reserved: [c_uint; 3],
-}
-
 #[link(name = "lz4")]
 extern "C" {
     pub fn LZ4F_getVersion() -> c_uint;

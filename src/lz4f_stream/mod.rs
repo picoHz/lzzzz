@@ -40,10 +40,9 @@ pub struct FrameCompressor<D> {
 impl<D> FrameCompressor<D> {
     /// Create a new `FrameCompressor<D>` instance with the default configuration.
     pub fn new(device: D, mut pref: Preferences) -> Result<Self> {
-        let dict = pref.dict.take();
         Ok(Self {
             pref: pref.inner,
-            ctx: CompressionContext::new(dict)?,
+            ctx: CompressionContext::new(None)?,
             device,
             state: CompressorState::Created,
             buffer: LZ4Buffer::new(),
@@ -230,5 +229,24 @@ impl<'a, D> FrameDecompressor<'a, D> {
 
     pub fn frame_info(&mut self) -> Result<FrameInfo> {
         todo!();
+    }
+}
+
+/// A user-defined dictionary for the efficient compression.
+///
+/// **Cited from lz4frame.h:**
+///
+/// A Dictionary is useful for the compression of small messages (KB range).
+/// It dramatically improves compression efficiency.
+///
+/// LZ4 can ingest any input as dictionary, though only the last 64 KB are useful.
+/// Best results are generally achieved by using Zstandard's Dictionary Builder
+/// to generate a high-quality dictionary from a set of samples.
+#[derive(Clone)]
+pub struct Dictionary(pub(crate) Arc<DictionaryHandle>);
+
+impl Dictionary {
+    pub fn new(data: &[u8]) -> Self {
+        Self(Arc::new(DictionaryHandle::new(data)))
     }
 }
