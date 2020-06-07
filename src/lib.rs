@@ -1,6 +1,6 @@
 #![deny(unsafe_code)]
 
-pub mod common;
+mod common;
 pub mod lz4;
 pub mod lz4_hc;
 pub mod lz4f;
@@ -54,3 +54,5 @@ impl convert::From<LZ4Error> for io::Error {
 }
 
 type Result<T> = std::result::Result<T, LZ4Error>;
+
+pub use common::version_number;
