@@ -5,12 +5,12 @@
 //! Write the compressed `"Hello world!"` to `foo.lz4`.
 //!
 //! ```
-//! use lzzzz::{lz4f::Preferences, lz4f_stream::FrameCompressor};
+//! use lzzzz::{lz4f::Preferences, lz4f_stream::StreamCompressor};
 //! use std::{fs::File, io::prelude::*};
 //!
 //! fn main() -> std::io::Result<()> {
 //!     let mut output = File::create("foo.lz4")?;
-//!     let mut comp = FrameCompressor::new(&mut output, Preferences::default())?;
+//!     let mut comp = StreamCompressor::new(&mut output, Preferences::default())?;
 //!
 //!     writeln!(comp, "Hello world!")
 //! }
@@ -19,12 +19,12 @@
 //! Read and compress data from a slice.
 //!
 //! ```
-//! use lzzzz::{lz4f::Preferences, lz4f_stream::FrameCompressor};
+//! use lzzzz::{lz4f::Preferences, lz4f_stream::StreamCompressor};
 //! use std::io::prelude::*;
 //!
 //! fn main() -> std::io::Result<()> {
 //!     let input = b"Goodnight world!";
-//!     let mut comp = FrameCompressor::new(&input[..], Preferences::default())?;
+//!     let mut comp = StreamCompressor::new(&input[..], Preferences::default())?;
 //!
 //!     let mut buffer = Vec::new();
 //!     comp.read_to_end(&mut buffer)?;
@@ -37,7 +37,7 @@
 //! ```
 //! use lzzzz::{
 //!     lz4f::{BlockSize, PreferencesBuilder},
-//!     lz4f_stream::FrameCompressor,
+//!     lz4f_stream::StreamCompressor,
 //! };
 //! use rayon::prelude::*;
 //! use std::io::prelude::*;
@@ -50,7 +50,7 @@
 //!     .map(|n| format!("{} 🐑...", n))
 //!     .map_with(pref, |pref, data| -> std::io::Result<_> {
 //!         let mut buffer = Vec::new();
-//!         FrameCompressor::new(data.as_bytes(), pref.clone())?.read_to_end(&mut buffer)?;
+//!         StreamCompressor::new(data.as_bytes(), pref.clone())?.read_to_end(&mut buffer)?;
 //!         Ok(buffer)
 //!     })
 //!     .all(|r| r.is_ok());
@@ -324,9 +324,9 @@ impl PreferencesBuilder {
         self
     }
 
-    /// Create a new `FrameCompressor<D>` instance with this configuration.
+    /// Create a new `StreamCompressor<D>` instance with this configuration.
     ///
-    /// To make I/O operations to the returned `FrameCompressor<D>`,
+    /// To make I/O operations to the returned `StreamCompressor<D>`,
     /// the `device` should implement `Read`, `BufRead` or `Write`.
     pub fn build(&self) -> Preferences {
         self.pref.clone()
@@ -394,7 +394,7 @@ pub fn decompress(src: &[u8], dst: &mut Vec<u8>, mode: DecompressionMode) -> Res
 
 // #[cfg(test)]
 // mod tests {
-// use super::{CompressionLevel, Dictionary, FrameCompressor, Preferences,
+// use super::{CompressionLevel, Dictionary, StreamCompressor, Preferences,
 // PreferencesBuilder}; use rand::{distributions::Standard, rngs::SmallRng, Rng,
 // SeedableRng}; use rayon::prelude::*;
 // use std::io::prelude::*;
@@ -432,7 +432,7 @@ pub fn decompress(src: &[u8], dst: &mut Vec<u8>, mode: DecompressionMode) -> Res
 // })
 // .map_with(pref, |pref, data| -> std::io::Result<_> {
 // let mut buffer = Vec::new();
-// FrameCompressor::new(data.as_slice(), pref.clone())?.read_to_end(&mut
+// StreamCompressor::new(data.as_slice(), pref.clone())?.read_to_end(&mut
 // buffer)?; Ok(buffer)
 // })
 // .all(|r| r.is_ok());
@@ -441,7 +441,7 @@ pub fn decompress(src: &[u8], dst: &mut Vec<u8>, mode: DecompressionMode) -> Res
 //
 // #[test]
 // fn bufread() {
-// use crate::lz4f::{BlockSize, FrameCompressor, PreferencesBuilder};
+// use crate::lz4f::{BlockSize, StreamCompressor, PreferencesBuilder};
 // use std::io::{prelude::*, BufReader};
 //
 // fn main() -> std::io::Result<()> {
@@ -450,7 +450,7 @@ pub fn decompress(src: &[u8], dst: &mut Vec<u8>, mode: DecompressionMode) -> Res
 // let pref = PreferencesBuilder::new()
 // .block_size(BlockSize::Max1MB)
 // .build();
-// let mut comp = FrameCompressor::new(reader, pref)?;
+// let mut comp = StreamCompressor::new(reader, pref)?;
 //
 // let mut buffer = Vec::new();
 // comp.read_until(b'-', &mut buffer)?;
