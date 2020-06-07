@@ -42,6 +42,15 @@ pub fn compress(
     todo!();
 }
 
+pub fn compress_to_vec(
+    src: &[u8],
+    dst: &mut Vec<u8>,
+    mode: CompressionMode,
+    compression_level: CompressionLevel,
+) -> Result<()> {
+    todo!();
+}
+
 #[derive(Debug, Default, Clone, PartialEq, Eq)]
 pub struct ExtSate(Rc<RefCell<Option<Box<[u8]>>>>);
 

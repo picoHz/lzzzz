@@ -26,6 +26,28 @@ pub enum FrameType {
 
 #[derive(Debug, Copy, Clone)]
 #[repr(C)]
+pub(crate) struct Pref {
+    frame_info: FrameInfo,
+    compression_level: c_int,
+    auto_flush: AutoFlush,
+    favor_dec_speed: FavorDecSpeed,
+    _reserved: [c_uint; 3],
+}
+
+impl Default for Pref {
+    fn default() -> Self {
+        Self {
+            frame_info: FrameInfo::default(),
+            compression_level: 0,
+            auto_flush: AutoFlush::Disabled,
+            favor_dec_speed: FavorDecSpeed::Disabled,
+            _reserved: [0; 3],
+        }
+    }
+}
+
+#[derive(Debug, Copy, Clone)]
+#[repr(C)]
 pub struct CompressionOptions {
     pub stable_src: c_uint,
     pub _reserved: [c_uint; 3],

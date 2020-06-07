@@ -27,6 +27,10 @@ pub fn compress_fast(src: &[u8], dst: &mut [u8], acceleration: i32) -> usize {
     }
 }
 
+pub fn compress_bound(input_size: usize) -> usize {
+    unsafe { binding::LZ4_compressBound(input_size as c_int) as usize }
+}
+
 pub fn size_of_state() -> usize {
     unsafe { binding::LZ4_sizeofState() as usize }
 }

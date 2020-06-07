@@ -1,3 +1,7 @@
+//! LZ4_HC Compressor/Decompressor
+//!
+//! The `lz4_hc` module doesn't provide decompression functionarities.
+//! Use the `lz4` module instead.
 #![allow(unsafe_code)]
 
 use super::binding;

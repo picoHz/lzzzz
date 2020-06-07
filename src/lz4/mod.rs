@@ -21,6 +21,10 @@ impl Default for CompressionMode {
     }
 }
 
+pub fn compress_bound(src_size: usize) -> usize {
+    api::compress_bound(src_size)
+}
+
 pub fn compress(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> Result<usize> {
     let len = match mode {
         CompressionMode::Default => api::compress_default(src, dst),
@@ -36,6 +40,10 @@ pub fn compress(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> Result<usi
     }
 }
 
+pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, mode: CompressionMode) -> Result<()> {
+    todo!();
+}
+
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum DecompressionMode<'a> {
     Default,
@@ -47,6 +55,10 @@ impl<'a> Default for DecompressionMode<'a> {
     fn default() -> Self {
         Self::Default
     }
+}
+
+pub fn decompress(src: &[u8], dst: &mut [u8], mode: DecompressionMode) -> Result<()> {
+    todo!();
 }
 
 #[derive(Debug, Default, Clone, PartialEq, Eq)]
