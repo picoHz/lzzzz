@@ -56,7 +56,7 @@ impl<D: io::Write> FrameCompressor<D> {
     ///
     /// Dropping a `FrameCompressor` automatically finalize a frame
     /// so you don't have to call this unless you need a `Result`.
-    pub fn end(mut self) -> Result<()> {
+    pub fn end(&mut self) -> Result<()> {
         self.finalize_write()
     }
 
