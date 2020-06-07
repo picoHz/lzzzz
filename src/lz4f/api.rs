@@ -14,9 +14,6 @@ use std::{
     ptr::NonNull,
 };
 
-pub const HEADER_SIZE_MIN: usize = 7;
-pub const HEADER_SIZE_MAX: usize = 19;
-
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 #[repr(C)]
 pub enum FrameType {

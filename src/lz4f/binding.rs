@@ -27,7 +27,6 @@ pub struct DecompressionOptions {
 
 #[link(name = "lz4")]
 extern "C" {
-    pub fn LZ4F_getVersion() -> c_uint;
     pub fn LZ4F_compressBound(src_size: size_t, prefs: *const Pref) -> size_t;
     pub fn LZ4F_decompress(
         ctx: *mut DecompressionCtx,

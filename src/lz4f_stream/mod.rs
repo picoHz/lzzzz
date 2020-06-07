@@ -1,3 +1,5 @@
+//! LZ4 Frame Streaming Compressor/Decompressor
+
 mod api;
 mod binding;
 
@@ -39,7 +41,7 @@ pub struct FrameCompressor<D> {
 
 impl<D> FrameCompressor<D> {
     /// Create a new `FrameCompressor<D>` instance with the default configuration.
-    pub fn new(device: D, mut pref: Preferences) -> Result<Self> {
+    pub fn new(device: D, pref: Preferences) -> Result<Self> {
         Ok(Self {
             pref: pref.inner,
             ctx: CompressionContext::new(None)?,
@@ -199,7 +201,7 @@ enum DecompressorState {
     Created,
 }
 
-/// The `FrameCompressor<D>` provides a transparent decompression to any reader and writer.
+/// The `FrameDeompressor<D>` provides a transparent decompression to any reader and writer.
 pub struct FrameDecompressor<'a, D> {
     device: D,
     state: DecompressorState,
