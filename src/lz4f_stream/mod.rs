@@ -4,7 +4,7 @@ mod api;
 mod binding;
 
 use crate::{
-    lz4f::{api::Pref, FrameInfo, Preferences},
+    lz4f::{FrameInfo, Preferences},
     Result,
 };
 use api::{CompressionContext, DictionaryHandle, LZ4Buffer};
@@ -29,7 +29,7 @@ enum CompressorState<D> {
 /// Note that this doesn't mean "Bidirectional stream".
 /// Making read and write operations on a same instance causes a panic!
 pub struct FrameCompressor<D> {
-    pref: Pref,
+    pref: Preferences,
     ctx: CompressionContext,
     device: D,
     state: CompressorState<D>,
@@ -40,7 +40,7 @@ impl<D> FrameCompressor<D> {
     /// Create a new `FrameCompressor<D>` instance with the default configuration.
     pub fn new(device: D, pref: Preferences) -> Result<Self> {
         Ok(Self {
-            pref: pref.inner,
+            pref: pref,
             ctx: CompressionContext::new(None)?,
             device,
             state: CompressorState::Created,

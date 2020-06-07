@@ -1,6 +1,6 @@
 #![allow(unsafe_code)]
 
-use super::api::Pref;
+use super::Preferences;
 use libc::{c_char, c_uint, c_void, size_t};
 
 #[repr(C)]
@@ -27,7 +27,7 @@ pub struct DecompressionOptions {
 
 #[link(name = "lz4")]
 extern "C" {
-    pub fn LZ4F_compressBound(src_size: size_t, prefs: *const Pref) -> size_t;
+    pub fn LZ4F_compressBound(src_size: size_t, prefs: *const Preferences) -> size_t;
     pub fn LZ4F_decompress(
         ctx: *mut DecompressionCtx,
         dst_buffer: *mut c_void,

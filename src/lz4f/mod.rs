@@ -57,7 +57,6 @@ pub(crate) mod api;
 pub(crate) mod binding;
 
 use crate::{lz4f::api::FrameType, Result};
-use api::Pref;
 use libc::{c_int, c_uint, c_ulonglong};
 use std::{ops, sync::Arc};
 
@@ -186,12 +185,6 @@ impl FrameInfo {
     }
 }
 
-#[derive(Default, Clone)]
-#[repr(C)]
-pub struct Preferences {
-    pub(crate) inner: Pref,
-}
-
 /// Compression level.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum CompressionLevel {
@@ -218,6 +211,28 @@ impl Default for CompressionLevel {
     }
 }
 
+#[derive(Debug, Copy, Clone)]
+#[repr(C)]
+pub struct Preferences {
+    pub frame_info: FrameInfo,
+    pub compression_level: c_int,
+    pub auto_flush: AutoFlush,
+    pub favor_dec_speed: FavorDecSpeed,
+    _reserved: [c_uint; 3],
+}
+
+impl Default for Preferences {
+    fn default() -> Self {
+        Self {
+            frame_info: FrameInfo::default(),
+            compression_level: 0,
+            auto_flush: AutoFlush::Disabled,
+            favor_dec_speed: FavorDecSpeed::Disabled,
+            _reserved: [0; 3],
+        }
+    }
+}
+
 /// A builder struct to customize `FrameCompressor<D>`.
 #[derive(Default, Clone)]
 pub struct PreferencesBuilder {
@@ -232,25 +247,25 @@ impl PreferencesBuilder {
 
     /// Set the block size.
     pub fn block_size(mut self, block_size: BlockSize) -> Self {
-        self.pref.inner.frame_info.block_size = block_size;
+        self.pref.frame_info.block_size = block_size;
         self
     }
 
     /// Set the block mode.
     pub fn block_mode(mut self, block_mode: BlockMode) -> Self {
-        self.pref.inner.frame_info.block_mode = block_mode;
+        self.pref.frame_info.block_mode = block_mode;
         self
     }
 
     /// Set the content checksum.
     pub fn content_checksum(mut self, checksum: ContentChecksum) -> Self {
-        self.pref.inner.frame_info.content_checksum = checksum;
+        self.pref.frame_info.content_checksum = checksum;
         self
     }
 
     /// Set the block checksum.
     pub fn block_checksum(mut self, checksum: BlockChecksum) -> Self {
-        self.pref.inner.frame_info.block_checksum = checksum;
+        self.pref.frame_info.block_checksum = checksum;
         self
     }
 
@@ -260,19 +275,19 @@ impl PreferencesBuilder {
     /// 0: default (fast mode); values > LZ4HC_CLEVEL_MAX count as LZ4HC_CLEVEL_MAX;
     /// values < 0 trigger "fast acceleration"
     pub fn compression_level(mut self, level: CompressionLevel) -> Self {
-        self.pref.inner.compression_level = level.as_i32() as c_int;
+        self.pref.compression_level = level.as_i32() as c_int;
         self
     }
 
     /// Set the decompression speed mode flag.
     pub fn favor_dec_speed(mut self, dec_speed: FavorDecSpeed) -> Self {
-        self.pref.inner.favor_dec_speed = dec_speed;
+        self.pref.favor_dec_speed = dec_speed;
         self
     }
 
     /// Set the auto flush flag.
     pub fn auto_flush(mut self, auto_flush: AutoFlush) -> Self {
-        self.pref.inner.auto_flush = auto_flush;
+        self.pref.auto_flush = auto_flush;
         self
     }
 

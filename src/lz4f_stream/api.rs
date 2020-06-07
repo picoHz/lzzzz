@@ -6,7 +6,7 @@ use super::{
     Dictionary,
 };
 use crate::{
-    lz4f::{api::Pref, binding::CompressionDict},
+    lz4f::{binding::CompressionDict, Preferences},
     LZ4Error, Result,
 };
 
@@ -42,7 +42,7 @@ impl CompressionContext {
         )
     }
 
-    pub fn begin(&mut self, dst: &mut [u8], prefs: &Pref) -> Result<usize> {
+    pub fn begin(&mut self, dst: &mut [u8], prefs: &Preferences) -> Result<usize> {
         let code = unsafe {
             if let Some(dict) = &self.dict {
                 binding::LZ4F_compressBegin_usingCDict(
@@ -50,7 +50,7 @@ impl CompressionContext {
                     dst.as_mut_ptr() as *mut c_void,
                     dst.len() as size_t,
                     (*dict.0).0.as_ptr(),
-                    prefs as *const Pref,
+                    prefs as *const Preferences,
                 )
             } else {
                 binding::LZ4F_compressBegin(
@@ -110,9 +110,12 @@ impl CompressionContext {
         make_result(code as usize, code)
     }
 
-    pub fn compress_bound(src_size: usize, prefs: &Pref) -> usize {
+    pub fn compress_bound(src_size: usize, prefs: &Preferences) -> usize {
         unsafe {
-            crate::lz4f::binding::LZ4F_compressBound(src_size as size_t, prefs as *const Pref)
+            crate::lz4f::binding::LZ4F_compressBound(
+                src_size as size_t,
+                prefs as *const Preferences,
+            )
         }
     }
 }
@@ -150,7 +153,7 @@ impl LZ4Buffer {
         Default::default()
     }
 
-    pub fn grow(&mut self, size: usize, prefs: &Pref) {
+    pub fn grow(&mut self, size: usize, prefs: &Preferences) {
         if self.prev_size == 0 || size + 1 > self.prev_size {
             let len = CompressionContext::compress_bound(size, prefs) + HEADER_SIZE_MAX;
             if len > self.data.len() {

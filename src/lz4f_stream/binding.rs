@@ -1,6 +1,6 @@
 #![allow(unsafe_code)]
 
-use crate::lz4f::{api::Pref, binding::CompressionDict, FrameInfo};
+use crate::lz4f::{binding::CompressionDict, FrameInfo, Preferences};
 use libc::{c_uint, c_void, size_t};
 
 #[repr(C)]
@@ -30,14 +30,14 @@ extern "C" {
         ctx: *mut CompressionCtx,
         dst_buffer: *mut c_void,
         dst_capacity: size_t,
-        prefs: *const Pref,
+        prefs: *const Preferences,
     ) -> size_t;
     pub fn LZ4F_compressBegin_usingCDict(
         ctx: *mut CompressionCtx,
         dst_buffer: *mut c_void,
         dst_capacity: size_t,
         dist: *const CompressionDict,
-        prefs: *const Pref,
+        prefs: *const Preferences,
     ) -> size_t;
     pub fn LZ4F_compressUpdate(
         ctx: *mut CompressionCtx,
