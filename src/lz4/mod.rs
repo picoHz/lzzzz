@@ -17,16 +17,16 @@ use api::ExtState;
 /// lz4::compress(
 ///     b"ex nihilo nihil fit",
 ///     &mut buf,
-///     lz4::CompressionMode::Fast(20),
+///     lz4::CompressionMode::Fast { factor: 20 },
 /// );
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CompressionMode {
-    /// `Default` is same as `Fast(1)`.
+    /// `Default` is same as `Fast { factor: 1 }`.
     Default,
-    /// Larger value increases the processing speed in exchange for the lesser
-    /// compression ratio.
-    Fast(i32),
+    /// Larger `factor` increases the processing speed in exchange for the
+    /// lesser compression ratio.
+    Fast { factor: i32 },
 }
 
 impl Default for CompressionMode {
@@ -63,7 +63,7 @@ pub fn max_compressed_size(uncompressed_size: usize) -> usize {
 pub fn compress_to_slice(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> Result<usize> {
     let acc = match mode {
         CompressionMode::Default => 1,
-        CompressionMode::Fast(acc) => acc,
+        CompressionMode::Fast { factor } => factor,
     };
     let state = ExtState::get();
     let len = api::compress_fast_ext_state(&mut state.borrow_mut(), src, dst, acc);
@@ -117,9 +117,13 @@ pub enum DecompressionMode<'a> {
     /// Decompress the partial data.
     ///
     /// The destination slice can have smaller size of the uncompressed data.
-    /// The value must be the exact size of the uncompressed data.
-    Partial(usize),
-    Dictionary(&'a [u8]),
+    /// The `uncompressed_size` must be the exact size of the uncompressed data.
+    Partial {
+        uncompressed_size: usize,
+    },
+    Dictionary {
+        data: &'a [u8],
+    },
 }
 
 impl<'a> Default for DecompressionMode<'a> {
