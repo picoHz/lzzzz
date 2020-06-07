@@ -16,8 +16,8 @@ pub struct DecompressionCtx {
 #[derive(Debug, Copy, Clone)]
 #[repr(C)]
 pub struct CompressionOptions {
-    pub stable_src: c_uint,
-    pub _reserved: [c_uint; 3],
+    stable_src: c_uint,
+    _reserved: [c_uint; 3],
 }
 
 #[link(name = "lz4")]

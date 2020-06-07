@@ -214,10 +214,10 @@ impl Default for CompressionLevel {
 #[derive(Debug, Copy, Clone)]
 #[repr(C)]
 pub struct Preferences {
-    pub frame_info: FrameInfo,
-    pub compression_level: c_int,
-    pub auto_flush: AutoFlush,
-    pub favor_dec_speed: FavorDecSpeed,
+    frame_info: FrameInfo,
+    compression_level: c_int,
+    auto_flush: AutoFlush,
+    favor_dec_speed: FavorDecSpeed,
     _reserved: [c_uint; 3],
 }
 
