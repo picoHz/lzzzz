@@ -21,7 +21,7 @@ impl Default for CompressionMode {
     }
 }
 
-pub fn compress_bound(src_size: usize) -> usize {
+pub fn max_compressed_size(src_size: usize) -> usize {
     api::compress_bound(src_size)
 }
 
@@ -41,7 +41,7 @@ pub fn compress_to_slice(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> R
 }
 
 pub fn compress(src: &[u8], dst: &mut Vec<u8>, mode: CompressionMode) -> Result<()> {
-    dst.resize_with(compress_bound(src.len()), Default::default);
+    dst.resize_with(max_compressed_size(src.len()), Default::default);
     let result = compress_to_slice(src, dst, mode);
     dst.resize_with(*result.as_ref().unwrap_or(&0), Default::default);
     result.map(|_| ())
