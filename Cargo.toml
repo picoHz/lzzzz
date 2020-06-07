@@ -10,6 +10,9 @@ homepage = "https://github.com/picoHz/lzzzz"
 documentation = "https://docs.rs/lzzzz"
 include = ["src/**/*", "build.rs", "vendor/liblz4/lib/*", "Cargo.toml"]
 
+[lib]
+crate-type = ["cdylib", "rlib"]
+
 [dependencies]
 libc = "0.2.71"
 
