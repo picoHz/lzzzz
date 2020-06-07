@@ -114,7 +114,11 @@ pub enum DecompressionMode<'a> {
     ///
     /// The destination slice must have the exact size of the uncompressed data.
     Default,
-    Partial,
+    /// Decompress the partial data.
+    ///
+    /// The destination slice can have smaller size of the uncompressed data.
+    /// The value must be the exact size of the uncompressed data.
+    Partial(usize),
     Dictionary(&'a [u8]),
 }
 

@@ -8,29 +8,6 @@ use std::{
     rc::Rc,
 };
 
-pub fn compress_default(src: &[u8], dst: &mut [u8]) -> usize {
-    unsafe {
-        binding::LZ4_compress_default(
-            src.as_ptr() as *const c_char,
-            dst.as_mut_ptr() as *mut c_char,
-            src.len() as c_int,
-            dst.len() as c_int,
-        ) as usize
-    }
-}
-
-pub fn compress_fast(src: &[u8], dst: &mut [u8], acceleration: i32) -> usize {
-    unsafe {
-        binding::LZ4_compress_fast(
-            src.as_ptr() as *const c_char,
-            dst.as_mut_ptr() as *mut c_char,
-            src.len() as c_int,
-            dst.len() as c_int,
-            acceleration as c_int,
-        ) as usize
-    }
-}
-
 pub fn compress_bound(input_size: usize) -> usize {
     unsafe { binding::LZ4_compressBound(input_size as c_int) as usize }
 }
