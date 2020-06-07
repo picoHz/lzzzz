@@ -6,6 +6,7 @@ mod api;
 mod binding;
 
 use crate::Result;
+use api::ExtState;
 
 /// Compression mode specifier
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -62,3 +63,5 @@ pub fn compress(
 ) -> Result<()> {
     todo!();
 }
+
+thread_local!(static EXT_STATE: ExtState = ExtState::new());

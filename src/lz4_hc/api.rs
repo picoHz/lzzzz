@@ -5,6 +5,7 @@ use super::binding;
 use libc::{c_char, c_int, c_void};
 use std::{
     cell::{RefCell, RefMut},
+    ops::Deref,
     rc::Rc,
 };
 
@@ -62,23 +63,21 @@ pub fn size_of_state() -> usize {
 }
 
 #[derive(Clone)]
-pub struct ExtState(Rc<RefCell<Box<[u8]>>>);
+pub struct ExtState(RefCell<Box<[u8]>>);
 
 impl ExtState {
     pub fn new() -> Self {
         let size = size_of_state();
         let mut buf = Vec::with_capacity(size);
         unsafe { buf.set_len(size) };
-        Self(Rc::new(RefCell::new(buf.into_boxed_slice())))
-    }
-
-    pub fn get() -> Self {
-        EXT_STATE.with(Clone::clone)
-    }
-
-    pub fn borrow_mut(&self) -> RefMut<'_, Box<[u8]>> {
-        self.borrow_mut()
+        Self(RefCell::new(buf.into_boxed_slice()))
     }
 }
 
-thread_local!(static EXT_STATE: ExtState = ExtState::new());
+impl Deref for ExtState {
+    type Target = RefCell<Box<[u8]>>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}

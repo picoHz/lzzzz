@@ -68,8 +68,8 @@ pub fn compress_to_slice(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> R
         CompressionMode::Default => 1,
         CompressionMode::Fast { factor } => factor,
     };
-    let state = ExtState::get();
-    let len = api::compress_fast_ext_state(&mut state.borrow_mut(), src, dst, acc);
+    let len = EXT_STATE
+        .with(|state| api::compress_fast_ext_state(&mut state.borrow_mut(), src, dst, acc));
     if len > 0 {
         Ok(len)
     } else {
@@ -145,3 +145,5 @@ impl<'a> Default for DecompressionMode<'a> {
 pub fn decompress(src: &[u8], dst: &mut [u8], mode: DecompressionMode) -> Result<usize> {
     todo!();
 }
+
+thread_local!(static EXT_STATE: ExtState = ExtState::new());
