@@ -41,6 +41,7 @@ pub fn compress_to_slice(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> R
     }
 }
 
+/// Read data from a slice and append a compressed data to `Vec<u8>`.
 pub fn compress(src: &[u8], dst: &mut Vec<u8>, mode: CompressionMode) -> Result<()> {
     dst.resize_with(max_compressed_size(src.len()), Default::default);
     let result = compress_to_slice(src, dst, mode);

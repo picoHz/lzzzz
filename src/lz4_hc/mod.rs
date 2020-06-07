@@ -50,6 +50,7 @@ pub fn compress_to_slice(
     todo!();
 }
 
+/// Read data from a slice and append a compressed data to `Vec<u8>`.
 pub fn compress(
     src: &[u8],
     dst: &mut Vec<u8>,
