@@ -25,7 +25,7 @@ pub fn compress_bound(src_size: usize) -> usize {
     api::compress_bound(src_size)
 }
 
-pub fn compress(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> Result<usize> {
+pub fn compress_to_slice(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> Result<usize> {
     let len = match mode {
         CompressionMode::Default => api::compress_default(src, dst),
         CompressionMode::Fast(acc) => api::compress_fast(src, dst, acc),
@@ -40,9 +40,9 @@ pub fn compress(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> Result<usi
     }
 }
 
-pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, mode: CompressionMode) -> Result<()> {
+pub fn compress(src: &[u8], dst: &mut Vec<u8>, mode: CompressionMode) -> Result<()> {
     dst.resize_with(compress_bound(src.len()), Default::default);
-    let result = compress(src, dst, mode);
+    let result = compress_to_slice(src, dst, mode);
     dst.resize_with(*result.as_ref().unwrap_or(&0), Default::default);
     result.map(|_| ())
 }

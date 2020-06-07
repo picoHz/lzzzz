@@ -37,7 +37,7 @@ pub fn compress_bound(src_size: usize) -> usize {
     0
 }
 
-pub fn compress(
+pub fn compress_to_slice(
     src: &[u8],
     dst: &mut [u8],
     mode: CompressionMode,
@@ -46,7 +46,7 @@ pub fn compress(
     todo!();
 }
 
-pub fn compress_to_vec(
+pub fn compress(
     src: &[u8],
     dst: &mut Vec<u8>,
     mode: CompressionMode,

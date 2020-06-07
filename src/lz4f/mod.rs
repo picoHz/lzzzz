@@ -501,7 +501,7 @@ pub fn compress_bound(src_size: usize) -> usize {
     0
 }
 
-pub fn compress(src: &[u8], dst: &mut [u8], preferences: Preferences) -> Result<usize> {
+pub fn compress_to_slice(src: &[u8], dst: &mut [u8], preferences: Preferences) -> Result<usize> {
     todo!();
 }
 
@@ -513,9 +513,9 @@ pub fn compress(src: &[u8], dst: &mut [u8], preferences: Preferences) -> Result<
 /// use lzzzz::lz4f;
 ///
 /// let mut buf = Vec::new();
-/// lz4f::compress_to_vec(b"Hello world!", &mut buf, lz4f::Preferences::default());
+/// lz4f::compress(b"Hello world!", &mut buf, lz4f::Preferences::default());
 /// ```
-pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, preferences: Preferences) -> Result<()> {
+pub fn compress(src: &[u8], dst: &mut Vec<u8>, preferences: Preferences) -> Result<()> {
     /*
     use std::io::Write;
     let mut writer = FrameCompressorBuilder::new()
@@ -527,7 +527,7 @@ pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, preferences: Preferences) 
     Ok(())
 }
 
-pub fn decompress_to_vec(src: &[u8], dst: &mut Vec<u8>) -> Result<()> {
+pub fn decompress(src: &[u8], dst: &mut Vec<u8>) -> Result<()> {
     todo!();
 }
 
@@ -589,7 +589,7 @@ impl Dictionary {
 
 #[cfg(test)]
 mod tests {
-    use super::{CompressionLevel, Preferences, Dictionary, FrameCompressorBuilder};
+    use super::{CompressionLevel, Dictionary, FrameCompressorBuilder, Preferences};
     use rand::{distributions::Standard, rngs::SmallRng, Rng, SeedableRng};
     use rayon::prelude::*;
     use std::io::prelude::*;
@@ -606,7 +606,7 @@ mod tests {
                 ));
                 let src: Vec<_> = rng.sample_iter(Standard).take(n).collect();
                 let mut dst = Vec::new();
-                super::compress_to_vec(&src, &mut dst, Preferences::default())
+                super::compress(&src, &mut dst, Preferences::default())
             })
             .all(|r| r.is_ok());
         assert!(all_ok);
