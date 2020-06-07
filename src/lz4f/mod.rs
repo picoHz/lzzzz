@@ -5,12 +5,12 @@
 //! Write the compressed `"Hello world!"` to `foo.lz4`.
 //!
 //! ```
-//! use lzzzz::lz4f::FrameCompressor;
+//! use lzzzz::lz4f::{FrameCompressor, Preferences};
 //! use std::{fs::File, io::prelude::*};
 //!
 //! fn main() -> std::io::Result<()> {
 //!     let mut output = File::create("foo.lz4")?;
-//!     let mut comp = FrameCompressor::new(&mut output)?;
+//!     let mut comp = FrameCompressor::new(&mut output, Preferences::default())?;
 //!
 //!     writeln!(comp, "Hello world!")
 //! }
@@ -19,12 +19,12 @@
 //! Read and compress data from a slice.
 //!
 //! ```
-//! use lzzzz::lz4f::FrameCompressor;
+//! use lzzzz::lz4f::{FrameCompressor, Preferences};
 //! use std::io::prelude::*;
 //!
 //! fn main() -> std::io::Result<()> {
 //!     let input = b"Goodnight world!";
-//!     let mut comp = FrameCompressor::new(&input[..])?;
+//!     let mut comp = FrameCompressor::new(&input[..], Preferences::default())?;
 //!
 //!     let mut buffer = Vec::new();
 //!     comp.read_to_end(&mut buffer)?;
@@ -35,17 +35,17 @@
 //! Parallelly count and compress sheep with rayon.
 //!
 //! ```
-//! use lzzzz::lz4f::{BlockSize, FrameCompressorBuilder};
+//! use lzzzz::lz4f::{BlockSize, FrameCompressor, PreferencesBuilder};
 //! use rayon::prelude::*;
 //! use std::io::prelude::*;
 //!
-//! let builder = FrameCompressorBuilder::new().block_size(BlockSize::Max1MB);
+//! let pref = PreferencesBuilder::new().block_size(BlockSize::Max1MB).build();
 //! let all_ok = (1..100)
 //!     .into_par_iter()
 //!     .map(|n| format!("{} 🐑...", n))
-//!     .map_with(builder, |b, data| -> std::io::Result<_> {
+//!     .map_with(pref, |pref, data| -> std::io::Result<_> {
 //!         let mut buffer = Vec::new();
-//!         b.build(data.as_bytes())?.read_to_end(&mut buffer)?;
+//!         FrameCompressor::new(data.as_bytes(), pref.clone())?.read_to_end(&mut buffer)?;
 //!         Ok(buffer)
 //!     })
 //!     .all(|r| r.is_ok());
@@ -57,7 +57,7 @@ mod api;
 mod binding;
 
 use crate::{lz4f::api::FrameType, Result};
-use api::{CompressionContext, DictionaryHandle, LZ4Buffer};
+use api::{CompressionContext, DictionaryHandle, LZ4Buffer, Pref};
 use libc::{c_int, c_uint, c_ulonglong};
 use std::{cmp, io, ops, sync::Arc};
 
@@ -186,26 +186,11 @@ impl FrameInfo {
     }
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Default, Clone)]
 #[repr(C)]
 pub struct Preferences {
-    frame_info: FrameInfo,
-    compression_level: c_int,
-    auto_flush: AutoFlush,
-    favor_dec_speed: FavorDecSpeed,
-    _reserved: [c_uint; 3],
-}
-
-impl Default for Preferences {
-    fn default() -> Self {
-        Self {
-            frame_info: FrameInfo::default(),
-            compression_level: 0,
-            auto_flush: AutoFlush::Disabled,
-            favor_dec_speed: FavorDecSpeed::Disabled,
-            _reserved: [0; 3],
-        }
-    }
+    inner: Pref,
+    dict: Option<Dictionary>,
 }
 
 /// Compression level.
@@ -236,38 +221,37 @@ impl Default for CompressionLevel {
 
 /// A builder struct to customize `FrameCompressor<D>`.
 #[derive(Default, Clone)]
-pub struct FrameCompressorBuilder {
+pub struct PreferencesBuilder {
     pref: Preferences,
-    dict: Option<Dictionary>,
 }
 
-impl FrameCompressorBuilder {
-    /// Create a new `FrameCompressorBuilder` instance with the default configuration.
+impl PreferencesBuilder {
+    /// Create a new `PreferencesBuilder` instance with the default configuration.
     pub fn new() -> Self {
         Default::default()
     }
 
     /// Set the block size.
     pub fn block_size(mut self, block_size: BlockSize) -> Self {
-        self.pref.frame_info.block_size = block_size;
+        self.pref.inner.frame_info.block_size = block_size;
         self
     }
 
     /// Set the block mode.
     pub fn block_mode(mut self, block_mode: BlockMode) -> Self {
-        self.pref.frame_info.block_mode = block_mode;
+        self.pref.inner.frame_info.block_mode = block_mode;
         self
     }
 
     /// Set the content checksum.
     pub fn content_checksum(mut self, checksum: ContentChecksum) -> Self {
-        self.pref.frame_info.content_checksum = checksum;
+        self.pref.inner.frame_info.content_checksum = checksum;
         self
     }
 
     /// Set the block checksum.
     pub fn block_checksum(mut self, checksum: BlockChecksum) -> Self {
-        self.pref.frame_info.block_checksum = checksum;
+        self.pref.inner.frame_info.block_checksum = checksum;
         self
     }
 
@@ -277,26 +261,26 @@ impl FrameCompressorBuilder {
     /// 0: default (fast mode); values > LZ4HC_CLEVEL_MAX count as LZ4HC_CLEVEL_MAX;
     /// values < 0 trigger "fast acceleration"
     pub fn compression_level(mut self, level: CompressionLevel) -> Self {
-        self.pref.compression_level = level.as_i32() as c_int;
+        self.pref.inner.compression_level = level.as_i32() as c_int;
         self
     }
 
     /// Set the decompression speed mode flag.
     pub fn favor_dec_speed(mut self, dec_speed: FavorDecSpeed) -> Self {
-        self.pref.favor_dec_speed = dec_speed;
+        self.pref.inner.favor_dec_speed = dec_speed;
         self
     }
 
     /// Set the auto flush flag.
     pub fn auto_flush(mut self, auto_flush: AutoFlush) -> Self {
-        self.pref.auto_flush = auto_flush;
+        self.pref.inner.auto_flush = auto_flush;
         self
     }
 
     /// Set the dictionary and the dictionary ID.
     pub fn dictionary(mut self, dict: Dictionary, dict_id: u32) -> Self {
-        self.pref.frame_info.dict_id = dict_id as c_uint;
-        self.dict = Some(dict);
+        self.pref.inner.frame_info.dict_id = dict_id as c_uint;
+        self.pref.dict = Some(dict);
         self
     }
 
@@ -304,8 +288,8 @@ impl FrameCompressorBuilder {
     ///
     /// To make I/O operations to the returned `FrameCompressor<D>`,
     /// the `device` should implement `Read`, `BufRead` or `Write`.
-    pub fn build<D>(&self, device: D) -> Result<FrameCompressor<D>> {
-        FrameCompressor::with_pref(device, self.pref, self.dict.clone())
+    pub fn build(&self) -> Preferences {
+        self.pref.clone()
     }
 }
 
@@ -328,7 +312,7 @@ enum CompressorState<D> {
 /// Note that this doesn't mean "Bidirectional stream".
 /// Making read and write operations on a same instance causes a panic!
 pub struct FrameCompressor<D> {
-    pref: Preferences,
+    pref: Pref,
     ctx: CompressionContext,
     device: D,
     state: CompressorState<D>,
@@ -337,13 +321,10 @@ pub struct FrameCompressor<D> {
 
 impl<D> FrameCompressor<D> {
     /// Create a new `FrameCompressor<D>` instance with the default configuration.
-    pub fn new(device: D) -> Result<Self> {
-        Self::with_pref(device, Preferences::default(), None)
-    }
-
-    fn with_pref(device: D, pref: Preferences, dict: Option<Dictionary>) -> Result<Self> {
+    pub fn new(device: D, mut pref: Preferences) -> Result<Self> {
+        let dict = pref.dict.take();
         Ok(Self {
-            pref,
+            pref: pref.inner,
             ctx: CompressionContext::new(dict)?,
             device,
             state: CompressorState::Created,
@@ -382,12 +363,12 @@ impl<D: io::Write> FrameCompressor<D> {
 impl<D: io::Write> io::Write for FrameCompressor<D> {
     fn write(&mut self, src: &[u8]) -> io::Result<usize> {
         self.ensure_write();
-        self.buffer.grow(src.len(), Some(&self.pref));
+        self.buffer.grow(src.len(), &self.pref);
         if let CompressorState::Created = self.state {
             self.state = CompressorState::WriteActive {
                 finalizer: FrameCompressor::<D>::finalize_write,
             };
-            let len = self.ctx.begin(&mut self.buffer, Some(&self.pref))?;
+            let len = self.ctx.begin(&mut self.buffer, &self.pref)?;
             self.device.write(&self.buffer[..len])?;
         }
         let len = self.ctx.update(&mut self.buffer, src, None)?;
@@ -420,8 +401,8 @@ impl<D: io::Read> io::Read for FrameCompressor<D> {
 
         let header_len = if let CompressorState::Created = self.state {
             self.state = CompressorState::ReadActive { buffered: 0..0 };
-            self.buffer.grow(0, Some(&self.pref));
-            self.ctx.begin(&mut self.buffer, Some(&self.pref))?
+            self.buffer.grow(0, &self.pref);
+            self.ctx.begin(&mut self.buffer, &self.pref)?
         } else if let CompressorState::ReadActive { buffered } = &self.state {
             let len = buffered.end - buffered.start;
             let min_len = cmp::min(len, buf.len());
@@ -440,7 +421,7 @@ impl<D: io::Read> io::Read for FrameCompressor<D> {
 
         let mut tmp = [0u8; 2048];
         let len = self.device.read(&mut tmp[..])?;
-        self.buffer.grow(len, Some(&self.pref));
+        self.buffer.grow(len, &self.pref);
 
         let len = if len == 0 {
             self.ctx.flush(&mut self.buffer[header_len..], None)?
@@ -529,7 +510,7 @@ pub fn compress_to_slice(src: &[u8], dst: &mut [u8], preferences: Preferences) -
 pub fn compress(src: &[u8], dst: &mut Vec<u8>, preferences: Preferences) -> Result<()> {
     /*
     use std::io::Write;
-    let mut writer = FrameCompressorBuilder::new()
+    let mut writer = PreferencesBuilder::new()
         .compression_level(compression_level)
         .build(dst)?;
     writer.write_all(src)?;
@@ -612,7 +593,7 @@ impl Dictionary {
 
 #[cfg(test)]
 mod tests {
-    use super::{CompressionLevel, Dictionary, FrameCompressorBuilder, Preferences};
+    use super::{CompressionLevel, Dictionary, FrameCompressor, Preferences, PreferencesBuilder};
     use rand::{distributions::Standard, rngs::SmallRng, Rng, SeedableRng};
     use rayon::prelude::*;
     use std::io::prelude::*;
@@ -641,16 +622,16 @@ mod tests {
         let data: Vec<_> = rng.sample_iter(Standard).take(2048).collect();
         let dict = Dictionary::new(&data);
 
-        let builder = FrameCompressorBuilder::new().dictionary(dict, 1);
+        let pref = PreferencesBuilder::new().dictionary(dict, 1).build();
         let all_ok = (0..4095usize)
             .into_par_iter()
             .map(|n| {
                 let rng = SmallRng::seed_from_u64(n as u64);
                 rng.sample_iter(Standard).take(n).collect::<Vec<_>>()
             })
-            .map_with(builder, |b, data| -> std::io::Result<_> {
+            .map_with(pref, |pref, data| -> std::io::Result<_> {
                 let mut buffer = Vec::new();
-                b.build(data.as_slice())?.read_to_end(&mut buffer)?;
+                FrameCompressor::new(data.as_slice(), pref.clone())?.read_to_end(&mut buffer)?;
                 Ok(buffer)
             })
             .all(|r| r.is_ok());
@@ -659,15 +640,16 @@ mod tests {
 
     #[test]
     fn bufread() {
-        use crate::lz4f::{BlockSize, FrameCompressorBuilder};
+        use crate::lz4f::{BlockSize, FrameCompressor, PreferencesBuilder};
         use std::io::{prelude::*, BufReader};
 
         fn main() -> std::io::Result<()> {
             let input = b"Goodnight world!";
             let reader = BufReader::new(&input[..]);
-            let mut comp = FrameCompressorBuilder::new()
+            let pref = PreferencesBuilder::new()
                 .block_size(BlockSize::Max1MB)
-                .build(reader)?;
+                .build();
+            let mut comp = FrameCompressor::new(reader, pref)?;
 
             let mut buffer = Vec::new();
             comp.read_until(b'-', &mut buffer)?;

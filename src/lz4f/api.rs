@@ -26,11 +26,11 @@ pub enum FrameType {
 
 #[derive(Debug, Copy, Clone)]
 #[repr(C)]
-pub(crate) struct Pref {
-    frame_info: FrameInfo,
-    compression_level: c_int,
-    auto_flush: AutoFlush,
-    favor_dec_speed: FavorDecSpeed,
+pub struct Pref {
+    pub frame_info: FrameInfo,
+    pub compression_level: c_int,
+    pub auto_flush: AutoFlush,
+    pub favor_dec_speed: FavorDecSpeed,
     _reserved: [c_uint; 3],
 }
 
@@ -135,10 +135,7 @@ impl CompressionContext {
         )
     }
 
-    pub fn begin(&mut self, dst: &mut [u8], prefs: Option<&Preferences>) -> Result<usize> {
-        let prefs = prefs
-            .map(|p| p as *const Preferences)
-            .unwrap_or(std::ptr::null());
+    pub fn begin(&mut self, dst: &mut [u8], prefs: &Pref) -> Result<usize> {
         let code = unsafe {
             if let Some(dict) = &self.dict {
                 binding::LZ4F_compressBegin_usingCDict(
@@ -146,7 +143,7 @@ impl CompressionContext {
                     dst.as_mut_ptr() as *mut c_void,
                     dst.len() as size_t,
                     (*dict.0).0.as_ptr(),
-                    prefs,
+                    prefs as *const Pref,
                 )
             } else {
                 binding::LZ4F_compressBegin(
@@ -206,15 +203,8 @@ impl CompressionContext {
         make_result(code as usize, code)
     }
 
-    pub fn compress_bound(src_size: usize, prefs: Option<&Preferences>) -> usize {
-        unsafe {
-            binding::LZ4F_compressBound(
-                src_size as size_t,
-                prefs
-                    .map(|p| p as *const Preferences)
-                    .unwrap_or(std::ptr::null()),
-            )
-        }
+    pub fn compress_bound(src_size: usize, prefs: &Pref) -> usize {
+        unsafe { binding::LZ4F_compressBound(src_size as size_t, prefs as *const Pref) }
     }
 }
 
@@ -251,7 +241,7 @@ impl LZ4Buffer {
         Default::default()
     }
 
-    pub fn grow(&mut self, size: usize, prefs: Option<&Preferences>) {
+    pub fn grow(&mut self, size: usize, prefs: &Pref) {
         if self.prev_size == 0 || size + 1 > self.prev_size {
             let len = CompressionContext::compress_bound(size, prefs) + HEADER_SIZE_MAX;
             if len > self.data.len() {

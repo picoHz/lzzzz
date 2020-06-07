@@ -1,8 +1,8 @@
 #![allow(unsafe_code)]
 
 use super::{
-    api::{CompressionOptions, DecompressionOptions},
-    FrameInfo, Preferences,
+    api::{CompressionOptions, DecompressionOptions, Pref},
+    FrameInfo,
 };
 use libc::{c_char, c_uint, c_void, size_t};
 
@@ -31,16 +31,16 @@ extern "C" {
         ctx: *mut CompressionCtx,
         dst_buffer: *mut c_void,
         dst_capacity: size_t,
-        prefs: *const Preferences,
+        prefs: *const Pref,
     ) -> size_t;
     pub fn LZ4F_compressBegin_usingCDict(
         ctx: *mut CompressionCtx,
         dst_buffer: *mut c_void,
         dst_capacity: size_t,
         dist: *const CompressionDict,
-        prefs: *const Preferences,
+        prefs: *const Pref,
     ) -> size_t;
-    pub fn LZ4F_compressBound(src_size: size_t, prefs: *const Preferences) -> size_t;
+    pub fn LZ4F_compressBound(src_size: size_t, prefs: *const Pref) -> size_t;
     pub fn LZ4F_compressUpdate(
         ctx: *mut CompressionCtx,
         dst_buffer: *mut c_void,
