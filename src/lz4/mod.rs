@@ -41,7 +41,10 @@ pub fn compress(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> Result<usi
 }
 
 pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, mode: CompressionMode) -> Result<()> {
-    todo!();
+    dst.resize_with(compress_bound(src.len()), Default::default);
+    let result = compress(src, dst, mode);
+    dst.resize_with(*result.as_ref().unwrap_or(&0), Default::default);
+    result.map(|_| ())
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
