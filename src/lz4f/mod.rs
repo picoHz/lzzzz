@@ -75,6 +75,7 @@ use std::{ops, sync::Arc};
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 #[repr(C)]
 pub enum BlockSize {
+    /// Default value
     Default = 0,
     Max64KB = 4,
     Max256KB = 5,
@@ -91,6 +92,7 @@ pub enum BlockSize {
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 #[repr(C)]
 pub enum BlockMode {
+    /// Default value
     Linked = 0,
     Independent = 1,
 }
@@ -99,6 +101,7 @@ pub enum BlockMode {
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 #[repr(C)]
 pub enum ContentChecksum {
+    /// Default value
     Disabled = 0,
     Enabled = 1,
 }
@@ -107,6 +110,7 @@ pub enum ContentChecksum {
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 #[repr(C)]
 pub enum BlockChecksum {
+    /// Default value
     Disabled = 0,
     Enabled = 1,
 }
@@ -118,6 +122,7 @@ pub enum BlockChecksum {
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 #[repr(C)]
 pub enum AutoFlush {
+    /// Default value
     Disabled = 0,
     Enabled = 1,
 }
@@ -130,11 +135,12 @@ pub enum AutoFlush {
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 #[repr(C)]
 pub enum FavorDecSpeed {
+    /// Default value
     Disabled = 0,
     Enabled = 1,
 }
 
-/// Frame parameters
+/// LZ4 Frame parameters
 #[derive(Debug, Copy, Clone)]
 #[repr(C)]
 pub struct FrameInfo {
@@ -191,7 +197,7 @@ impl FrameInfo {
     }
 }
 
-/// Compression level.
+/// Compression level
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum CompressionLevel {
     /// Custom compression level.
@@ -223,6 +229,7 @@ impl Default for CompressionLevel {
     }
 }
 
+/// Compression preferences
 #[derive(Debug, Copy, Clone)]
 #[repr(C)]
 pub struct Preferences {
@@ -245,7 +252,18 @@ impl Default for Preferences {
     }
 }
 
-/// A builder struct to customize `FrameCompressor<D>`.
+/// A builder struct to create a custom `Preferences`
+///
+/// # Example
+///
+/// ```
+/// use lzzzz::lz4f::{BlockSize, CompressionLevel, PreferencesBuilder};
+///
+/// let pref = PreferencesBuilder::new()
+///     .block_size(BlockSize::Max1MB)
+///     .compression_level(CompressionLevel::Max)
+///     .build();
+/// ```
 #[derive(Default, Clone)]
 pub struct PreferencesBuilder {
     pref: Preferences,
@@ -276,6 +294,12 @@ impl PreferencesBuilder {
         self
     }
 
+    /// Set the dict id.
+    pub fn dict_id(mut self, dict_id: u32) -> Self {
+        self.pref.frame_info.dict_id = dict_id as u32;
+        self
+    }
+
     /// Set the block checksum.
     pub fn block_checksum(mut self, checksum: BlockChecksum) -> Self {
         self.pref.frame_info.block_checksum = checksum;
@@ -283,10 +307,6 @@ impl PreferencesBuilder {
     }
 
     /// Set the compression level.
-    ///
-    /// **Cited from lz4frame.h:**
-    /// 0: default (fast mode); values > LZ4HC_CLEVEL_MAX count as
-    /// LZ4HC_CLEVEL_MAX; values < 0 trigger "fast acceleration"
     pub fn compression_level(mut self, level: CompressionLevel) -> Self {
         self.pref.compression_level = level.as_i32() as c_int;
         self
@@ -318,6 +338,7 @@ pub fn max_compressed_size(uncompressed_size: usize) -> usize {
     0
 }
 
+/// Read data from a slice and write compressed data into another slice.
 pub fn compress_to_slice(src: &[u8], dst: &mut [u8], preferences: Preferences) -> Result<usize> {
     todo!();
 }
@@ -366,6 +387,7 @@ impl<'a> Default for DecompressionMode<'a> {
     }
 }
 
+/// Read data from a slice and write decompressed data into another slice.
 pub fn decompress(src: &[u8], dst: &mut Vec<u8>, mode: DecompressionMode) -> Result<()> {
     todo!();
 }

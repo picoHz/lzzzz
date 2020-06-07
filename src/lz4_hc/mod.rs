@@ -20,7 +20,7 @@ impl Default for CompressionMode {
     }
 }
 
-/// Compression level.
+/// Compression level
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum CompressionLevel {
     /// Custom compression level.
@@ -43,6 +43,7 @@ pub fn max_compressed_size(uncompressed_size: usize) -> usize {
     0
 }
 
+/// Read data from a slice and write compressed data into another slice.
 pub fn compress_to_slice(
     src: &[u8],
     dst: &mut [u8],
