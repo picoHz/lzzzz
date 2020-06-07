@@ -1,7 +1,5 @@
 # Lzzzz 😴
-Yet another liblz4 bindings 
-
-Lzzzz supports verious LZ4 operations:
+Yet another liblz4 bindings supports verious LZ4 operations
 
 - LZ4 Block Compression/Decompression
 - LZ4 Streaming Compression/Decompression (Reader/Writer)
