@@ -7,14 +7,6 @@ pub mod lz4f;
 
 use std::{convert, fmt, io};
 
-pub enum CompressionLevel {
-    Fast = 0,
-    Min = 3,
-    Default = 9,
-    OptMin = 10,
-    Max = 12,
-}
-
 #[derive(Debug)]
 pub enum LZ4Error {
     LZ4(&'static str),
