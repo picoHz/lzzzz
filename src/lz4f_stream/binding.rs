@@ -1,6 +1,6 @@
 #![allow(unsafe_code)]
 
-use crate::lz4f::{api::Pref, FrameInfo};
+use crate::lz4f::{api::Pref, binding::CompressionDict, FrameInfo};
 use libc::{c_int, c_uint, c_ulonglong, c_void, size_t};
 
 #[repr(C)]
@@ -10,11 +10,6 @@ pub struct CompressionCtx {
 
 #[repr(C)]
 pub struct DecompressionCtx {
-    _private: [u8; 0],
-}
-
-#[repr(C)]
-pub struct CompressionDict {
     _private: [u8; 0],
 }
 
@@ -83,7 +78,4 @@ extern "C" {
         src_buffer: *const c_void,
         src_size_ptr: *mut size_t,
     ) -> size_t;
-
-    pub fn LZ4F_createCDict(dict_buffer: *const c_void, dict_size: size_t) -> *mut CompressionDict;
-    pub fn LZ4F_freeCDict(dict: *mut CompressionDict);
 }

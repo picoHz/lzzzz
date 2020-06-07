@@ -271,7 +271,7 @@ impl DerefMut for LZ4Buffer {
     }
 }
 
-pub(crate) struct DictionaryHandle(NonNull<CompressionDict>);
+pub(crate) struct DictionaryHandle(pub NonNull<CompressionDict>);
 
 unsafe impl Send for DictionaryHandle {}
 unsafe impl Sync for DictionaryHandle {}

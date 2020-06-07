@@ -2,12 +2,12 @@
 
 use super::{
     binding,
-    binding::{
-        CompressionCtx, CompressionDict, CompressionOptions, DecompressionCtx, DecompressionOptions,
-    },
-    Dictionary,
+    binding::{CompressionCtx, CompressionOptions, DecompressionCtx, DecompressionOptions},
 };
-use crate::{lz4f::api::Pref, LZ4Error, Result};
+use crate::{
+    lz4f::{api::Pref, binding::CompressionDict, Dictionary},
+    LZ4Error, Result,
+};
 
 use libc::{c_int, c_uint, c_ulonglong, c_void, size_t};
 use std::{
@@ -188,7 +188,10 @@ unsafe impl Sync for DictionaryHandle {}
 impl DictionaryHandle {
     pub fn new(data: &[u8]) -> Self {
         let dict = unsafe {
-            binding::LZ4F_createCDict(data.as_ptr() as *const c_void, data.len() as size_t)
+            crate::lz4f::binding::LZ4F_createCDict(
+                data.as_ptr() as *const c_void,
+                data.len() as size_t,
+            )
         };
         Self(NonNull::new(dict).unwrap())
     }
@@ -197,7 +200,7 @@ impl DictionaryHandle {
 impl Drop for DictionaryHandle {
     fn drop(&mut self) {
         unsafe {
-            binding::LZ4F_freeCDict(self.0.as_ptr());
+            crate::lz4f::binding::LZ4F_freeCDict(self.0.as_ptr());
         }
     }
 }
