@@ -25,11 +25,11 @@ pub fn max_compressed_size(uncompressed_size: usize) -> usize {
 }
 
 pub fn compress_to_slice(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> Result<usize> {
-    let state = ExtState::new();
     let acc = match mode {
         CompressionMode::Default => 1,
         CompressionMode::Fast(acc) => acc,
     };
+    let state = ExtState::get();
     let len = api::compress_fast_ext_state(&mut state.borrow_mut(), src, dst, acc);
     if len > 0 {
         Ok(len)
@@ -38,11 +38,37 @@ pub fn compress_to_slice(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> R
     }
 }
 
-/// Read data from a slice and append a compressed data to `Vec<u8>`.
+/// Read data from a slice and append compressed data to `Vec<u8>`.
+///
+/// # Examples
+///
+/// Compress data into the `Vec<u8>` with the default compression mode:
+/// ```
+/// use lzzzz::lz4;
+///
+/// let mut buf = Vec::new();
+/// lz4::compress(b"Hello world!", &mut buf, lz4::CompressionMode::Default);
+/// ```
+///
+/// This function doesn't clear the contents of `Vec<u8>`:
+/// ```
+/// use lzzzz::lz4;
+///
+/// let header = &b"Compressed data:"[..];
+/// let mut buf = Vec::from(header);
+/// 
+/// lz4::compress(b"Hello world!", &mut buf, lz4::CompressionMode::Default);
+/// assert!(buf.starts_with(header));
+/// ```
 pub fn compress(src: &[u8], dst: &mut Vec<u8>, mode: CompressionMode) -> Result<()> {
-    dst.resize_with(max_compressed_size(src.len()), Default::default);
-    let result = compress_to_slice(src, dst, mode);
-    dst.resize_with(*result.as_ref().unwrap_or(&0), Default::default);
+    let orig_len = dst.len();
+    dst.reserve(max_compressed_size(src.len()));
+    #[allow(unsafe_code)]
+    unsafe {
+        dst.set_len(dst.capacity());
+    }
+    let result = compress_to_slice(src, &mut dst[orig_len..], mode);
+    dst.resize_with(orig_len + *result.as_ref().unwrap_or(&0), Default::default);
     result.map(|_| ())
 }
 

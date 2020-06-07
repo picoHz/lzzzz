@@ -53,26 +53,3 @@ extern "C" {
     pub fn LZ4F_isError(code: size_t) -> c_uint;
     pub fn LZ4F_getErrorName(code: size_t) -> *const c_char;
 }
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn call_c_api() {
-        use super::{
-            CompressionCtx, LZ4F_createCompressionContext, LZ4F_freeCompressionContext,
-            LZ4F_getVersion,
-        };
-        unsafe {
-            let mut ctx: *mut CompressionCtx = std::ptr::null_mut();
-            assert_eq!(
-                LZ4F_createCompressionContext(
-                    &mut ctx as *mut *mut CompressionCtx,
-                    LZ4F_getVersion()
-                ),
-                0
-            );
-            assert!(!ctx.is_null());
-            LZ4F_freeCompressionContext(ctx);
-        }
-    }
-}

@@ -61,29 +61,24 @@ pub fn size_of_state() -> usize {
     unsafe { binding::LZ4_sizeofStateHC() as usize }
 }
 
-/// An external working memory space.
-///
-/// To reduce allocation overhead, the `ExtState` is implemented as a shared buffer.
-/// No matter how many times you call `ExtState::new()` or `ExtState::clone()`,
-/// the heap allocation occurs only once per thread.
-#[derive(Debug, Default, Clone, PartialEq, Eq)]
-pub struct ExtState(Rc<RefCell<Option<Box<[u8]>>>>);
+#[derive(Clone)]
+pub struct ExtState(Rc<RefCell<Box<[u8]>>>);
 
 impl ExtState {
     pub fn new() -> Self {
+        let size = size_of_state();
+        let mut buf = Vec::with_capacity(size);
+        unsafe { buf.set_len(size) };
+        Self(Rc::new(RefCell::new(buf.into_boxed_slice())))
+    }
+
+    pub fn get() -> Self {
         EXT_STATE.with(Clone::clone)
     }
 
-    pub(crate) fn borrow_mut(&self) -> RefMut<'_, Box<[u8]>> {
-        let mut data = self.0.borrow_mut();
-        if data.is_none() {
-            let size = size_of_state();
-            let mut buf = Vec::with_capacity(size);
-            unsafe { buf.set_len(size) };
-            data.replace(buf.into_boxed_slice());
-        }
-        RefMut::map(data, |data| data.as_mut().unwrap())
+    pub fn borrow_mut(&self) -> RefMut<'_, Box<[u8]>> {
+        self.borrow_mut()
     }
 }
 
-thread_local!(static EXT_STATE: ExtState = Default::default());
+thread_local!(static EXT_STATE: ExtState = ExtState::new());

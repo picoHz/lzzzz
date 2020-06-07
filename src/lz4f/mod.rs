@@ -5,7 +5,8 @@
 //! Write the compressed `"Hello world!"` to `foo.lz4`.
 //!
 //! ```
-//! use lzzzz::lz4f::{FrameCompressor, Preferences};
+//! use lzzzz::lz4f::Preferences;
+//! use lzzzz::lz4f_stream::FrameCompressor;
 //! use std::{fs::File, io::prelude::*};
 //!
 //! fn main() -> std::io::Result<()> {
@@ -19,7 +20,8 @@
 //! Read and compress data from a slice.
 //!
 //! ```
-//! use lzzzz::lz4f::{FrameCompressor, Preferences};
+//! use lzzzz::lz4f::Preferences;
+//! use lzzzz::lz4f_stream::FrameCompressor;
 //! use std::io::prelude::*;
 //!
 //! fn main() -> std::io::Result<()> {
@@ -35,7 +37,8 @@
 //! Parallelly count and compress sheep with rayon.
 //!
 //! ```
-//! use lzzzz::lz4f::{BlockSize, FrameCompressor, PreferencesBuilder};
+//! use lzzzz::lz4f::{BlockSize, PreferencesBuilder};
+//! use lzzzz::lz4f_stream::FrameCompressor;
 //! use rayon::prelude::*;
 //! use std::io::prelude::*;
 //!
@@ -308,11 +311,11 @@ pub fn compress_to_slice(src: &[u8], dst: &mut [u8], preferences: Preferences) -
     todo!();
 }
 
-/// Read data from a slice and append a compressed data to `Vec<u8>`.
+/// Read data from a slice and append compressed data to `Vec<u8>`.
 ///
 /// # Examples
 ///
-/// Compress `"Hello world!"` into the `Vec<u8>` with the default preferences:
+/// Compress data into the `Vec<u8>` with the default preferences:
 /// ```
 /// use lzzzz::lz4f;
 ///
