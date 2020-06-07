@@ -54,7 +54,7 @@
 //! ```
 
 pub(crate) mod api;
-mod binding;
+pub(crate) mod binding;
 
 use crate::{lz4f::api::FrameType, Result};
 use api::{CompressionContext, DictionaryHandle, LZ4Buffer, Pref};
