@@ -194,9 +194,15 @@ impl FrameInfo {
 /// Compression level.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum CompressionLevel {
+    /// Custom compression level.
+    /// Values larger then 12 are same as 12. Minus values trigger fast
+    /// acceleration.
     Custom(i32),
+    /// `Default` is same as `Custom(0)`
     Default,
+    /// `High` is same as `Custom(10)`
     High,
+    /// `Max` is same as `Custom(12)`
     Max,
 }
 
