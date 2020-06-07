@@ -8,6 +8,19 @@ use api::ExtState;
 /// CompressionMode
 ///
 /// `CompressionMode::Default` is same as `CompressionMode::Fast(1)`.
+/// # Examples
+///
+/// Compress data into the `Vec<u8>` with the accelerated compression mode:
+/// ```
+/// use lzzzz::lz4;
+///
+/// let mut buf = Vec::new();
+/// lz4::compress(
+///     b"ex nihilo nihil fit",
+///     &mut buf,
+///     lz4::CompressionMode::Fast(20),
+/// );
+/// ```
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CompressionMode {
     Default,
@@ -26,9 +39,9 @@ pub fn max_compressed_size(uncompressed_size: usize) -> usize {
 }
 
 /// Read data from a slice and write compressed data into another slice.
-/// 
-/// Ensure that the destination slice have enough capacity. 
-/// If `dst.len()` is smaller than `max_compressed_size(src.len())`, 
+///
+/// Ensure that the destination slice have enough capacity.
+/// If `dst.len()` is smaller than `max_compressed_size(src.len())`,
 /// this function may fail.
 ///
 /// # Examples
@@ -39,10 +52,10 @@ pub fn max_compressed_size(uncompressed_size: usize) -> usize {
 ///
 /// let data = b"Hello world!";
 /// let mut buf = [0u8; 2048];
-/// 
+///
 /// // The slice should have enough space.
 /// assert!(buf.len() >= lz4::max_compressed_size(data.len()));
-/// 
+///
 /// lz4::compress_to_slice(data, &mut buf, lz4::CompressionMode::Default);
 /// ```
 pub fn compress_to_slice(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> Result<usize> {
@@ -77,7 +90,7 @@ pub fn compress_to_slice(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> R
 ///
 /// let header = &b"Compressed data:"[..];
 /// let mut buf = Vec::from(header);
-/// 
+///
 /// lz4::compress(b"Hello world!", &mut buf, lz4::CompressionMode::Default);
 /// assert!(buf.starts_with(header));
 /// ```
@@ -106,6 +119,7 @@ impl<'a> Default for DecompressionMode<'a> {
     }
 }
 
+/// Read data from a slice and write decompressed data into another slice.
 pub fn decompress(src: &[u8], dst: &mut [u8], mode: DecompressionMode) -> Result<()> {
     todo!();
 }
