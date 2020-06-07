@@ -2,11 +2,16 @@ mod api;
 mod binding;
 
 use crate::Result;
+use std::{
+    cell::{RefCell, RefMut},
+    ops::Deref,
+    rc::Rc,
+};
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CompressionMode {
     Default,
-    ExtState,
+    FastExtState(ExtSate),
     DestSize,
 }
 
@@ -33,4 +38,21 @@ pub fn compress(
     compression_level: CompressionLevel,
 ) -> Result<usize> {
     todo!();
+}
+
+#[derive(Debug, Default, Clone, PartialEq, Eq)]
+pub struct ExtSate(Rc<RefCell<Option<Box<[u8]>>>>);
+
+impl ExtSate {
+    pub fn new() -> Self {
+        Default::default()
+    }
+
+    pub(crate) fn borrow_mut(&self) -> RefMut<'_, Box<[u8]>> {
+        let mut data = self.0.borrow_mut();
+        if data.is_none() {
+            data.replace(vec![0; api::size_of_state()].into_boxed_slice());
+        }
+        RefMut::map(data, |data| data.as_mut().unwrap())
+    }
 }
