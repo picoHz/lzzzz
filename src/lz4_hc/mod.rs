@@ -31,6 +31,7 @@ pub enum CompressionLevel {
 
 impl CompressionLevel {}
 
+/// Calculate the maximum size of the compressed data from the original size.
 pub fn max_compressed_size(uncompressed_size: usize) -> usize {
     0
 }

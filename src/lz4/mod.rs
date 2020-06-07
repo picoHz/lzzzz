@@ -20,10 +20,31 @@ impl Default for CompressionMode {
     }
 }
 
+/// Calculate the maximum size of the compressed data from the original size.
 pub fn max_compressed_size(uncompressed_size: usize) -> usize {
     api::compress_bound(uncompressed_size)
 }
 
+/// Read data from a slice and write compressed data into another slice.
+/// 
+/// Ensure that the destination slice have enough capacity. 
+/// If `dst.len()` is smaller than `max_compressed_size(src.len())`, 
+/// this function may fail.
+///
+/// # Examples
+///
+/// Compress data with the default compression mode:
+/// ```
+/// use lzzzz::lz4;
+///
+/// let data = b"Hello world!";
+/// let mut buf = [0u8; 2048];
+/// 
+/// // The slice should have enough space.
+/// assert!(buf.len() >= lz4::max_compressed_size(data.len()));
+/// 
+/// lz4::compress_to_slice(data, &mut buf, lz4::CompressionMode::Default);
+/// ```
 pub fn compress_to_slice(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> Result<usize> {
     let acc = match mode {
         CompressionMode::Default => 1,
