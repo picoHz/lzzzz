@@ -111,6 +111,7 @@ pub fn compress(src: &[u8], dst: &mut Vec<u8>, mode: CompressionMode) -> Result<
     result.map(|_| ())
 }
 
+/// Decompress mode.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum DecompressionMode<'a> {
     /// Decompress the whole data.
