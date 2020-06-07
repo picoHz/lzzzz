@@ -22,8 +22,8 @@ impl Default for CompressionMode {
     }
 }
 
-pub fn max_compressed_size(src_size: usize) -> usize {
-    api::compress_bound(src_size)
+pub fn max_compressed_size(uncompressed_size: usize) -> usize {
+    api::compress_bound(uncompressed_size)
 }
 
 pub fn compress_to_slice(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> Result<usize> {

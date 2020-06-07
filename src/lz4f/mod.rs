@@ -497,7 +497,7 @@ impl<D> Drop for FrameCompressor<D> {
     }
 }
 
-pub fn max_compressed_size(src_size: usize) -> usize {
+pub fn max_compressed_size(uncompressed_size: usize) -> usize {
     0
 }
 
