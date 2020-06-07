@@ -13,7 +13,7 @@ use std::{
 pub enum CompressionMode {
     Default,
     Fast(i32),
-    FastExtState(i32, ExtSate),
+    FastExtState(i32, ExtState),
 }
 
 impl Default for CompressionMode {
@@ -65,15 +65,15 @@ pub fn decompress(src: &[u8], dst: &mut [u8], mode: DecompressionMode) -> Result
     todo!();
 }
 
-/// ExtSate
-/// 
-/// To reduce allocation overhead, the `ExtState` is implemented as a shared buffer. 
-/// No matter how many times you call `ExtSate::new()` or `ExtSate::clone()`, 
+/// ExtState
+///
+/// To reduce allocation overhead, the `ExtState` is implemented as a shared buffer.
+/// No matter how many times you call `ExtState::new()` or `ExtState::clone()`,
 /// the heap allocation occurs only once per thread.
 #[derive(Debug, Default, Clone, PartialEq, Eq)]
-pub struct ExtSate(Rc<RefCell<Option<Box<[u8]>>>>);
+pub struct ExtState(Rc<RefCell<Option<Box<[u8]>>>>);
 
-impl ExtSate {
+impl ExtState {
     pub fn new() -> Self {
         EXT_STATE.with(Clone::clone)
     }
@@ -87,4 +87,4 @@ impl ExtSate {
     }
 }
 
-thread_local!(static EXT_STATE: ExtSate = Default::default());
+thread_local!(static EXT_STATE: ExtState = Default::default());
