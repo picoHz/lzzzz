@@ -7,7 +7,6 @@ use api::ExtState;
 
 /// CompressionMode
 ///
-/// `CompressionMode::Default` is same as `CompressionMode::Fast(1)`.
 /// # Examples
 ///
 /// Compress data into the `Vec<u8>` with the accelerated compression mode:
@@ -23,7 +22,10 @@ use api::ExtState;
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CompressionMode {
+    /// `Default` is same as `Fast(1)`.
     Default,
+    /// Larger value increases the processing speed in exchange for the lesser
+    /// compression ratio.
     Fast(i32),
 }
 
@@ -108,6 +110,9 @@ pub fn compress(src: &[u8], dst: &mut Vec<u8>, mode: CompressionMode) -> Result<
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum DecompressionMode<'a> {
+    /// Decompress the whole data.
+    ///
+    /// The destination slice must have the exact size of the uncompressed data.
     Default,
     Partial,
     Dictionary(&'a [u8]),
@@ -120,6 +125,6 @@ impl<'a> Default for DecompressionMode<'a> {
 }
 
 /// Read data from a slice and write decompressed data into another slice.
-pub fn decompress(src: &[u8], dst: &mut [u8], mode: DecompressionMode) -> Result<()> {
+pub fn decompress(src: &[u8], dst: &mut [u8], mode: DecompressionMode) -> Result<usize> {
     todo!();
 }

@@ -70,7 +70,8 @@ use std::{ops, sync::Arc};
 /// **Cited from lz4frame.h:**
 /// The larger the block size, the (slightly) better the compression ratio,
 /// though there are diminishing returns.
-/// Larger blocks also increase memory usage on both compression and decompression sides.
+/// Larger blocks also increase memory usage on both compression and
+/// decompression sides.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 #[repr(C)]
 pub enum BlockSize {
@@ -245,7 +246,8 @@ pub struct PreferencesBuilder {
 }
 
 impl PreferencesBuilder {
-    /// Create a new `PreferencesBuilder` instance with the default configuration.
+    /// Create a new `PreferencesBuilder` instance with the default
+    /// configuration.
     pub fn new() -> Self {
         Default::default()
     }
@@ -277,8 +279,8 @@ impl PreferencesBuilder {
     /// Set the compression level.
     ///
     /// **Cited from lz4frame.h:**
-    /// 0: default (fast mode); values > LZ4HC_CLEVEL_MAX count as LZ4HC_CLEVEL_MAX;
-    /// values < 0 trigger "fast acceleration"
+    /// 0: default (fast mode); values > LZ4HC_CLEVEL_MAX count as
+    /// LZ4HC_CLEVEL_MAX; values < 0 trigger "fast acceleration"
     pub fn compression_level(mut self, level: CompressionLevel) -> Self {
         self.pref.compression_level = level.as_i32() as c_int;
         self
@@ -336,14 +338,12 @@ pub fn compress_to_slice(src: &[u8], dst: &mut [u8], preferences: Preferences) -
 /// assert!(buf.starts_with(header));
 /// ```
 pub fn compress(src: &[u8], dst: &mut Vec<u8>, preferences: Preferences) -> Result<()> {
-    /*
-    use std::io::Write;
-    let mut writer = PreferencesBuilder::new()
-        .compression_level(compression_level)
-        .build(dst)?;
-    writer.write_all(src)?;
-    writer.end()?;
-    */
+    // use std::io::Write;
+    // let mut writer = PreferencesBuilder::new()
+    // .compression_level(compression_level)
+    // .build(dst)?;
+    // writer.write_all(src)?;
+    // writer.end()?;
     Ok(())
 }
 
@@ -363,72 +363,70 @@ pub fn decompress(src: &[u8], dst: &mut Vec<u8>, mode: DecompressionMode) -> Res
     todo!();
 }
 
-/*
-#[cfg(test)]
-mod tests {
-    use super::{CompressionLevel, Dictionary, FrameCompressor, Preferences, PreferencesBuilder};
-    use rand::{distributions::Standard, rngs::SmallRng, Rng, SeedableRng};
-    use rayon::prelude::*;
-    use std::io::prelude::*;
-
-    #[test]
-    fn parallel_compression() {
-        let all_ok = (0..4095usize)
-            .into_par_iter()
-            .map(|n| {
-                let mut rng = SmallRng::seed_from_u64(n as u64);
-                let level = CompressionLevel::Custom(rng.gen_range(
-                    -CompressionLevel::Max.as_i32(),
-                    CompressionLevel::Max.as_i32(),
-                ));
-                let src: Vec<_> = rng.sample_iter(Standard).take(n).collect();
-                let mut dst = Vec::new();
-                super::compress(&src, &mut dst, Preferences::default())
-            })
-            .all(|r| r.is_ok());
-        assert!(all_ok);
-    }
-
-    #[test]
-    fn parallel_compression_with_dict() {
-        let rng = SmallRng::seed_from_u64(0);
-        let data: Vec<_> = rng.sample_iter(Standard).take(2048).collect();
-        let dict = Dictionary::new(&data);
-
-        let pref = PreferencesBuilder::new().dictionary(dict, 1).build();
-        let all_ok = (0..4095usize)
-            .into_par_iter()
-            .map(|n| {
-                let rng = SmallRng::seed_from_u64(n as u64);
-                rng.sample_iter(Standard).take(n).collect::<Vec<_>>()
-            })
-            .map_with(pref, |pref, data| -> std::io::Result<_> {
-                let mut buffer = Vec::new();
-                FrameCompressor::new(data.as_slice(), pref.clone())?.read_to_end(&mut buffer)?;
-                Ok(buffer)
-            })
-            .all(|r| r.is_ok());
-        assert!(all_ok);
-    }
-
-    #[test]
-    fn bufread() {
-        use crate::lz4f::{BlockSize, FrameCompressor, PreferencesBuilder};
-        use std::io::{prelude::*, BufReader};
-
-        fn main() -> std::io::Result<()> {
-            let input = b"Goodnight world!";
-            let reader = BufReader::new(&input[..]);
-            let pref = PreferencesBuilder::new()
-                .block_size(BlockSize::Max1MB)
-                .build();
-            let mut comp = FrameCompressor::new(reader, pref)?;
-
-            let mut buffer = Vec::new();
-            comp.read_until(b'-', &mut buffer)?;
-            Ok(())
-        }
-        main();
-    }
-}
-*/
+// #[cfg(test)]
+// mod tests {
+// use super::{CompressionLevel, Dictionary, FrameCompressor, Preferences,
+// PreferencesBuilder}; use rand::{distributions::Standard, rngs::SmallRng, Rng,
+// SeedableRng}; use rayon::prelude::*;
+// use std::io::prelude::*;
+//
+// #[test]
+// fn parallel_compression() {
+// let all_ok = (0..4095usize)
+// .into_par_iter()
+// .map(|n| {
+// let mut rng = SmallRng::seed_from_u64(n as u64);
+// let level = CompressionLevel::Custom(rng.gen_range(
+// -CompressionLevel::Max.as_i32(),
+// CompressionLevel::Max.as_i32(),
+// ));
+// let src: Vec<_> = rng.sample_iter(Standard).take(n).collect();
+// let mut dst = Vec::new();
+// super::compress(&src, &mut dst, Preferences::default())
+// })
+// .all(|r| r.is_ok());
+// assert!(all_ok);
+// }
+//
+// #[test]
+// fn parallel_compression_with_dict() {
+// let rng = SmallRng::seed_from_u64(0);
+// let data: Vec<_> = rng.sample_iter(Standard).take(2048).collect();
+// let dict = Dictionary::new(&data);
+//
+// let pref = PreferencesBuilder::new().dictionary(dict, 1).build();
+// let all_ok = (0..4095usize)
+// .into_par_iter()
+// .map(|n| {
+// let rng = SmallRng::seed_from_u64(n as u64);
+// rng.sample_iter(Standard).take(n).collect::<Vec<_>>()
+// })
+// .map_with(pref, |pref, data| -> std::io::Result<_> {
+// let mut buffer = Vec::new();
+// FrameCompressor::new(data.as_slice(), pref.clone())?.read_to_end(&mut
+// buffer)?; Ok(buffer)
+// })
+// .all(|r| r.is_ok());
+// assert!(all_ok);
+// }
+//
+// #[test]
+// fn bufread() {
+// use crate::lz4f::{BlockSize, FrameCompressor, PreferencesBuilder};
+// use std::io::{prelude::*, BufReader};
+//
+// fn main() -> std::io::Result<()> {
+// let input = b"Goodnight world!";
+// let reader = BufReader::new(&input[..]);
+// let pref = PreferencesBuilder::new()
+// .block_size(BlockSize::Max1MB)
+// .build();
+// let mut comp = FrameCompressor::new(reader, pref)?;
+//
+// let mut buffer = Vec::new();
+// comp.read_until(b'-', &mut buffer)?;
+// Ok(())
+// }
+// main();
+// }
+// }

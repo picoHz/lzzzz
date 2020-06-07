@@ -21,7 +21,8 @@ enum CompressorState<D> {
     },
 }
 
-/// The `FrameCompressor<D>` provides a transparent compression to any reader and writer.
+/// The `FrameCompressor<D>` provides a transparent compression to any reader
+/// and writer.
 ///
 /// If the underlying I/O device `D` implements `Read`, `BufRead` or `Write`,
 /// the `FrameCompressor<D>` also implements `Read`, `BufRead` or `Write`.
@@ -37,7 +38,8 @@ pub struct FrameCompressor<D> {
 }
 
 impl<D> FrameCompressor<D> {
-    /// Create a new `FrameCompressor<D>` instance with the default configuration.
+    /// Create a new `FrameCompressor<D>` instance with the default
+    /// configuration.
     pub fn new(device: D, pref: Preferences) -> Result<Self> {
         Ok(Self {
             pref: pref,
@@ -198,7 +200,8 @@ enum DecompressorState {
     Created,
 }
 
-/// The `FrameDeompressor<D>` provides a transparent decompression to any reader and writer.
+/// The `FrameDeompressor<D>` provides a transparent decompression to any reader
+/// and writer.
 pub struct FrameDecompressor<'a, D> {
     device: D,
     state: DecompressorState,
@@ -238,9 +241,9 @@ impl<'a, D> FrameDecompressor<'a, D> {
 /// A Dictionary is useful for the compression of small messages (KB range).
 /// It dramatically improves compression efficiency.
 ///
-/// LZ4 can ingest any input as dictionary, though only the last 64 KB are useful.
-/// Best results are generally achieved by using Zstandard's Dictionary Builder
-/// to generate a high-quality dictionary from a set of samples.
+/// LZ4 can ingest any input as dictionary, though only the last 64 KB are
+/// useful. Best results are generally achieved by using Zstandard's Dictionary
+/// Builder to generate a high-quality dictionary from a set of samples.
 #[derive(Clone)]
 pub struct Dictionary(Arc<DictionaryHandle>);
 
