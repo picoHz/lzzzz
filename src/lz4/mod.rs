@@ -5,7 +5,7 @@ mod binding;
 use crate::{LZ4Error, Result};
 use api::ExtState;
 
-/// CompressionMode
+/// Compression mode specifier
 ///
 /// # Examples
 ///
@@ -111,7 +111,7 @@ pub fn compress(src: &[u8], dst: &mut Vec<u8>, mode: CompressionMode) -> Result<
     result.map(|_| ())
 }
 
-/// Decompress mode.
+/// Decompression mode specifier
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum DecompressionMode<'a> {
     /// Decompress the whole data.

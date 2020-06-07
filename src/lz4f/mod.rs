@@ -353,6 +353,7 @@ pub fn compress(src: &[u8], dst: &mut Vec<u8>, preferences: Preferences) -> Resu
     Ok(())
 }
 
+/// Decompression mode specifier
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum DecompressionMode<'a> {
     Default,

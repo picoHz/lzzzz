@@ -7,10 +7,11 @@ mod binding;
 
 use crate::Result;
 
+/// Compression mode specifier
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CompressionMode {
     Default,
-    DestSize,
+    DestSize { uncompressed_size: usize },
 }
 
 impl Default for CompressionMode {
