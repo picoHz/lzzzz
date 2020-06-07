@@ -64,7 +64,7 @@ pub struct ExtSate(Rc<RefCell<Option<Box<[u8]>>>>);
 
 impl ExtSate {
     pub fn new() -> Self {
-        Default::default()
+        EXT_STATE.with(Clone::clone)
     }
 
     pub(crate) fn borrow_mut(&self) -> RefMut<'_, Box<[u8]>> {
@@ -75,3 +75,5 @@ impl ExtSate {
         RefMut::map(data, |data| data.as_mut().unwrap())
     }
 }
+
+thread_local!(static EXT_STATE: ExtSate = ExtSate::new());
