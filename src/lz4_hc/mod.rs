@@ -11,8 +11,8 @@ use std::{
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CompressionMode {
     Default,
-    FastExtState(ExtSate),
-    DestSize,
+    ExtState(ExtSate),
+    DestSize(ExtSate),
 }
 
 impl Default for CompressionMode {
@@ -30,6 +30,8 @@ pub enum CompressionLevel {
     OptMin,
     Max,
 }
+
+impl CompressionLevel {}
 
 pub fn compress(
     src: &[u8],
