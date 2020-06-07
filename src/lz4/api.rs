@@ -68,7 +68,7 @@ pub fn decompress_safe(src: &[u8], dst: &mut [u8]) -> i32 {
     }
 }
 
-/// ExtState
+/// An external working memory space.
 ///
 /// To reduce allocation overhead, the `ExtState` is implemented as a shared buffer.
 /// No matter how many times you call `ExtState::new()` or `ExtState::clone()`,

@@ -10,8 +10,7 @@ use crate::Result;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CompressionMode {
     Default,
-    ExtState(ExtState),
-    DestSize(ExtState),
+    DestSize,
 }
 
 impl Default for CompressionMode {
@@ -54,5 +53,3 @@ pub fn compress(
 ) -> Result<()> {
     todo!();
 }
-
-pub use api::ExtState;

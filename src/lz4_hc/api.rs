@@ -61,7 +61,7 @@ pub fn size_of_state() -> usize {
     unsafe { binding::LZ4_sizeofStateHC() as usize }
 }
 
-/// ExtState
+/// An external working memory space.
 ///
 /// To reduce allocation overhead, the `ExtState` is implemented as a shared buffer.
 /// No matter how many times you call `ExtState::new()` or `ExtState::clone()`,
