@@ -46,7 +46,7 @@ pub fn max_compressed_size(uncompressed_size: usize) -> usize {
 /// Read data from a slice and write compressed data into another slice.
 ///
 /// Ensure that the destination slice have enough capacity.
-/// If `dst.len()` is smaller than `max_compressed_size(src.len())`,
+/// If `dst.len()` is smaller than `lz4::max_compressed_size(src.len())`,
 /// this function may fail.
 ///
 /// # Examples
