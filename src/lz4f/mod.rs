@@ -516,11 +516,11 @@ pub fn compress_to_slice(src: &[u8], dst: &mut [u8], preferences: Preferences) -
 /// let mut buf = Vec::new();
 /// lz4f::compress(b"Hello world!", &mut buf, lz4f::Preferences::default());
 /// ```
-/// 
+///
 /// This function doesn't clear the contents of `Vec<u8>`:
 /// ```
 /// use lzzzz::lz4f;
-/// 
+///
 /// let header = &b"Compressed data:"[..];
 /// let mut buf = Vec::from(header);
 /// lz4f::compress(b"Hello world!", &mut buf, lz4f::Preferences::default());
