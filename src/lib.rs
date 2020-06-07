@@ -55,4 +55,4 @@ impl convert::From<LZ4Error> for io::Error {
 
 type Result<T> = std::result::Result<T, LZ4Error>;
 
-pub use common::version_number;
+pub use common::{version_number, version_string};
