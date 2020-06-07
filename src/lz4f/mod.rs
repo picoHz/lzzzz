@@ -497,6 +497,14 @@ impl<D> Drop for FrameCompressor<D> {
     }
 }
 
+pub fn compress_bound(src_size: usize) -> usize {
+    0
+}
+
+pub fn compress(src: &[u8], dst: &mut [u8], preferences: Preferences) -> Result<usize> {
+    todo!();
+}
+
 /// Compress a buffer into a `Vec<u8>`
 ///
 /// # Examples
@@ -505,16 +513,22 @@ impl<D> Drop for FrameCompressor<D> {
 /// use lzzzz::lz4f;
 ///
 /// let mut buf = Vec::new();
-/// lz4f::compress(b"Hello world!", &mut buf, lz4f::CompressionLevel::Default);
+/// lz4f::compress_to_vec(b"Hello world!", &mut buf, lz4f::Preferences::default());
 /// ```
-pub fn compress(src: &[u8], dst: &mut Vec<u8>, compression_level: CompressionLevel) -> Result<()> {
+pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, preferences: Preferences) -> Result<()> {
+    /*
     use std::io::Write;
     let mut writer = FrameCompressorBuilder::new()
         .compression_level(compression_level)
         .build(dst)?;
     writer.write_all(src)?;
     writer.end()?;
+    */
     Ok(())
+}
+
+pub fn decompress_to_vec(src: &[u8], dst: &mut Vec<u8>) -> Result<()> {
+    todo!();
 }
 
 enum DecompressorState {
@@ -575,7 +589,7 @@ impl Dictionary {
 
 #[cfg(test)]
 mod tests {
-    use super::{CompressionLevel, Dictionary, FrameCompressorBuilder};
+    use super::{CompressionLevel, Preferences, Dictionary, FrameCompressorBuilder};
     use rand::{distributions::Standard, rngs::SmallRng, Rng, SeedableRng};
     use rayon::prelude::*;
     use std::io::prelude::*;
@@ -592,7 +606,7 @@ mod tests {
                 ));
                 let src: Vec<_> = rng.sample_iter(Standard).take(n).collect();
                 let mut dst = Vec::new();
-                super::compress(&src, &mut dst, level)
+                super::compress_to_vec(&src, &mut dst, Preferences::default())
             })
             .all(|r| r.is_ok());
         assert!(all_ok);

@@ -33,6 +33,10 @@ pub enum CompressionLevel {
 
 impl CompressionLevel {}
 
+pub fn compress_bound(src_size: usize) -> usize {
+    0
+}
+
 pub fn compress(
     src: &[u8],
     dst: &mut [u8],
