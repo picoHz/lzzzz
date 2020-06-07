@@ -22,10 +22,16 @@ impl Default for CompressionMode {
 /// Compression level.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum CompressionLevel {
+    /// Custom compression level.
+    /// Any value between 1 and 12 is valid.
     Custom(i32),
+    /// `Min` is same as `Custom(3)`.
     Min,
+    /// `Default` is same as `Custom(9)`.
     Default,
+    /// `OptMin` is same as `Custom(10)`.
     OptMin,
+    /// `Max` is same as `Custom(12)`.
     Max,
 }
 
