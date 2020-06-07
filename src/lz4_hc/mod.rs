@@ -1,4 +1,4 @@
-//! LZ4_HC Compressor/Decompressor
+//! LZ4_HC Compressor
 //!
 //! The `lz4_hc` module doesn't provide decompression functionarities.
 //! Use the `lz4` module instead.
