@@ -100,7 +100,8 @@ pub fn compress_to_slice(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> R
 /// let header = &b"Compressed data:"[..];
 /// let mut buf = Vec::from(header);
 ///
-/// lz4::compress(b"Hello world!", &mut buf, lz4::CompressionMode::Default);
+/// let data = "En vérité, ne ferait-on pas, pour moins que cela, le Tour du Monde ?";
+/// lz4::compress(data.as_bytes(), &mut buf, lz4::CompressionMode::Default);
 /// assert!(buf.starts_with(header));
 /// ```
 pub fn compress(src: &[u8], dst: &mut Vec<u8>, mode: CompressionMode) -> Result<()> {
