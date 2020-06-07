@@ -55,7 +55,7 @@ pub fn max_compressed_size(uncompressed_size: usize) -> usize {
 /// ```
 /// use lzzzz::lz4;
 ///
-/// let data = b"Hello world!";
+/// let data = b"As soon as they had strength, they arose, joined hands again, and went on.";
 /// let mut buf = [0u8; 2048];
 ///
 /// // The slice should have enough space.
