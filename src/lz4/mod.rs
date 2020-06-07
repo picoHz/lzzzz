@@ -5,6 +5,9 @@ mod binding;
 use crate::{LZ4Error, Result};
 use api::ExtState;
 
+/// CompressionMode
+///
+/// `CompressionMode::Default` is same as `CompressionMode::Fast(1)`.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CompressionMode {
     Default,
@@ -23,14 +26,11 @@ pub fn max_compressed_size(uncompressed_size: usize) -> usize {
 
 pub fn compress_to_slice(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> Result<usize> {
     let state = ExtState::new();
-    let len = match mode {
-        CompressionMode::Default => {
-            api::compress_fast_ext_state(&mut state.borrow_mut(), src, dst, 1)
-        }
-        CompressionMode::Fast(acc) => {
-            api::compress_fast_ext_state(&mut state.borrow_mut(), src, dst, acc)
-        }
+    let acc = match mode {
+        CompressionMode::Default => 1,
+        CompressionMode::Fast(acc) => acc,
     };
+    let len = api::compress_fast_ext_state(&mut state.borrow_mut(), src, dst, acc);
     if len > 0 {
         Ok(len)
     } else {
