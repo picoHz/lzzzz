@@ -24,9 +24,12 @@ use api::ExtState;
 pub enum CompressionMode {
     /// `Default` is same as `Fast { factor: 1 }`.
     Default,
-    /// Larger `factor` increases the processing speed in exchange for the
-    /// lesser compression ratio.
-    Fast { factor: i32 },
+    /// Custom acceleration factor.
+    Fast {
+        /// Larger value increases the processing speed in exchange for the
+        /// loss of compression ratio.
+        factor: i32,
+    },
 }
 
 impl Default for CompressionMode {
