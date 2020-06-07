@@ -538,7 +538,19 @@ pub fn compress(src: &[u8], dst: &mut Vec<u8>, preferences: Preferences) -> Resu
     Ok(())
 }
 
-pub fn decompress(src: &[u8], dst: &mut Vec<u8>) -> Result<()> {
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum DecompressionMode<'a> {
+    Default,
+    Dictionary(&'a [u8]),
+}
+
+impl<'a> Default for DecompressionMode<'a> {
+    fn default() -> Self {
+        Self::Default
+    }
+}
+
+pub fn decompress(src: &[u8], dst: &mut Vec<u8>, mode: DecompressionMode) -> Result<()> {
     todo!();
 }
 
