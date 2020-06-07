@@ -86,7 +86,11 @@ pub fn compress_to_slice(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> R
 /// use lzzzz::lz4;
 ///
 /// let mut buf = Vec::new();
-/// lz4::compress(b"Hello world!", &mut buf, lz4::CompressionMode::Default);
+/// lz4::compress(
+///     b"South-south-west, south, south-east, east. ... ",
+///     &mut buf,
+///     lz4::CompressionMode::Default,
+/// );
 /// ```
 ///
 /// This function doesn't clear the contents of `Vec<u8>`:
