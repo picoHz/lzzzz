@@ -1,3 +1,5 @@
+//! Yet another liblz4 binding supports verious LZ4 operations
+
 #![deny(unsafe_code)]
 
 mod common;
