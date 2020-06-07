@@ -1,4 +1,4 @@
-//! LZ4 Block Compressor/Decompressor
+//! LZ4 Compressor/Decompressor
 mod api;
 mod binding;
 
