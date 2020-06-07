@@ -140,7 +140,7 @@ impl Drop for CompressionContext {
 }
 
 #[derive(Debug, Default, Clone)]
-pub(crate) struct LZ4Buffer {
+pub struct LZ4Buffer {
     data: Vec<u8>,
     prev_size: usize,
 }
@@ -180,7 +180,7 @@ impl DerefMut for LZ4Buffer {
     }
 }
 
-pub(crate) struct DictionaryHandle(NonNull<CompressionDict>);
+pub struct DictionaryHandle(NonNull<CompressionDict>);
 
 unsafe impl Send for DictionaryHandle {}
 unsafe impl Sync for DictionaryHandle {}

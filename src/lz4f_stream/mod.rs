@@ -242,7 +242,7 @@ impl<'a, D> FrameDecompressor<'a, D> {
 /// Best results are generally achieved by using Zstandard's Dictionary Builder
 /// to generate a high-quality dictionary from a set of samples.
 #[derive(Clone)]
-pub struct Dictionary(pub(crate) Arc<DictionaryHandle>);
+pub struct Dictionary(Arc<DictionaryHandle>);
 
 impl Dictionary {
     pub fn new(data: &[u8]) -> Self {
