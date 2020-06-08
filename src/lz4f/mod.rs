@@ -411,7 +411,7 @@ pub fn decompress(src: &[u8], dst: &mut [u8], mode: &DecompressionMode) -> Resul
     todo!();
 }
 
-/// Read data from a slice and write decompressed data to `Vec<u8>`.
+/// Read data from a slice and append decompressed data to `Vec<u8>`.
 pub fn decompress_to_vec(
     src: &[u8],
     dst: &mut Vec<u8>,
