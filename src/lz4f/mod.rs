@@ -354,7 +354,7 @@ pub fn compress_to_slice(src: &[u8], dst: &mut [u8], preferences: Preferences) -
 /// lz4f::compress(b"Hello world!", &mut buf, lz4f::Preferences::default());
 /// ```
 ///
-/// This function doesn't clear the contents of `Vec<u8>`:
+/// This function doesn't clear the content of `Vec<u8>`:
 /// ```
 /// use lzzzz::lz4f;
 ///

@@ -90,7 +90,7 @@ pub fn compress_to_slice(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> R
 /// lz4::compress(data.as_bytes(), &mut buf, lz4::CompressionMode::Default);
 /// ```
 ///
-/// This function doesn't clear the contents of `Vec<u8>`:
+/// This function doesn't clear the content of `dst`:
 /// ```
 /// use lzzzz::lz4;
 ///
