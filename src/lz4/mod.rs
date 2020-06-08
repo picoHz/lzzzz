@@ -98,8 +98,8 @@ pub fn compress_to_slice(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> R
 /// ### Accelerated compression mode
 ///
 /// Faster, but less effective compression.
-/// See [`CompressionMode::Accelerated`](enum.CompressionMode.html#variant.
-/// Accelerated) for details.
+/// See [`CompressionMode::Accelerated`](enum.CompressionMode.html#variant.Accelerated)
+/// for details.
 ///
 /// ```
 /// use lzzzz::lz4;
