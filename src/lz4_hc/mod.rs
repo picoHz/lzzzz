@@ -114,8 +114,8 @@ pub fn compress_to_slice(
 
 /// Read data from a slice and append compressed data to `Vec<u8>`.
 ///
-/// In this function, `CompressionMode::Partial` has no special meaning and
-/// is same as `CompressionMode::Default`.
+/// In this function, [`CompressionMode::Partial`] has no special meaning and
+/// is same as [`CompressionMode::Default`].
 ///
 /// [`CompressionMode::Partial`]: /enum.CompressionMode.html#variant.Partial
 /// [`CompressionMode::Default`]: /enum.CompressionMode.html#variant.Default
