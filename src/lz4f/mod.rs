@@ -412,8 +412,7 @@ pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, prefs: &Preferences) -> Re
     result
 }
 
-/// Read data from a slice and write decompressed data into another slice.
-pub fn decompress(src: &[u8], dst: &mut [u8], mode: &DecompressionMode) -> Result<Report> {
+fn decompress(src: &[u8], dst: &mut [u8], mode: &DecompressionMode) -> Result<Report> {
     DECOMPRESSION_CTX.with(|ctx| match mode {
         DecompressionMode::Default => ctx.borrow_mut().decompress(src, dst, None),
         DecompressionMode::Dictionary { data } => {
