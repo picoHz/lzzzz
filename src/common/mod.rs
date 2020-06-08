@@ -6,11 +6,17 @@ pub use api::{version_number, version_string};
 /// A result of successful compression/decompression
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct Report {
-    pub(crate) src_len: Option<usize>,
     pub(crate) dst_len: usize,
+    pub(crate) src_len: Option<usize>,
+    pub(crate) expected_len: Option<usize>,
 }
 
 impl Report {
+    /// Return the length of the data written to the destination buffer.
+    pub const fn dst_len(&self) -> usize {
+        self.dst_len
+    }
+
     /// Return the length of the data consumed from the source buffer.
     ///
     /// The value is present only if the underlying liblz4 API
@@ -23,9 +29,9 @@ impl Report {
         self.src_len
     }
 
-    /// Return the length of the data written to the destination buffer.
-    pub const fn dst_len(&self) -> usize {
-        self.dst_len
+    /// Return the length of the expected data capacity for the next operation.
+    pub const fn expected_len(&self) -> Option<usize> {
+        self.expected_len
     }
 }
 

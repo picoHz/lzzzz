@@ -180,6 +180,7 @@ extern "C" {
         version: c_uint,
     ) -> size_t;
     pub fn LZ4F_freeDecompressionContext(ctx: *mut LZ4FDecompressionCtx) -> size_t;
+    pub fn LZ4F_resetDecompressionContext(ctx: *mut LZ4FDecompressionCtx);
     pub fn LZ4F_getFrameInfo(
         ctx: *mut LZ4FDecompressionCtx,
         frame_info_ptr: *mut FrameInfo,

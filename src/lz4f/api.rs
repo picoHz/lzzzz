@@ -23,7 +23,7 @@ pub fn compress(src: &[u8], dst: &mut [u8], prefs: &Preferences) -> Result<Repor
         ) as usize
     };
     make_result(
-        Report {
+        || Report {
             dst_len: code,
             ..Default::default()
         },
@@ -31,7 +31,7 @@ pub fn compress(src: &[u8], dst: &mut [u8], prefs: &Preferences) -> Result<Repor
     )
 }
 
-fn make_result<T>(data: T, code: size_t) -> Result<T> {
+fn make_result<T, F: FnOnce() -> T>(func: F, code: size_t) -> Result<T> {
     unsafe {
         if binding::LZ4F_isError(code) != 0 {
             Err(LZ4Error::from(
@@ -40,7 +40,7 @@ fn make_result<T>(data: T, code: size_t) -> Result<T> {
                     .unwrap(),
             ))
         } else {
-            Ok(data)
+            Ok((func)())
         }
     }
 }
@@ -59,7 +59,7 @@ impl DecompressionContext {
             )
         };
         make_result(
-            Self {
+            || Self {
                 ctx: NonNull::new(ctx).unwrap(),
             },
             code,
@@ -86,12 +86,59 @@ impl DecompressionContext {
             )
         };
         make_result(
-            Report {
+            || Report {
                 src_len: Some(src_len as usize),
                 dst_len: dst_len as usize,
+                expected_len: Some(code as usize),
             },
             code,
         )
+        .map_err(|err| {
+            self.reset();
+            err
+        })
+    }
+
+    pub fn decompress_dict(
+        &mut self,
+        src: &[u8],
+        dst: &mut [u8],
+        dict: &[u8],
+        opt: Option<&LZ4FDecompressionOptions>,
+    ) -> Result<Report> {
+        let mut dst_len = dst.len() as size_t;
+        let mut src_len = src.len() as size_t;
+        let code = unsafe {
+            binding::LZ4F_decompress_usingDict(
+                self.ctx.as_ptr(),
+                dst.as_mut_ptr() as *mut c_void,
+                &mut dst_len as *mut size_t,
+                src.as_ptr() as *const c_void,
+                &mut src_len as *mut size_t,
+                dict.as_ptr() as *const c_void,
+                dict.len() as size_t,
+                opt.map(|p| p as *const LZ4FDecompressionOptions)
+                    .unwrap_or(std::ptr::null()),
+            )
+        };
+        make_result(
+            || Report {
+                src_len: Some(src_len as usize),
+                dst_len: dst_len as usize,
+                expected_len: Some(code as usize),
+            },
+            code,
+        )
+        .map_err(|err| {
+            self.reset();
+            err
+        })
+    }
+
+    fn reset(&mut self) {
+        unsafe {
+            binding::LZ4F_resetDecompressionContext(self.ctx.as_ptr());
+        }
     }
 }
 
