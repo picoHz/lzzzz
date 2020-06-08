@@ -4,7 +4,7 @@
 //! Use the `lz4` module instead.
 mod api;
 
-use crate::{LZ4Error, Result};
+use crate::{LZ4Error, Report, Result};
 use api::ExtState;
 
 /// Compression mode specifier
@@ -104,6 +104,7 @@ pub fn compress(
             dst,
             compression_level.as_i32(),
         )
+        .dst_len
     });
     if len > 0 {
         Ok(len)

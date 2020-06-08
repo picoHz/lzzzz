@@ -1,6 +1,6 @@
 #![allow(unsafe_code)]
 
-use crate::binding;
+use crate::{binding, Report};
 
 use libc::{c_char, c_int, c_void};
 use std::{cell::RefCell, ops::Deref};
@@ -14,8 +14,8 @@ pub fn compress_ext_state(
     src: &[u8],
     dst: &mut [u8],
     compression_level: i32,
-) -> usize {
-    unsafe {
+) -> Report {
+    let dst_len = unsafe {
         binding::LZ4_compress_HC_extStateHC(
             state.as_mut_ptr() as *mut c_void,
             src.as_ptr() as *const c_char,
@@ -24,6 +24,10 @@ pub fn compress_ext_state(
             dst.len() as c_int,
             compression_level as c_int,
         ) as usize
+    };
+    Report {
+        dst_len,
+        ..Default::default()
     }
 }
 
