@@ -1,4 +1,4 @@
-//! Yet another liblz4 binding
+//! Yet another liblz4 binding 😴
 //!
 //! - **Designed for Rust:** Lzzzz is a high-level wrapper of liblz4 and
 //!   provides
@@ -6,13 +6,19 @@
 //! flexibility. You have no concern about memory management and concurrency
 //! safety.
 //!
-//! - **Various Supported Modes:** `LZ4`, `LZ4_HC`, `LZ4F`, `LZ4 Streaming`,
-//! `LZ4_HC Streaming` and `LZ4F Streaming` are supported.
+//! - **Various Supported Modes:** [`LZ4`], [`LZ4_HC`], [`LZ4F`], [`LZ4 Streaming`],
+//! [`LZ4_HC Streaming`] and [`LZ4F Streaming`] are supported.
 //!
 //! - **Flexible Streaming:** Compressor/Decompressor stream supports [`Read`],
 //! [`BufRead`] and [`Write`] operations. With `tokio` feature, `AsyncRead`,
 //! `AsyncBufRead` and `AsyncWrite` are also supported.
 //!
+//! [`LZ4`]: ./lz4/index.html
+//! [`LZ4_HC`]: ./lz4_hc/index.html
+//! [`LZ4F`]: ./lz4f/index.html
+//! [`LZ4 Streaming`]: ./lz4_stream/index.html
+//! [`LZ4_HC Streaming`]: ./lz4_hc_stream/index.html
+//! [`LZ4F Streaming`]: ./lz4f_stream/index.html
 //! [`Read`]: https://doc.rust-lang.org/nightly/std/io/trait.Read.html
 //! [`BufRead`]: https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html
 //! [`Write`]: https://doc.rust-lang.org/nightly/std/io/trait.Write.html
