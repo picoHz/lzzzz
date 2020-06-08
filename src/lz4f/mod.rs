@@ -379,7 +379,7 @@ pub fn compress(src: &[u8], dst: &mut [u8], prefs: &Preferences) -> Result<Repor
 /// use lzzzz::lz4f;
 ///
 /// let mut buf = Vec::new();
-/// lz4f::compress_to_vec(b"Hello world!", &mut buf, lz4f::Preferences::default());
+/// lz4f::compress_to_vec(b"Hello world!", &mut buf, &lz4f::Preferences::default());
 /// ```
 ///
 /// This function doesn't clear the content of `Vec<u8>`:
@@ -388,11 +388,22 @@ pub fn compress(src: &[u8], dst: &mut [u8], prefs: &Preferences) -> Result<Repor
 ///
 /// let header = &b"Compressed data:"[..];
 /// let mut buf = Vec::from(header);
-/// lz4f::compress_to_vec(b"Hello world!", &mut buf, lz4f::Preferences::default());
+/// lz4f::compress_to_vec(b"Hello world!", &mut buf, &lz4f::Preferences::default());
 /// assert!(buf.starts_with(header));
 /// ```
-pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, preferences: Preferences) -> Result<Report> {
-    Ok(Report::default())
+pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, prefs: &Preferences) -> Result<Report> {
+    let orig_len = dst.len();
+    dst.reserve(max_compressed_size(src.len(), prefs));
+    #[allow(unsafe_code)]
+    unsafe {
+        dst.set_len(dst.capacity());
+    }
+    let result = compress(src, &mut dst[orig_len..], prefs);
+    dst.resize_with(
+        orig_len + result.as_ref().map(|r| r.dst_len()).unwrap_or(0),
+        Default::default,
+    );
+    result
 }
 
 /// Decompression mode specifier
