@@ -2,6 +2,7 @@
 
 #![deny(unsafe_code)]
 
+mod binding;
 mod common;
 pub mod lz4;
 pub mod lz4_hc;
