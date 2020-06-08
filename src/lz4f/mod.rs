@@ -406,6 +406,18 @@ pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, prefs: &Preferences) -> Re
     result
 }
 
+pub fn decompress(src: &[u8], dst: &mut [u8], mode: &DecompressionMode) -> Result<Report> {
+    todo!();
+}
+
+pub fn decompress_to_vec(
+    src: &[u8],
+    dst: &mut Vec<u8>,
+    mode: &DecompressionMode,
+) -> Result<Report> {
+    todo!();
+}
+
 /// Decompression mode specifier
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum DecompressionMode<'a> {
@@ -417,11 +429,6 @@ impl<'a> Default for DecompressionMode<'a> {
     fn default() -> Self {
         Self::Default
     }
-}
-
-/// Read data from a slice and write decompressed data into another slice.
-pub fn decompress(src: &[u8], dst: &mut Vec<u8>, mode: DecompressionMode) -> Result<Report> {
-    todo!();
 }
 
 // #[cfg(test)]
