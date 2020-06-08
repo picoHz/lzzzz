@@ -117,8 +117,8 @@ pub fn compress_to_slice(
 /// In this function, [`CompressionMode::Partial`] has no special meaning and
 /// is same as [`CompressionMode::Default`].
 ///
-/// [`CompressionMode::Partial`]: /enum.CompressionMode.html#variant.Partial
-/// [`CompressionMode::Default`]: /enum.CompressionMode.html#variant.Default
+/// [`CompressionMode::Partial`]: ./enum.CompressionMode.html#variant.Partial
+/// [`CompressionMode::Default`]: ./enum.CompressionMode.html#variant.Default
 ///
 /// # Examples
 ///
