@@ -62,7 +62,6 @@ mod api;
 
 use crate::{lz4f::api::FrameType, Result};
 use libc::{c_int, c_uint, c_ulonglong};
-use std::{ops, sync::Arc};
 
 /// Compression block size
 ///

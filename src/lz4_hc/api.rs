@@ -3,11 +3,7 @@
 use crate::binding;
 
 use libc::{c_char, c_int, c_void};
-use std::{
-    cell::{RefCell, RefMut},
-    ops::Deref,
-    rc::Rc,
-};
+use std::{cell::RefCell, ops::Deref};
 
 pub fn compress(src: &[u8], dst: &mut [u8], compression_level: i32) -> usize {
     unsafe {

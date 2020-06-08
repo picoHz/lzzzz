@@ -3,11 +3,7 @@
 use crate::binding;
 
 use libc::{c_char, c_int, c_void};
-use std::{
-    cell::{RefCell, RefMut},
-    ops::Deref,
-    rc::Rc,
-};
+use std::{cell::RefCell, ops::Deref};
 
 pub fn compress_bound(input_size: usize) -> usize {
     unsafe { binding::LZ4_compressBound(input_size as c_int) as usize }

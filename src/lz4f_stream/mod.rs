@@ -41,7 +41,7 @@ impl<D> StreamCompressor<D> {
     /// configuration.
     pub fn new(device: D, pref: Preferences) -> Result<Self> {
         Ok(Self {
-            pref: pref,
+            pref,
             ctx: CompressionContext::new(None)?,
             device,
             state: CompressorState::Created,

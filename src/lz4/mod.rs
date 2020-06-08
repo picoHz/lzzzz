@@ -48,6 +48,10 @@ pub fn max_compressed_size(uncompressed_size: usize) -> usize {
 ///
 /// let len = lz4::compress_to_slice(data, &mut buf, lz4::CompressionMode::Default).unwrap();
 /// let compressed = &buf[..len];
+///
+/// # let mut buf = [0u8; 2048];
+/// # let len = lz4::decompress(compressed, &mut buf[..data.len()], lz4::DecompressionMode::Default).unwrap();
+/// # assert_eq!(&buf[..len], &data[..]);
 /// ```
 pub fn compress_to_slice(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> Result<usize> {
     let acc = match mode {
@@ -78,6 +82,10 @@ pub fn compress_to_slice(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> R
 /// let mut buf = Vec::new();
 ///
 /// lz4::compress(data.as_bytes(), &mut buf, lz4::CompressionMode::Default);
+/// # let compressed = &buf;
+/// # let mut buf = [0u8; 2048];
+/// # let len = lz4::decompress(compressed, &mut buf[..data.len()], lz4::DecompressionMode::Default).unwrap();
+/// # assert_eq!(&buf[..len], data.as_bytes());
 /// ```
 ///
 /// ### Preserving header
@@ -93,6 +101,11 @@ pub fn compress_to_slice(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> R
 /// let data = b"Cito et velociter!";
 /// lz4::compress(data, &mut buf, lz4::CompressionMode::Default);
 /// assert!(buf.starts_with(header) && buf.len() > header.len());
+///
+/// # let compressed = &buf[header.len()..];
+/// # let mut buf = [0u8; 2048];
+/// # let len = lz4::decompress(compressed, &mut buf[..data.len()], lz4::DecompressionMode::Default).unwrap();
+/// # assert_eq!(&buf[..len], &data[..]);
 /// ```
 ///
 /// ### Accelerated compression mode
@@ -105,12 +118,19 @@ pub fn compress_to_slice(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> R
 /// ```
 /// use lzzzz::lz4;
 ///
+/// let data = b"QUATRE HEURES.";
 /// let mut buf = Vec::new();
+///
 /// lz4::compress(
-///     b"QUATRE HEURES.",
+///     data,
 ///     &mut buf,
 ///     lz4::CompressionMode::Accelerated { factor: 20 },
 /// );
+///
+/// # let compressed = &buf;
+/// # let mut buf = [0u8; 2048];
+/// # let len = lz4::decompress(compressed, &mut buf[..data.len()], lz4::DecompressionMode::Default).unwrap();
+/// # assert_eq!(&buf[..len], &data[..]);
 /// ```
 pub fn compress(src: &[u8], dst: &mut Vec<u8>, mode: CompressionMode) -> Result<()> {
     let orig_len = dst.len();
@@ -169,7 +189,7 @@ impl<'a> Default for DecompressionMode<'a> {
 ///
 /// assert_eq!(
 ///     &buf[..],
-///     "South-south-west, south, south-east, east. ... ".as_bytes()
+///     &b"South-south-west, south, south-east, east. ... "[..]
 /// );
 /// ```
 ///

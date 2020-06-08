@@ -8,7 +8,7 @@ use crate::{
     LZ4Error, Result,
 };
 
-use libc::{c_ulonglong, c_void, size_t};
+use libc::{c_void, size_t};
 use std::{
     ffi::CStr,
     ops::{Deref, DerefMut},
