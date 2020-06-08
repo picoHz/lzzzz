@@ -7,10 +7,10 @@ use api::ExtState;
 /// Compression mode specifier
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CompressionMode {
-    /// `Default` is same as `Fast { factor: 1 }`.
+    /// `Default` is same as `Accelerated { factor: 1 }`.
     Default,
     /// Custom acceleration factor.
-    Fast {
+    Accelerated {
         /// Larger value increases the processing speed in exchange for the
         /// loss of compression ratio.
         factor: i32,
@@ -52,7 +52,7 @@ pub fn max_compressed_size(uncompressed_size: usize) -> usize {
 pub fn compress_to_slice(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> Result<usize> {
     let acc = match mode {
         CompressionMode::Default => 1,
-        CompressionMode::Fast { factor } => factor,
+        CompressionMode::Accelerated { factor } => factor,
     };
     let len = EXT_STATE
         .with(|state| api::compress_fast_ext_state(&mut state.borrow_mut(), src, dst, acc));
@@ -98,8 +98,8 @@ pub fn compress_to_slice(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> R
 /// ### Accelerated compression mode
 ///
 /// Faster, but less effective compression.
-/// See [`CompressionMode::Fast`](enum.CompressionMode.html#variant.Fast) for
-/// details.
+/// See [`CompressionMode::Accelerated`](enum.CompressionMode.html#variant.
+/// Accelerated) for details.
 ///
 /// ```
 /// use lzzzz::lz4;
@@ -108,7 +108,7 @@ pub fn compress_to_slice(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> R
 /// lz4::compress(
 ///     b"QUATRE HEURES.",
 ///     &mut buf,
-///     lz4::CompressionMode::Fast { factor: 20 },
+///     lz4::CompressionMode::Accelerated { factor: 20 },
 /// );
 /// ```
 pub fn compress(src: &[u8], dst: &mut Vec<u8>, mode: CompressionMode) -> Result<()> {
