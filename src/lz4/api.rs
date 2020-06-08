@@ -66,6 +66,23 @@ pub fn decompress_safe_partial(src: &[u8], dst: &mut [u8], original_size: usize)
     }
 }
 
+pub fn decompress_safe_using_dict(src: &[u8], dst: &mut [u8], dict: &[u8]) -> Report {
+    let dst_len = unsafe {
+        binding::LZ4_decompress_safe_usingDict(
+            src.as_ptr() as *const c_char,
+            dst.as_mut_ptr() as *mut c_char,
+            src.len() as c_int,
+            dst.len() as c_int,
+            dict.as_ptr() as *const c_char,
+            dict.len() as c_int,
+        ) as usize
+    };
+    Report {
+        dst_len,
+        ..Default::default()
+    }
+}
+
 #[derive(Clone)]
 pub struct ExtState(RefCell<Box<[u8]>>);
 

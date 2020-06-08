@@ -69,6 +69,14 @@ extern "C" {
         target_output_size: c_int,
         dst_capacity: c_int,
     ) -> c_int;
+    pub fn LZ4_decompress_safe_usingDict(
+        src: *const c_char,
+        dst: *mut c_char,
+        compressed_size: c_int,
+        dst_capacity: c_int,
+        dict_start: *const c_char,
+        dict_size: c_int,
+    ) -> c_int;
 
     pub fn LZ4_sizeofStateHC() -> c_int;
     pub fn LZ4_compress_HC_extStateHC(
