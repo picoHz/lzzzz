@@ -64,6 +64,8 @@ impl CompressionLevel {
 ///
 /// # Examples
 ///
+/// ### Basic compression
+/// 
 /// Compress data with the default compression mode:
 ///
 /// ```
@@ -94,6 +96,8 @@ impl CompressionLevel {
 /// # assert_eq!(&buf[..len], data.as_bytes());
 /// ```
 ///
+/// ### Partial compression
+/// 
 /// ```
 /// use lzzzz::{lz4, lz4_hc};
 ///
