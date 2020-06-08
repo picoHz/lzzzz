@@ -5,7 +5,7 @@ use crate::{LZ4Error, Result};
 use api::ExtState;
 
 /// Compression mode specifier
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum CompressionMode {
     /// `Default` is same as `Accelerated { factor: 1 }`.
     Default,
