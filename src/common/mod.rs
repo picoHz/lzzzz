@@ -1,31 +1,45 @@
-#![allow(unsafe_code)]
-
+mod api;
 mod binding;
+use std::{convert, fmt, io};
 
-use std::ffi::CStr;
+pub use api::{version_number, version_string};
 
-/// Returns the version number of liblz4.
-///
-/// # Example
-///
-/// ```
-/// assert_eq!(lzzzz::version_number(), 10902); // 1.9.2
-/// ```
-pub fn version_number() -> u32 {
-    unsafe { binding::LZ4_versionNumber() as u32 }
+#[derive(Debug)]
+pub enum LZ4Error {
+    LZ4(&'static str),
+    IO(io::Error),
 }
 
-/// Returns the version string of liblz4.
-///
-/// # Example
-///
-/// ```
-/// assert_eq!(lzzzz::version_string(), "1.9.2");
-/// ```
-pub fn version_string() -> &'static str {
-    unsafe {
-        CStr::from_ptr(binding::LZ4_versionString())
-            .to_str()
-            .unwrap()
+impl fmt::Display for LZ4Error {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), fmt::Error> {
+        match self {
+            Self::LZ4(err) => write!(f, "{}", err),
+            Self::IO(err) => err.fmt(f),
+        }
     }
 }
+
+impl std::error::Error for LZ4Error {}
+
+impl From<&'static str> for LZ4Error {
+    fn from(err: &'static str) -> Self {
+        Self::LZ4(err)
+    }
+}
+
+impl convert::From<io::Error> for LZ4Error {
+    fn from(err: io::Error) -> Self {
+        Self::IO(err)
+    }
+}
+
+impl convert::From<LZ4Error> for io::Error {
+    fn from(err: LZ4Error) -> Self {
+        match err {
+            LZ4Error::LZ4(err) => io::Error::new(io::ErrorKind::Other, err),
+            LZ4Error::IO(err) => err,
+        }
+    }
+}
+
+pub type Result<T> = std::result::Result<T, LZ4Error>;

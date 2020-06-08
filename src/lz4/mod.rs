@@ -97,11 +97,11 @@ pub fn compress_to_slice(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> R
 /// ```
 /// use lzzzz::lz4;
 ///
-/// let header = &b"Compressed data:"[..];
-/// let mut buf = Vec::from(header);
+/// let header = b"Gladius Dei super terram";
+/// let mut buf = Vec::from(&header[..]);
 ///
-/// let data = "En vérité, ne ferait-on pas, pour moins que cela, le Tour du Monde ?";
-/// lz4::compress(data.as_bytes(), &mut buf, lz4::CompressionMode::Default);
+/// let data = b"Cito et velociter!";
+/// lz4::compress(data, &mut buf, lz4::CompressionMode::Default);
 /// assert!(buf.starts_with(header));
 /// ```
 pub fn compress(src: &[u8], dst: &mut Vec<u8>, mode: CompressionMode) -> Result<()> {
