@@ -1,4 +1,14 @@
-//! Yet another liblz4 binding supports verious LZ4 operations
+//! Yet another liblz4 binding
+//!
+//! **Designed for Rust:** Lzzzz is a high-level wrapper of liblz4 and provides
+//! comprehensible API comply with Rust's manner without losing performance and
+//! flexibility. You have no concern about memory management and concurrency
+//! safety.
+//!
+//! **Various Supported Modes:** `LZ4`, `LZ4_HC`, `LZ4F`, `LZ4 Streaming`,
+//! `LZ4_HC Streaming` and `LZ4F Streaming` are supported.
+//!
+//! **Flexible Streaming:**
 
 #![deny(unsafe_code)]
 
