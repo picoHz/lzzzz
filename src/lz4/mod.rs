@@ -14,7 +14,7 @@ use api::ExtState;
 ///
 /// let mut buf = Vec::new();
 /// lz4::compress(
-///     b"ex nihilo nihil fit",
+///     b"QUATRE HEURES.",
 ///     &mut buf,
 ///     lz4::CompressionMode::Fast { factor: 20 },
 /// );
@@ -60,7 +60,8 @@ pub fn max_compressed_size(uncompressed_size: usize) -> usize {
 /// // The slice should have enough space.
 /// assert!(buf.len() >= lz4::max_compressed_size(data.len()));
 ///
-/// lz4::compress_to_slice(data, &mut buf, lz4::CompressionMode::Default);
+/// let len = lz4::compress_to_slice(data, &mut buf, lz4::CompressionMode::Default).unwrap();
+/// let compressed = &buf[..len];
 /// ```
 pub fn compress_to_slice(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> Result<usize> {
     let acc = match mode {
@@ -99,7 +100,7 @@ pub fn compress_to_slice(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> R
 ///
 /// let data = b"Cito et velociter!";
 /// lz4::compress(data, &mut buf, lz4::CompressionMode::Default);
-/// assert!(buf.starts_with(header));
+/// assert!(buf.starts_with(header) && buf.len() > header.len());
 /// ```
 pub fn compress(src: &[u8], dst: &mut Vec<u8>, mode: CompressionMode) -> Result<()> {
     let orig_len = dst.len();
