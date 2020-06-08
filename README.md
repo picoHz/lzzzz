@@ -1,7 +1,7 @@
 # Lzzzz 😴
 Yet another liblz4 binding supports verious LZ4 operations
 
-**Designed for Rust:** Lzzzz is a hign-level wrapper of liblz4 C-API. You have no concern about memory management and concurrency safety.
+**Designed for Rust:** Lzzzz is a high-level wrapper of liblz4 C-API. You have no concern about memory management and concurrency safety.
 
 **Various Supported Modes:**
 
