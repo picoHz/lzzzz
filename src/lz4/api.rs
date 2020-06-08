@@ -1,6 +1,6 @@
 #![allow(unsafe_code)]
 
-use crate::binding;
+use crate::{binding, Report};
 
 use libc::{c_char, c_int, c_void};
 use std::{cell::RefCell, ops::Deref};
@@ -31,26 +31,34 @@ pub fn compress_fast_ext_state(
     }
 }
 
-pub fn decompress_safe(src: &[u8], dst: &mut [u8]) -> i32 {
-    unsafe {
+pub fn decompress_safe(src: &[u8], dst: &mut [u8]) -> Report {
+    let dst_len = unsafe {
         binding::LZ4_decompress_safe(
             src.as_ptr() as *const c_char,
             dst.as_mut_ptr() as *mut c_char,
             src.len() as c_int,
             dst.len() as c_int,
-        ) as i32
+        ) as usize
+    };
+    Report {
+        dst_len,
+        ..Default::default()
     }
 }
 
-pub fn decompress_safe_partial(src: &[u8], dst: &mut [u8], original_size: usize) -> i32 {
-    unsafe {
+pub fn decompress_safe_partial(src: &[u8], dst: &mut [u8], original_size: usize) -> Report {
+    let dst_len = unsafe {
         binding::LZ4_decompress_safe_partial(
             src.as_ptr() as *const c_char,
             dst.as_mut_ptr() as *mut c_char,
             src.len() as c_int,
             original_size as c_int,
             dst.len() as c_int,
-        ) as i32
+        ) as usize
+    };
+    Report {
+        dst_len,
+        ..Default::default()
     }
 }
 

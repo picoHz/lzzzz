@@ -88,7 +88,7 @@ impl CompressionLevel {
 /// #     &mut buf[..data.len()],
 /// #     lz4::DecompressionMode::Default,
 /// # )
-/// # .unwrap();
+/// # .unwrap().dst_len();
 /// # assert_eq!(&buf[..len], data.as_bytes());
 /// ```
 pub fn compress(
@@ -145,7 +145,7 @@ pub fn compress(
 /// #     &mut buf[..data.len()],
 /// #     lzzzz::lz4::DecompressionMode::Default,
 /// # )
-/// # .unwrap();
+/// # .unwrap().dst_len();
 /// # assert_eq!(&buf[..len], data.as_bytes());
 /// ```
 ///
@@ -170,7 +170,7 @@ pub fn compress(
 /// #     &mut buf[..data.len()],
 /// #     lzzzz::lz4::DecompressionMode::Default,
 /// # )
-/// # .unwrap();
+/// # .unwrap().dst_len();
 /// # assert_eq!(&buf[..len], data.as_bytes());
 /// ```
 pub fn compress_to_vec(

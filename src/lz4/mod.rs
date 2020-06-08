@@ -1,7 +1,7 @@
 //! LZ4 Block Compressor/Decompressor
 mod api;
 
-use crate::{LZ4Error, Result};
+use crate::{LZ4Error, Report, Result};
 use api::ExtState;
 
 /// Compression mode specifier
@@ -50,7 +50,9 @@ pub fn max_compressed_size(uncompressed_size: usize) -> usize {
 /// let compressed = &buf[..len];
 ///
 /// # let mut buf = [0u8; 2048];
-/// # let len = lz4::decompress(compressed, &mut buf[..data.len()], lz4::DecompressionMode::Default).unwrap();
+/// # let len = lz4::decompress(compressed,
+/// #    &mut buf[..data.len()],
+/// #    lz4::DecompressionMode::Default).unwrap().dst_len();
 /// # assert_eq!(&buf[..len], &data[..]);
 /// ```
 pub fn compress(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> Result<usize> {
@@ -84,7 +86,9 @@ pub fn compress(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> Result<usi
 /// lz4::compress_to_vec(data.as_bytes(), &mut buf, lz4::CompressionMode::Default);
 /// # let compressed = &buf;
 /// # let mut buf = [0u8; 2048];
-/// # let len = lz4::decompress(compressed, &mut buf[..data.len()], lz4::DecompressionMode::Default).unwrap();
+/// # let len = lz4::decompress(compressed,
+/// #    &mut buf[..data.len()],
+/// #    lz4::DecompressionMode::Default).unwrap().dst_len();
 /// # assert_eq!(&buf[..len], data.as_bytes());
 /// ```
 ///
@@ -104,7 +108,9 @@ pub fn compress(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> Result<usi
 ///
 /// # let compressed = &buf[header.len()..];
 /// # let mut buf = [0u8; 2048];
-/// # let len = lz4::decompress(compressed, &mut buf[..data.len()], lz4::DecompressionMode::Default).unwrap();
+/// # let len = lz4::decompress(compressed,
+///     &mut buf[..data.len()],
+///     lz4::DecompressionMode::Default).unwrap().dst_len();
 /// # assert_eq!(&buf[..len], &data[..]);
 /// ```
 ///
@@ -130,7 +136,9 @@ pub fn compress(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> Result<usi
 ///
 /// # let compressed = &buf;
 /// # let mut buf = [0u8; 2048];
-/// # let len = lz4::decompress(compressed, &mut buf[..data.len()], lz4::DecompressionMode::Default).unwrap();
+/// # let len = lz4::decompress(compressed,
+///     &mut buf[..data.len()],
+///     lz4::DecompressionMode::Default).unwrap().dst_len();
 /// # assert_eq!(&buf[..len], &data[..]);
 /// ```
 pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, mode: CompressionMode) -> Result<()> {
@@ -220,15 +228,15 @@ impl<'a> Default for DecompressionMode<'a> {
 ///
 /// assert_eq!(&buf[..], b"Alb. The weight of this sad ti");
 /// ```
-pub fn decompress(src: &[u8], dst: &mut [u8], mode: DecompressionMode) -> Result<usize> {
-    let len = match mode {
+pub fn decompress(src: &[u8], dst: &mut [u8], mode: DecompressionMode) -> Result<Report> {
+    let result = match mode {
         DecompressionMode::Partial { uncompressed_size } => {
             api::decompress_safe_partial(src, dst, uncompressed_size)
         }
         _ => api::decompress_safe(src, dst),
     };
-    if len > 0 {
-        Ok(len as usize)
+    if result.dst_len() > 0 {
+        Ok(result)
     } else {
         Err(LZ4Error::from("Decompression failed"))
     }
