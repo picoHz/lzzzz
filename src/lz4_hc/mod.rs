@@ -113,6 +113,35 @@ pub fn compress_to_slice(
 }
 
 /// Read data from a slice and append compressed data to `Vec<u8>`.
+///
+/// # Examples
+///
+/// ### Basic usage
+///
+/// Compress data into the `Vec<u8>` with the default compression mode.
+///
+/// ```
+/// use lzzzz::lz4_hc;
+///
+/// let data = "So we beat on, boats against the current, borne back ceaselessly into the past.";
+/// let mut buf = Vec::new();
+///
+/// lz4_hc::compress(
+///     data.as_bytes(),
+///     &mut buf,
+///     lz4_hc::CompressionMode::Default,
+///     lz4_hc::CompressionLevel::Default,
+/// );
+/// # let compressed = &buf;
+/// # let mut buf = [0u8; 2048];
+/// # let len = lzzzz::lz4::decompress(
+/// #     compressed,
+/// #     &mut buf[..data.len()],
+/// #     lzzzz::lz4::DecompressionMode::Default,
+/// # )
+/// # .unwrap();
+/// # assert_eq!(&buf[..len], data.as_bytes());
+/// ```
 pub fn compress(
     src: &[u8],
     dst: &mut Vec<u8>,
