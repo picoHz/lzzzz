@@ -406,10 +406,12 @@ pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, prefs: &Preferences) -> Re
     result
 }
 
+/// Read data from a slice and write decompressed data into another slice.
 pub fn decompress(src: &[u8], dst: &mut [u8], mode: &DecompressionMode) -> Result<Report> {
     todo!();
 }
 
+/// Read data from a slice and write decompressed data to `Vec<u8>`.
 pub fn decompress_to_vec(
     src: &[u8],
     dst: &mut Vec<u8>,
