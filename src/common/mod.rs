@@ -11,6 +11,19 @@ pub struct Report {
 }
 
 impl Report {
+    /// Return the length of the data consumed from the source buffer.
+    ///
+    /// The value is present only if the underlying liblz4 API
+    /// explicitly returns one.
+    /// In most cases, the consumed length must be equal to the length of the source buffer
+    /// and this method just returns [`None`].
+    ///
+    /// [`None`]: https://doc.rust-lang.org/nightly/core/option/enum.Option.html#variant.None
+    pub const fn src_len(&self) -> Option<usize> {
+        self.src_len
+    }
+
+    /// Return the length of the data written to the destination buffer.
     pub const fn dst_len(&self) -> usize {
         self.dst_len
     }
