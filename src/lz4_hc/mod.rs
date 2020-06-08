@@ -119,7 +119,15 @@ pub fn compress(
     mode: CompressionMode,
     compression_level: CompressionLevel,
 ) -> Result<()> {
-    todo!();
+    let orig_len = dst.len();
+    dst.reserve(crate::lz4::max_compressed_size(src.len()));
+    #[allow(unsafe_code)]
+    unsafe {
+        dst.set_len(dst.capacity());
+    }
+    let result = compress_to_slice(src, &mut dst[orig_len..], mode, compression_level);
+    dst.resize_with(orig_len + *result.as_ref().unwrap_or(&0), Default::default);
+    result.map(|_| ())
 }
 
 thread_local!(static EXT_STATE: ExtState = ExtState::new());
