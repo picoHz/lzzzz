@@ -16,7 +16,7 @@
 //! }
 //! ```
 //!
-//! Read and compress data from a slice.
+//! Read and compress_to_vec data from a slice.
 //!
 //! ```
 //! use lzzzz::{lz4f::Preferences, lz4f_stream::StreamCompressor};
@@ -32,7 +32,7 @@
 //! }
 //! ```
 //!
-//! Parallelly count and compress sheep with rayon.
+//! Parallelly count and compress_to_vec sheep with rayon.
 //!
 //! ```
 //! use lzzzz::{
@@ -85,7 +85,7 @@ pub enum BlockSize {
 ///
 /// **Cited from lz4frame.h:**
 /// Linked blocks sharply reduce inefficiencies when using small blocks,
-/// they compress better.
+/// they compress_to_vec better.
 /// However, some LZ4 decoders are only compatible with independent blocks.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 #[repr(C)]
@@ -345,7 +345,7 @@ pub fn max_compressed_size(uncompressed_size: usize) -> usize {
 }
 
 /// Read data from a slice and write compressed data into another slice.
-pub fn compress_to_slice(src: &[u8], dst: &mut [u8], preferences: Preferences) -> Result<usize> {
+pub fn compress(src: &[u8], dst: &mut [u8], preferences: Preferences) -> Result<usize> {
     todo!();
 }
 
@@ -358,7 +358,7 @@ pub fn compress_to_slice(src: &[u8], dst: &mut [u8], preferences: Preferences) -
 /// use lzzzz::lz4f;
 ///
 /// let mut buf = Vec::new();
-/// lz4f::compress(b"Hello world!", &mut buf, lz4f::Preferences::default());
+/// lz4f::compress_to_vec(b"Hello world!", &mut buf, lz4f::Preferences::default());
 /// ```
 ///
 /// This function doesn't clear the content of `Vec<u8>`:
@@ -367,10 +367,10 @@ pub fn compress_to_slice(src: &[u8], dst: &mut [u8], preferences: Preferences) -
 ///
 /// let header = &b"Compressed data:"[..];
 /// let mut buf = Vec::from(header);
-/// lz4f::compress(b"Hello world!", &mut buf, lz4f::Preferences::default());
+/// lz4f::compress_to_vec(b"Hello world!", &mut buf, lz4f::Preferences::default());
 /// assert!(buf.starts_with(header));
 /// ```
-pub fn compress(src: &[u8], dst: &mut Vec<u8>, preferences: Preferences) -> Result<()> {
+pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, preferences: Preferences) -> Result<()> {
     // use std::io::Write;
     // let mut writer = PreferencesBuilder::new()
     // .compression_level(compression_level)
@@ -417,7 +417,7 @@ pub fn decompress(src: &[u8], dst: &mut Vec<u8>, mode: DecompressionMode) -> Res
 // ));
 // let src: Vec<_> = rng.sample_iter(Standard).take(n).collect();
 // let mut dst = Vec::new();
-// super::compress(&src, &mut dst, Preferences::default())
+// super::compress_to_vec(&src, &mut dst, Preferences::default())
 // })
 // .all(|r| r.is_ok());
 // assert!(all_ok);

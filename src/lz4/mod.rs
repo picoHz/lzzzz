@@ -46,14 +46,14 @@ pub fn max_compressed_size(uncompressed_size: usize) -> usize {
 /// // The slice should have enough space.
 /// assert!(buf.len() >= lz4::max_compressed_size(data.len()));
 ///
-/// let len = lz4::compress_to_slice(data, &mut buf, lz4::CompressionMode::Default).unwrap();
+/// let len = lz4::compress(data, &mut buf, lz4::CompressionMode::Default).unwrap();
 /// let compressed = &buf[..len];
 ///
 /// # let mut buf = [0u8; 2048];
 /// # let len = lz4::decompress(compressed, &mut buf[..data.len()], lz4::DecompressionMode::Default).unwrap();
 /// # assert_eq!(&buf[..len], &data[..]);
 /// ```
-pub fn compress_to_slice(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> Result<usize> {
+pub fn compress(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> Result<usize> {
     let acc = match mode {
         CompressionMode::Default => 1,
         CompressionMode::Accelerated { factor } => factor,
@@ -81,7 +81,7 @@ pub fn compress_to_slice(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> R
 /// let data = "En vérité, ne ferait-on pas, pour moins que cela, le Tour du Monde ?";
 /// let mut buf = Vec::new();
 ///
-/// lz4::compress(data.as_bytes(), &mut buf, lz4::CompressionMode::Default);
+/// lz4::compress_to_vec(data.as_bytes(), &mut buf, lz4::CompressionMode::Default);
 /// # let compressed = &buf;
 /// # let mut buf = [0u8; 2048];
 /// # let len = lz4::decompress(compressed, &mut buf[..data.len()], lz4::DecompressionMode::Default).unwrap();
@@ -99,7 +99,7 @@ pub fn compress_to_slice(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> R
 /// let mut buf = Vec::from(&header[..]);
 ///
 /// let data = b"Cito et velociter!";
-/// lz4::compress(data, &mut buf, lz4::CompressionMode::Default);
+/// lz4::compress_to_vec(data, &mut buf, lz4::CompressionMode::Default);
 /// assert!(buf.starts_with(header) && buf.len() > header.len());
 ///
 /// # let compressed = &buf[header.len()..];
@@ -122,7 +122,7 @@ pub fn compress_to_slice(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> R
 /// let data = b"QUATRE HEURES.";
 /// let mut buf = Vec::new();
 ///
-/// lz4::compress(
+/// lz4::compress_to_vec(
 ///     data,
 ///     &mut buf,
 ///     lz4::CompressionMode::Accelerated { factor: 20 },
@@ -133,14 +133,14 @@ pub fn compress_to_slice(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> R
 /// # let len = lz4::decompress(compressed, &mut buf[..data.len()], lz4::DecompressionMode::Default).unwrap();
 /// # assert_eq!(&buf[..len], &data[..]);
 /// ```
-pub fn compress(src: &[u8], dst: &mut Vec<u8>, mode: CompressionMode) -> Result<()> {
+pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, mode: CompressionMode) -> Result<()> {
     let orig_len = dst.len();
     dst.reserve(max_compressed_size(src.len()));
     #[allow(unsafe_code)]
     unsafe {
         dst.set_len(dst.capacity());
     }
-    let result = compress_to_slice(src, &mut dst[orig_len..], mode);
+    let result = compress(src, &mut dst[orig_len..], mode);
     dst.resize_with(orig_len + *result.as_ref().unwrap_or(&0), Default::default);
     result.map(|_| ())
 }

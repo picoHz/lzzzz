@@ -73,7 +73,7 @@ impl CompressionLevel {
 /// // The slice should have enough space.
 /// assert!(buf.len() >= lz4::max_compressed_size(data.len()));
 ///
-/// let len = lz4_hc::compress_to_slice(
+/// let len = lz4_hc::compress(
 ///     data.as_bytes(),
 ///     &mut buf,
 ///     lz4_hc::CompressionMode::Default,
@@ -91,7 +91,7 @@ impl CompressionLevel {
 /// # .unwrap();
 /// # assert_eq!(&buf[..len], data.as_bytes());
 /// ```
-pub fn compress_to_slice(
+pub fn compress(
     src: &[u8],
     dst: &mut [u8],
     mode: CompressionMode,
@@ -132,7 +132,7 @@ pub fn compress_to_slice(
 /// let data = "So we beat on, boats against the current, borne back ceaselessly into the past.";
 /// let mut buf = Vec::new();
 ///
-/// lz4_hc::compress(
+/// lz4_hc::compress_to_vec(
 ///     data.as_bytes(),
 ///     &mut buf,
 ///     lz4_hc::CompressionMode::Default,
@@ -157,7 +157,7 @@ pub fn compress_to_slice(
 /// let data = "It was not till they had examined the rings that they recognized who it was.";
 /// let mut buf = Vec::new();
 ///
-/// lz4_hc::compress(
+/// lz4_hc::compress_to_vec(
 ///     data.as_bytes(),
 ///     &mut buf,
 ///     lz4_hc::CompressionMode::Default,
@@ -173,7 +173,7 @@ pub fn compress_to_slice(
 /// # .unwrap();
 /// # assert_eq!(&buf[..len], data.as_bytes());
 /// ```
-pub fn compress(
+pub fn compress_to_vec(
     src: &[u8],
     dst: &mut Vec<u8>,
     mode: CompressionMode,
@@ -185,7 +185,7 @@ pub fn compress(
     unsafe {
         dst.set_len(dst.capacity());
     }
-    let result = compress_to_slice(
+    let result = compress(
         src,
         &mut dst[orig_len..],
         CompressionMode::Default,
