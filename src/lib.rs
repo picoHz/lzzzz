@@ -9,9 +9,13 @@
 //! - **Various Supported Modes:** `LZ4`, `LZ4_HC`, `LZ4F`, `LZ4 Streaming`,
 //! `LZ4_HC Streaming` and `LZ4F Streaming` are supported.
 //!
-//! - **Flexible Streaming:** Compressor/Decompressor stream supports `Read`,
-//! `BufRead` and `Write` operations. With `tokio` feature, `AsyncRead`,
+//! - **Flexible Streaming:** Compressor/Decompressor stream supports [`Read`],
+//! [`BufRead`] and [`Write`] operations. With `tokio` feature, `AsyncRead`,
 //! `AsyncBufRead` and `AsyncWrite` are also supported.
+//!
+//! [`Read`]: https://doc.rust-lang.org/nightly/std/io/trait.Read.html
+//! [`BufRead`]: https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html
+//! [`Write`]: https://doc.rust-lang.org/nightly/std/io/trait.Write.html
 
 #![deny(unsafe_code)]
 
