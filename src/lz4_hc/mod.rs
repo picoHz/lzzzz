@@ -118,7 +118,7 @@ pub fn compress_to_slice(
 ///
 /// ### Basic usage
 ///
-/// Compress data into the `Vec<u8>` with the default compression mode.
+/// Compress data into the `Vec<u8>` with the default compression mode/level.
 ///
 /// ```
 /// use lzzzz::lz4_hc;
@@ -131,6 +131,31 @@ pub fn compress_to_slice(
 ///     &mut buf,
 ///     lz4_hc::CompressionMode::Default,
 ///     lz4_hc::CompressionLevel::Default,
+/// );
+/// # let compressed = &buf;
+/// # let mut buf = [0u8; 2048];
+/// # let len = lzzzz::lz4::decompress(
+/// #     compressed,
+/// #     &mut buf[..data.len()],
+/// #     lzzzz::lz4::DecompressionMode::Default,
+/// # )
+/// # .unwrap();
+/// # assert_eq!(&buf[..len], data.as_bytes());
+/// ```
+///
+/// ### Higher compression level
+///
+/// ```
+/// use lzzzz::lz4_hc;
+///
+/// let data = "It was not till they had examined the rings that they recognized who it was.";
+/// let mut buf = Vec::new();
+///
+/// lz4_hc::compress(
+///     data.as_bytes(),
+///     &mut buf,
+///     lz4_hc::CompressionMode::Default,
+///     lz4_hc::CompressionLevel::Max,
 /// );
 /// # let compressed = &buf;
 /// # let mut buf = [0u8; 2048];
