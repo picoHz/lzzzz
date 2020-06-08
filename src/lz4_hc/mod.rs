@@ -67,18 +67,29 @@ impl CompressionLevel {
 /// ```
 /// use lzzzz::{lz4, lz4_hc};
 ///
-/// let data = b"As soon as they had strength, they arose, joined hands again, and went on.";
+/// let data = "— Да, простите, — повторил он то же слово, которым закончил и весь рассказ.";
 /// let mut buf = [0u8; 2048];
 ///
 /// // The slice should have enough space.
 /// assert!(buf.len() >= lz4::max_compressed_size(data.len()));
 ///
-/// let len = lz4_hc::compress_to_slice(data, &mut buf, lz4_hc::CompressionMode::Default, lz4_hc::CompressionLevel::Default).unwrap();
+/// let len = lz4_hc::compress_to_slice(
+///     data.as_bytes(),
+///     &mut buf,
+///     lz4_hc::CompressionMode::Default,
+///     lz4_hc::CompressionLevel::Default,
+/// )
+/// .unwrap();
 /// let compressed = &buf[..len];
 ///
 /// # let mut buf = [0u8; 2048];
-/// # let len = lz4::decompress(compressed, &mut buf[..data.len()], lz4::DecompressionMode::Default).unwrap();
-/// # assert_eq!(&buf[..len], &data[..]);
+/// # let len = lz4::decompress(
+/// #     compressed,
+/// #     &mut buf[..data.len()],
+/// #     lz4::DecompressionMode::Default,
+/// # )
+/// # .unwrap();
+/// # assert_eq!(&buf[..len], data.as_bytes());
 /// ```
 pub fn compress_to_slice(
     src: &[u8],
