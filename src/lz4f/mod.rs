@@ -174,31 +174,31 @@ impl Default for FrameInfo {
 }
 
 impl FrameInfo {
-    pub fn block_size(&self) -> BlockSize {
+    pub const fn block_size(&self) -> BlockSize {
         self.block_size
     }
 
-    pub fn block_mode(&self) -> BlockMode {
+    pub const fn block_mode(&self) -> BlockMode {
         self.block_mode
     }
 
-    pub fn content_checksum(&self) -> ContentChecksum {
+    pub const fn content_checksum(&self) -> ContentChecksum {
         self.content_checksum
     }
 
-    pub fn frame_type(&self) -> FrameType {
+    pub const fn frame_type(&self) -> FrameType {
         self.frame_type
     }
 
-    pub fn content_size(&self) -> usize {
+    pub const fn content_size(&self) -> usize {
         self.content_size as usize
     }
 
-    pub fn dict_id(&self) -> u32 {
+    pub const fn dict_id(&self) -> u32 {
         self.dict_id as u32
     }
 
-    pub fn block_checksum(&self) -> BlockChecksum {
+    pub const fn block_checksum(&self) -> BlockChecksum {
         self.block_checksum
     }
 }
