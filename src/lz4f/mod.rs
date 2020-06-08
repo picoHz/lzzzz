@@ -60,7 +60,7 @@
 
 mod api;
 
-use crate::Result;
+use crate::{Report, Result};
 use libc::{c_int, c_uint, c_ulonglong};
 
 /// Compression block size flag
@@ -345,7 +345,7 @@ pub fn max_compressed_size(uncompressed_size: usize) -> usize {
 }
 
 /// Read data from a slice and write compressed data into another slice.
-pub fn compress(src: &[u8], dst: &mut [u8], preferences: Preferences) -> Result<usize> {
+pub fn compress(src: &[u8], dst: &mut [u8], preferences: Preferences) -> Result<Report> {
     todo!();
 }
 
@@ -370,14 +370,8 @@ pub fn compress(src: &[u8], dst: &mut [u8], preferences: Preferences) -> Result<
 /// lz4f::compress_to_vec(b"Hello world!", &mut buf, lz4f::Preferences::default());
 /// assert!(buf.starts_with(header));
 /// ```
-pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, preferences: Preferences) -> Result<()> {
-    // use std::io::Write;
-    // let mut writer = PreferencesBuilder::new()
-    // .compression_level(compression_level)
-    // .build(dst)?;
-    // writer.write_all(src)?;
-    // writer.end()?;
-    Ok(())
+pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, preferences: Preferences) -> Result<Report> {
+    Ok(Report::default())
 }
 
 /// Decompression mode specifier
@@ -394,7 +388,7 @@ impl<'a> Default for DecompressionMode<'a> {
 }
 
 /// Read data from a slice and write decompressed data into another slice.
-pub fn decompress(src: &[u8], dst: &mut Vec<u8>, mode: DecompressionMode) -> Result<()> {
+pub fn decompress(src: &[u8], dst: &mut Vec<u8>, mode: DecompressionMode) -> Result<Report> {
     todo!();
 }
 
