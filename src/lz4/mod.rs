@@ -152,6 +152,8 @@ impl<'a> Default for DecompressionMode<'a> {
 ///
 /// # Examples
 ///
+/// ### Basic usage
+/// 
 /// ```
 /// use lzzzz::lz4;
 ///
