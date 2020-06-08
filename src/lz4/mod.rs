@@ -111,7 +111,7 @@ pub fn compress(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> Result<usi
 /// ### Accelerated compression mode
 ///
 /// Faster, but less effective compression.
-/// See [`CompressionMode::Accelerated`]
+/// See [`CompressionMode::Accelerated`] for details.
 ///
 /// [`CompressionMode::Accelerated`]:
 /// ./enum.CompressionMode.html#variant.Accelerated
