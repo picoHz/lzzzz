@@ -11,7 +11,7 @@ use api::ExtState;
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum CompressionMode {
     Default,
-    Partial { uncompressed_size: usize },
+    Partial,
 }
 
 impl Default for CompressionMode {
