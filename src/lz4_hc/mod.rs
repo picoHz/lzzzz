@@ -114,6 +114,12 @@ pub fn compress_to_slice(
 
 /// Read data from a slice and append compressed data to `Vec<u8>`.
 ///
+/// In this function, `CompressionMode::Partial` has no special meaning and
+/// is same as `CompressionMode::Default`.
+///
+/// [`CompressionMode::Partial`]: /enum.CompressionMode.html#variant.Partial
+/// [`CompressionMode::Default`]: /enum.CompressionMode.html#variant.Default
+///
 /// # Examples
 ///
 /// ### Basic usage
@@ -179,7 +185,12 @@ pub fn compress(
     unsafe {
         dst.set_len(dst.capacity());
     }
-    let result = compress_to_slice(src, &mut dst[orig_len..], mode, compression_level);
+    let result = compress_to_slice(
+        src,
+        &mut dst[orig_len..],
+        CompressionMode::Default,
+        compression_level,
+    );
     dst.resize_with(orig_len + *result.as_ref().unwrap_or(&0), Default::default);
     result.map(|_| ())
 }
