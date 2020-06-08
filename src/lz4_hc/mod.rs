@@ -3,7 +3,6 @@
 //! The `lz4_hc` module doesn't provide decompression functionalities.
 //! Use the `lz4` module instead.
 mod api;
-mod binding;
 
 use crate::Result;
 use api::ExtState;

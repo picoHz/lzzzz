@@ -1,6 +1,5 @@
 //! LZ4 Block Compressor/Decompressor
 mod api;
-mod binding;
 
 use crate::{LZ4Error, Result};
 use api::ExtState;

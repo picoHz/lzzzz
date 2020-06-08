@@ -99,6 +99,7 @@ extern "C" {
     pub fn LZ4_freeStreamHC(ptr: *mut LZ4StreamHC) -> c_int;
     pub fn LZ4_resetStreamHC_fast(ptr: *mut LZ4StreamHC, compression_level: c_int);
 
+    pub fn LZ4F_getVersion() -> c_uint;
     pub fn LZ4F_compressBound(src_size: size_t, prefs: *const Preferences) -> size_t;
     pub fn LZ4F_decompress(
         ctx: *mut LZ4FDecompressionCtx,

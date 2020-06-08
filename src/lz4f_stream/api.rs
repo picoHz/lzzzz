@@ -1,12 +1,10 @@
 #![allow(unsafe_code)]
 
-use super::{
-    binding,
-    binding::{CompressionCtx, CompressionOptions},
-    Dictionary,
-};
+use super::Dictionary;
 use crate::{
-    lz4f::{binding::CompressionDict, Preferences},
+    binding,
+    binding::{LZ4FCompressionCtx, LZ4FCompressionDict, LZ4FCompressionOptions},
+    lz4f::Preferences,
     LZ4Error, Result,
 };
 
@@ -20,16 +18,16 @@ use std::{
 pub const HEADER_SIZE_MAX: usize = 19;
 
 pub struct CompressionContext {
-    ctx: NonNull<CompressionCtx>,
+    ctx: NonNull<LZ4FCompressionCtx>,
     dict: Option<Dictionary>,
 }
 
 impl CompressionContext {
     pub fn new(dict: Option<Dictionary>) -> Result<Self> {
-        let mut ctx: *mut CompressionCtx = std::ptr::null_mut();
+        let mut ctx: *mut LZ4FCompressionCtx = std::ptr::null_mut();
         let code = unsafe {
             binding::LZ4F_createCompressionContext(
-                &mut ctx as *mut *mut CompressionCtx,
+                &mut ctx as *mut *mut binding::LZ4FCompressionCtx,
                 binding::LZ4F_getVersion(),
             )
         };
@@ -68,7 +66,7 @@ impl CompressionContext {
         &mut self,
         dst: &mut [u8],
         src: &[u8],
-        opt: Option<&CompressionOptions>,
+        opt: Option<&LZ4FCompressionOptions>,
     ) -> Result<usize> {
         let code = unsafe {
             binding::LZ4F_compressUpdate(
@@ -77,33 +75,33 @@ impl CompressionContext {
                 dst.len() as size_t,
                 src.as_ptr() as *const c_void,
                 src.len() as size_t,
-                opt.map(|p| p as *const CompressionOptions)
+                opt.map(|p| p as *const LZ4FCompressionOptions)
                     .unwrap_or(std::ptr::null()),
             )
         };
         make_result(code as usize, code)
     }
 
-    pub fn flush(&mut self, dst: &mut [u8], opt: Option<&CompressionOptions>) -> Result<usize> {
+    pub fn flush(&mut self, dst: &mut [u8], opt: Option<&LZ4FCompressionOptions>) -> Result<usize> {
         let code = unsafe {
             binding::LZ4F_flush(
                 self.ctx.as_ptr(),
                 dst.as_mut_ptr() as *mut c_void,
                 dst.len() as size_t,
-                opt.map(|p| p as *const CompressionOptions)
+                opt.map(|p| p as *const LZ4FCompressionOptions)
                     .unwrap_or(std::ptr::null()),
             )
         };
         make_result(code as usize, code)
     }
 
-    pub fn end(&mut self, dst: &mut [u8], opt: Option<&CompressionOptions>) -> Result<usize> {
+    pub fn end(&mut self, dst: &mut [u8], opt: Option<&LZ4FCompressionOptions>) -> Result<usize> {
         let code = unsafe {
             binding::LZ4F_compressEnd(
                 self.ctx.as_ptr(),
                 dst.as_mut_ptr() as *mut c_void,
                 dst.len() as size_t,
-                opt.map(|p| p as *const CompressionOptions)
+                opt.map(|p| p as *const LZ4FCompressionOptions)
                     .unwrap_or(std::ptr::null()),
             )
         };
@@ -111,20 +109,15 @@ impl CompressionContext {
     }
 
     pub fn compress_bound(src_size: usize, prefs: &Preferences) -> usize {
-        unsafe {
-            crate::lz4f::binding::LZ4F_compressBound(
-                src_size as size_t,
-                prefs as *const Preferences,
-            )
-        }
+        unsafe { binding::LZ4F_compressBound(src_size as size_t, prefs as *const Preferences) }
     }
 }
 
 fn make_result<T>(data: T, code: size_t) -> Result<T> {
     unsafe {
-        if crate::lz4f::binding::LZ4F_isError(code) != 0 {
+        if binding::LZ4F_isError(code) != 0 {
             Err(LZ4Error::from(
-                CStr::from_ptr(crate::lz4f::binding::LZ4F_getErrorName(code))
+                CStr::from_ptr(binding::LZ4F_getErrorName(code))
                     .to_str()
                     .map_err(|_| LZ4Error::from("Invalid UTF-8"))?,
             ))
@@ -183,7 +176,7 @@ impl DerefMut for LZ4Buffer {
     }
 }
 
-pub struct DictionaryHandle(NonNull<CompressionDict>);
+pub struct DictionaryHandle(NonNull<LZ4FCompressionDict>);
 
 unsafe impl Send for DictionaryHandle {}
 unsafe impl Sync for DictionaryHandle {}
@@ -191,10 +184,7 @@ unsafe impl Sync for DictionaryHandle {}
 impl DictionaryHandle {
     pub fn new(data: &[u8]) -> Self {
         let dict = unsafe {
-            crate::lz4f::binding::LZ4F_createCDict(
-                data.as_ptr() as *const c_void,
-                data.len() as size_t,
-            )
+            binding::LZ4F_createCDict(data.as_ptr() as *const c_void, data.len() as size_t)
         };
         Self(NonNull::new(dict).unwrap())
     }
@@ -203,7 +193,7 @@ impl DictionaryHandle {
 impl Drop for DictionaryHandle {
     fn drop(&mut self) {
         unsafe {
-            crate::lz4f::binding::LZ4F_freeCDict(self.0.as_ptr());
+            binding::LZ4F_freeCDict(self.0.as_ptr());
         }
     }
 }

@@ -1,7 +1,6 @@
 //! LZ4 Frame Streaming Compressor/Decompressor
 
 mod api;
-mod binding;
 
 use crate::{
     lz4f::{FrameInfo, Preferences},

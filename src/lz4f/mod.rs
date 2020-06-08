@@ -58,8 +58,7 @@
 //! assert!(all_ok);
 //! ```
 
-pub(crate) mod api;
-pub(crate) mod binding;
+mod api;
 
 use crate::{lz4f::api::FrameType, Result};
 use libc::{c_int, c_uint, c_ulonglong};

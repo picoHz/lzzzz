@@ -1,6 +1,6 @@
 #![allow(unsafe_code)]
 
-use super::binding;
+use crate::binding;
 
 use libc::{c_char, c_int, c_void};
 use std::{

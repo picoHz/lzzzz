@@ -1,5 +1,4 @@
 mod api;
-mod binding;
 use std::{convert, fmt, io};
 
 pub use api::{version_number, version_string};
