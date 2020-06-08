@@ -1,11 +1,11 @@
 # Lzzzz 😴
 Yet another liblz4 binding
 
-**Designed for Rust:** Lzzzz is a high-level wrapper of liblz4 and provides comprehensible API comply with Rust's manner without losing performance and flexibility. You have no concern about memory management and concurrency safety.
+- **Designed for Rust:** Lzzzz is a high-level wrapper of liblz4 and provides comprehensible API comply with Rust's manner without losing performance and flexibility. You have no concern about memory management and concurrency safety.
 
-**Various Supported Modes:** `LZ4`, `LZ4_HC`, `LZ4F`, `LZ4 Streaming`, `LZ4_HC Streaming` and `LZ4F Streaming` are supported.
+- **Various Supported Modes:** `LZ4`, `LZ4_HC`, `LZ4F`, `LZ4 Streaming`, `LZ4_HC Streaming` and `LZ4F Streaming` are supported.
 
-**Flexible Streaming:** Compressor/Decompressor stream supports `Read`, `BufRead` and `Write` operations. 
+- **Flexible Streaming:** Compressor/Decompressor stream supports `Read`, `BufRead` and `Write` operations. 
 With `tokio` feature, `AsyncRead`, `AsyncBufRead` and `AsyncWrite` are also supported.
 
 - LZ4 Block Compression/Decompression
