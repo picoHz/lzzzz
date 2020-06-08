@@ -18,8 +18,8 @@ pub fn compress_fast_ext_state(
     src: &[u8],
     dst: &mut [u8],
     acceleration: i32,
-) -> usize {
-    unsafe {
+) -> Report {
+    let dst_len = unsafe {
         binding::LZ4_compress_fast_extState(
             state.as_mut_ptr() as *mut c_void,
             src.as_ptr() as *const c_char,
@@ -28,6 +28,10 @@ pub fn compress_fast_ext_state(
             dst.len() as c_int,
             acceleration as c_int,
         ) as usize
+    };
+    Report {
+        dst_len,
+        ..Default::default()
     }
 }
 

@@ -3,10 +3,11 @@ use std::{convert, fmt, io};
 
 pub use api::{version_number, version_string};
 
+/// A result of successful compression/decompression
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct Report {
-    pub src_len: Option<usize>,
-    pub dst_len: usize,
+    pub(crate) src_len: Option<usize>,
+    pub(crate) dst_len: usize,
 }
 
 impl Report {

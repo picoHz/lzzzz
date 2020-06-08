@@ -178,7 +178,7 @@ pub fn compress_to_vec(
     dst: &mut Vec<u8>,
     mode: CompressionMode,
     compression_level: CompressionLevel,
-) -> Result<()> {
+) -> Result<Report> {
     let orig_len = dst.len();
     dst.reserve(crate::lz4::max_compressed_size(src.len()));
     #[allow(unsafe_code)]
@@ -195,7 +195,7 @@ pub fn compress_to_vec(
         orig_len + result.as_ref().map(|r| r.dst_len()).unwrap_or(0),
         Default::default,
     );
-    result.map(|_| ())
+    result
 }
 
 thread_local!(static EXT_STATE: ExtState = ExtState::new());

@@ -46,7 +46,7 @@ pub fn max_compressed_size(uncompressed_size: usize) -> usize {
 /// // The slice should have enough space.
 /// assert!(buf.len() >= lz4::max_compressed_size(data.len()));
 ///
-/// let len = lz4::compress(data, &mut buf, lz4::CompressionMode::Default).unwrap();
+/// let len = lz4::compress(data, &mut buf, lz4::CompressionMode::Default).unwrap().dst_len();
 /// let compressed = &buf[..len];
 ///
 /// # let mut buf = [0u8; 2048];
@@ -55,14 +55,14 @@ pub fn max_compressed_size(uncompressed_size: usize) -> usize {
 /// #    lz4::DecompressionMode::Default).unwrap().dst_len();
 /// # assert_eq!(&buf[..len], &data[..]);
 /// ```
-pub fn compress(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> Result<usize> {
+pub fn compress(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> Result<Report> {
     let acc = match mode {
         CompressionMode::Default => 1,
         CompressionMode::Accelerated { factor } => factor,
     };
     let len = EXT_STATE
         .with(|state| api::compress_fast_ext_state(&mut state.borrow_mut(), src, dst, acc));
-    if len > 0 {
+    if len.dst_len() > 0 {
         Ok(len)
     } else {
         Err(LZ4Error::from("Compression failed"))
@@ -141,7 +141,7 @@ pub fn compress(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> Result<usi
 ///     lz4::DecompressionMode::Default).unwrap().dst_len();
 /// # assert_eq!(&buf[..len], &data[..]);
 /// ```
-pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, mode: CompressionMode) -> Result<()> {
+pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, mode: CompressionMode) -> Result<Report> {
     let orig_len = dst.len();
     dst.reserve(max_compressed_size(src.len()));
     #[allow(unsafe_code)]
@@ -149,8 +149,11 @@ pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, mode: CompressionMode) -> 
         dst.set_len(dst.capacity());
     }
     let result = compress(src, &mut dst[orig_len..], mode);
-    dst.resize_with(orig_len + *result.as_ref().unwrap_or(&0), Default::default);
-    result.map(|_| ())
+    dst.resize_with(
+        orig_len + result.as_ref().map(|r| r.dst_len()).unwrap_or(0),
+        Default::default,
+    );
+    result
 }
 
 /// Decompression mode specifier
