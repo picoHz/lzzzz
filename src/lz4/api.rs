@@ -46,6 +46,18 @@ pub fn decompress_safe(src: &[u8], dst: &mut [u8]) -> i32 {
     }
 }
 
+pub fn decompress_safe_partial(src: &[u8], dst: &mut [u8], original_size: usize) -> i32 {
+    unsafe {
+        binding::LZ4_decompress_safe_partial(
+            src.as_ptr() as *const c_char,
+            dst.as_mut_ptr() as *mut c_char,
+            src.len() as c_int,
+            original_size as c_int,
+            dst.len() as c_int,
+        ) as i32
+    }
+}
+
 #[derive(Clone)]
 pub struct ExtState(RefCell<Box<[u8]>>);
 

@@ -140,6 +140,8 @@ impl<'a> Default for DecompressionMode<'a> {
 
 /// Read data from a slice and write decompressed data into another slice.
 ///
+/// # Examples
+///
 /// ```
 /// use lzzzz::lz4;
 ///
@@ -157,8 +159,40 @@ impl<'a> Default for DecompressionMode<'a> {
 ///     "South-south-west, south, south-east, east. ... ".as_bytes()
 /// );
 /// ```
+///
+/// ### Partial decompression
+///
+/// ```
+/// use lzzzz::lz4;
+///
+/// const ORIGINAL_SIZE: usize = 239;
+///
+/// // Tha latter part of the compressed data is ommited because
+/// // we don't need the full plain text.
+/// let data = [
+///     240, 16, 65, 108, 98, 46, 32, 84, 104, 101, 32, 119, 101, 105, 103, 104, 116, 32, 111, 102,
+///     32, 116, 104, 105, 115, 32, 115, 97, 100, 32, 116, 105, 109, 24, 0, 245, 20, 32, 109, 117,
+///     115,
+/// ];
+///
+/// let mut buf = [0u8; 30];
+/// lz4::decompress(
+///     &data[..],
+///     &mut buf[..],
+///     lz4::DecompressionMode::Partial {
+///         uncompressed_size: ORIGINAL_SIZE,
+///     },
+/// );
+///
+/// assert_eq!(&buf[..], b"Alb. The weight of this sad ti");
+/// ```
 pub fn decompress(src: &[u8], dst: &mut [u8], mode: DecompressionMode) -> Result<usize> {
-    let len = api::decompress_safe(src, dst);
+    let len = match mode {
+        DecompressionMode::Partial { uncompressed_size } => {
+            api::decompress_safe_partial(src, dst, uncompressed_size)
+        }
+        _ => api::decompress_safe(src, dst),
+    };
     if len > 0 {
         Ok(len as usize)
     } else {
