@@ -4,10 +4,15 @@ use std::{convert, fmt, io};
 pub use api::{version_number, version_string};
 
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
-#[non_exhaustive]
 pub struct Report {
     pub src_len: Option<usize>,
     pub dst_len: usize,
+}
+
+impl Report {
+    pub const fn dst_len(&self) -> usize {
+        self.dst_len
+    }
 }
 
 #[derive(Debug)]

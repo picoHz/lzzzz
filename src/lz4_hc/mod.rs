@@ -79,7 +79,7 @@ impl CompressionLevel {
 ///     lz4_hc::CompressionMode::Default,
 ///     lz4_hc::CompressionLevel::Default,
 /// )
-/// .unwrap();
+/// .unwrap().dst_len();
 /// let compressed = &buf[..len];
 ///
 /// # let mut buf = [0u8; 2048];
@@ -96,18 +96,17 @@ pub fn compress(
     dst: &mut [u8],
     mode: CompressionMode,
     compression_level: CompressionLevel,
-) -> Result<usize> {
-    let len = EXT_STATE.with(|state| {
+) -> Result<Report> {
+    let result = EXT_STATE.with(|state| {
         api::compress_ext_state(
             &mut state.borrow_mut(),
             src,
             dst,
             compression_level.as_i32(),
         )
-        .dst_len
     });
-    if len > 0 {
-        Ok(len)
+    if result.dst_len() > 0 {
+        Ok(result)
     } else {
         Err(LZ4Error::from("Compression failed"))
     }
@@ -192,7 +191,10 @@ pub fn compress_to_vec(
         CompressionMode::Default,
         compression_level,
     );
-    dst.resize_with(orig_len + *result.as_ref().unwrap_or(&0), Default::default);
+    dst.resize_with(
+        orig_len + result.as_ref().map(|r| r.dst_len()).unwrap_or(0),
+        Default::default,
+    );
     result.map(|_| ())
 }
 
