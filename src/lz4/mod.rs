@@ -84,12 +84,10 @@ pub fn compress_to_slice(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> R
 /// ```
 /// use lzzzz::lz4;
 ///
+/// let data = "En vérité, ne ferait-on pas, pour moins que cela, le Tour du Monde ?";
 /// let mut buf = Vec::new();
-/// lz4::compress(
-///     b"South-south-west, south, south-east, east. ... ",
-///     &mut buf,
-///     lz4::CompressionMode::Default,
-/// );
+///
+/// lz4::compress(data.as_bytes(), &mut buf, lz4::CompressionMode::Default);
 /// ```
 ///
 /// This function doesn't clear the contents of `Vec<u8>`:
@@ -141,6 +139,24 @@ impl<'a> Default for DecompressionMode<'a> {
 }
 
 /// Read data from a slice and write decompressed data into another slice.
+///
+/// ```
+/// use lzzzz::lz4;
+///
+/// const ORIGINAL_SIZE: usize = 47;
+/// let data = [
+///     113, 83, 111, 117, 116, 104, 45, 115, 6, 0, 97, 119, 101, 115, 116, 44, 32, 12, 0, 3, 7, 0,
+///     48, 45, 101, 97, 19, 0, 160, 101, 97, 115, 116, 46, 32, 46, 46, 46, 32,
+/// ];
+///
+/// let mut buf = [0u8; ORIGINAL_SIZE];
+/// lz4::decompress(&data[..], &mut buf[..], lz4::DecompressionMode::Default);
+///
+/// assert_eq!(
+///     &buf[..],
+///     "South-south-west, south, south-east, east. ... ".as_bytes()
+/// );
+/// ```
 pub fn decompress(src: &[u8], dst: &mut [u8], mode: DecompressionMode) -> Result<usize> {
     let len = api::decompress_safe(src, dst);
     if len > 0 {
