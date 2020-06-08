@@ -340,13 +340,34 @@ impl PreferencesBuilder {
 }
 
 /// Calculate the maximum size of the compressed data from the original size.
-pub fn max_compressed_size(uncompressed_size: usize) -> usize {
-    0
+pub fn max_compressed_size(uncompressed_size: usize, prefs: &Preferences) -> usize {
+    api::compress_bound(uncompressed_size, prefs)
 }
 
 /// Read data from a slice and write compressed data into another slice.
-pub fn compress(src: &[u8], dst: &mut [u8], preferences: Preferences) -> Result<Report> {
-    todo!();
+///
+/// Ensure that the destination slice have enough capacity.
+/// If `dst.len()` is smaller than `lz4::max_compressed_size(src.len())`,
+/// this function may fail.
+///
+/// # Examples
+///
+/// Compress data with the default compression mode:
+/// ```
+/// use lzzzz::lz4f;
+///
+/// let data = b"As soon as they had strength, they arose, joined hands again, and went on.";
+/// let mut buf = [0u8; 131_072];
+/// let prefs = lz4f::Preferences::default();
+///
+/// // The slice should have enough space.
+/// assert!(buf.len() >= lz4f::max_compressed_size(data.len(), &prefs));
+///
+/// let len = lz4f::compress(data, &mut buf, &prefs).unwrap().dst_len();
+/// let compressed = &buf[..len];
+/// ```
+pub fn compress(src: &[u8], dst: &mut [u8], prefs: &Preferences) -> Result<Report> {
+    api::compress(src, dst, prefs)
 }
 
 /// Read data from a slice and append compressed data to `Vec<u8>`.

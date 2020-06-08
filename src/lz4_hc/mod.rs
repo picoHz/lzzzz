@@ -65,7 +65,7 @@ impl CompressionLevel {
 /// # Examples
 ///
 /// ### Basic compression
-/// 
+///
 /// Compress data with the default compression mode:
 ///
 /// ```
@@ -97,7 +97,7 @@ impl CompressionLevel {
 /// ```
 ///
 /// ### Partial compression
-/// 
+///
 /// ```
 /// use lzzzz::{lz4, lz4_hc};
 ///
@@ -111,7 +111,7 @@ impl CompressionLevel {
 ///     lz4_hc::CompressionLevel::Default,
 /// )
 /// .unwrap();
-/// 
+///
 /// let compressed = &buf[..result.dst_len()];
 /// let comsumed = result.src_len().unwrap();
 ///
