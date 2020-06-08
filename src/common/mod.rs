@@ -29,6 +29,7 @@ impl Report {
     }
 }
 
+/// Compression/Decompression error
 #[derive(Debug)]
 pub enum LZ4Error {
     LZ4(&'static str),
