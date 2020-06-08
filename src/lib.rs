@@ -9,8 +9,8 @@
 //! [`LZ4_HC Streaming`] and [`LZ4F Streaming`] are supported.
 //!
 //! - **Flexible Streaming:** Compressor/Decompressor stream supports [`Read`],
-//! [`BufRead`] and [`Write`] operations. With `tokio` feature, `AsyncRead`,
-//! `AsyncBufRead` and `AsyncWrite` are also supported.
+//! [`BufRead`] and [`Write`] operations. With `tokio-support` feature, [`AsyncRead`],
+//! [`AsyncBufRead`] and [`AsyncWrite`] are also supported.
 //!
 //! [`LZ4`]: ./lz4/index.html
 //! [`LZ4_HC`]: ./lz4_hc/index.html
@@ -21,6 +21,9 @@
 //! [`Read`]: https://doc.rust-lang.org/nightly/std/io/trait.Read.html
 //! [`BufRead`]: https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html
 //! [`Write`]: https://doc.rust-lang.org/nightly/std/io/trait.Write.html
+//! [`AsyncRead`]: https://docs.rs/tokio/latest/tokio/io/trait.AsyncRead.html
+//! [`AsyncBufRead`]: https://docs.rs/tokio/latest/tokio/io/trait.AsyncBufRead.html
+//! [`AsyncWrite`]: https://docs.rs/tokio/latest/tokio/io/trait.AsyncWrite.html
 
 #![deny(unsafe_code)]
 

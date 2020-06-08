@@ -10,11 +10,9 @@ homepage = "https://github.com/picoHz/lzzzz"
 documentation = "https://docs.rs/lzzzz"
 include = ["src/**/*", "build.rs", "vendor/liblz4/lib/*", "Cargo.toml"]
 
-[lib]
-crate-type = ["cdylib", "rlib"]
-
 [dependencies]
 libc = "0.2.71"
+tokio = { version = "0.2.21", optional = true }
 
 [dev-dependencies]
 rayon = "1.3.0"
@@ -22,3 +20,6 @@ rand = { version = "0.7.3", features = ["small_rng"] }
 
 [build-dependencies]
 cc = "1.0.54"
+
+[features]
+tokio-support = ["tokio"]
