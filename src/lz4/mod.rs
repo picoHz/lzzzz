@@ -142,7 +142,12 @@ impl<'a> Default for DecompressionMode<'a> {
 
 /// Read data from a slice and write decompressed data into another slice.
 pub fn decompress(src: &[u8], dst: &mut [u8], mode: DecompressionMode) -> Result<usize> {
-    todo!();
+    let len = api::decompress_safe(src, dst);
+    if len > 0 {
+        Ok(len as usize)
+    } else {
+        Err(LZ4Error::from("Decompression failed"))
+    }
 }
 
 thread_local!(static EXT_STATE: ExtState = ExtState::new());
