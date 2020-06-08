@@ -60,10 +60,10 @@
 
 mod api;
 
-use crate::{lz4f::api::FrameType, Result};
+use crate::Result;
 use libc::{c_int, c_uint, c_ulonglong};
 
-/// Compression block size
+/// Compression block size flag
 ///
 /// **Cited from lz4frame.h:**
 /// The larger the block size, the (slightly) better the compression ratio,
@@ -81,7 +81,7 @@ pub enum BlockSize {
     Max4MB = 7,
 }
 
-/// Compression block mode
+/// Compression block mode flag
 ///
 /// **Cited from lz4frame.h:**
 /// Linked blocks sharply reduce inefficiencies when using small blocks,
@@ -95,7 +95,7 @@ pub enum BlockMode {
     Independent = 1,
 }
 
-/// Compression content checksum
+/// Compression content checksum flag
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 #[repr(C)]
 pub enum ContentChecksum {
@@ -104,7 +104,15 @@ pub enum ContentChecksum {
     Enabled = 1,
 }
 
-/// Compression block checksum
+/// Compression frame type flag
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[repr(C)]
+pub enum FrameType {
+    Frame = 0,
+    SkippableFrame = 1,
+}
+
+/// Compression block checksum flag
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 #[repr(C)]
 pub enum BlockChecksum {
@@ -195,7 +203,7 @@ impl FrameInfo {
     }
 }
 
-/// Compression level
+/// Compression level specifier
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum CompressionLevel {
     /// Custom compression level.
