@@ -61,7 +61,9 @@
 mod api;
 
 use crate::{Report, Result};
+use api::DecompressionContext;
 use libc::{c_int, c_uint, c_ulonglong};
+use std::cell::RefCell;
 
 /// Compression block size flag
 ///
@@ -408,7 +410,7 @@ pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, prefs: &Preferences) -> Re
 
 /// Read data from a slice and write decompressed data into another slice.
 pub fn decompress(src: &[u8], dst: &mut [u8], mode: &DecompressionMode) -> Result<Report> {
-    todo!();
+    DECOMPRESSION_CTX.with(|ctx| ctx.borrow_mut().decompress(src, dst, None))
 }
 
 /// Read data from a slice and append decompressed data to `Vec<u8>`.
@@ -432,6 +434,9 @@ impl<'a> Default for DecompressionMode<'a> {
         Self::Default
     }
 }
+
+thread_local!(static DECOMPRESSION_CTX: RefCell<DecompressionContext> = 
+    RefCell::new(DecompressionContext::new().unwrap()));
 
 // #[cfg(test)]
 // mod tests {
