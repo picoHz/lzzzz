@@ -5,7 +5,8 @@ Yet another liblz4 binding
 
 **Various Supported Modes:** `LZ4`, `LZ4_HC`, `LZ4F`, `LZ4 Streaming`, `LZ4_HC Streaming` and `LZ4F Streaming` are supported.
 
-**Flexible Streaming:**
+**Flexible Streaming:** Compressor/Decompressor stream supports `Read`, `BufRead` and `Write` operations. 
+With `tokio` feature, `AsyncRead`, `AsyncBufRead` and `AsyncWrite` are also supported.
 
 - LZ4 Block Compression/Decompression
 - LZ4 Streaming Compression/Decompression (Reader/Writer)
