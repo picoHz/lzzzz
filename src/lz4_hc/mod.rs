@@ -93,19 +93,53 @@ impl CompressionLevel {
 /// # .unwrap().dst_len();
 /// # assert_eq!(&buf[..len], data.as_bytes());
 /// ```
+///
+/// ```
+/// use lzzzz::{lz4, lz4_hc};
+///
+/// let data = "— Да, простите, — повторил он то же слово, которым закончил и весь рассказ.";
+/// let mut buf = [0u8; 32];
+///
+/// let result = lz4_hc::compress(
+///     data.as_bytes(),
+///     &mut buf,
+///     lz4_hc::CompressionMode::Partial,
+///     lz4_hc::CompressionLevel::Default,
+/// )
+/// .unwrap();
+/// let compressed = &buf[..result.dst_len()];
+///
+/// # assert_eq!(result.dst_len(), 32);
+/// # assert_eq!(result.src_len(), Some(30));
+/// # let mut buf = [0u8; 2048];
+/// # let len = lz4::decompress(
+/// #     compressed,
+/// #     &mut buf[..result.src_len().unwrap()],
+/// #     lz4::DecompressionMode::Default,
+/// # )
+/// # .unwrap().dst_len();
+/// # let compressed = &buf[..len];
+/// # assert!(data.as_bytes().starts_with(compressed));
+/// ```
 pub fn compress(
     src: &[u8],
     dst: &mut [u8],
     mode: CompressionMode,
     compression_level: CompressionLevel,
 ) -> Result<Report> {
-    let result = EXT_STATE.with(|state| {
-        api::compress_ext_state(
+    let result = EXT_STATE.with(|state| match mode {
+        CompressionMode::Default => api::compress_ext_state(
             &mut state.borrow_mut(),
             src,
             dst,
             compression_level.as_i32(),
-        )
+        ),
+        CompressionMode::Partial => api::compress_dest_size(
+            &mut state.borrow_mut(),
+            src,
+            dst,
+            compression_level.as_i32(),
+        ),
     });
     if result.dst_len() > 0 {
         Ok(result)

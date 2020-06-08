@@ -36,17 +36,21 @@ pub fn compress_dest_size(
     src: &[u8],
     dst: &mut [u8],
     compression_level: i32,
-) -> usize {
-    let mut src_size = src.len() as i32;
-    unsafe {
+) -> Report {
+    let mut src_len = src.len() as i32;
+    let dst_len = unsafe {
         binding::LZ4_compress_HC_destSize(
             state.as_mut_ptr() as *mut c_void,
             src.as_ptr() as *const c_char,
             dst.as_mut_ptr() as *mut c_char,
-            &mut src_size as *mut c_int,
+            &mut src_len as *mut c_int,
             dst.len() as c_int,
             compression_level as c_int,
         ) as usize
+    };
+    Report {
+        src_len: Some(src_len as usize),
+        dst_len,
     }
 }
 
