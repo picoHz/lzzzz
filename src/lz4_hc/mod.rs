@@ -97,7 +97,7 @@ impl CompressionLevel {
 /// ```
 /// use lzzzz::{lz4, lz4_hc};
 ///
-/// let data = "— Да, простите, — повторил он то же слово, которым закончил и весь рассказ.";
+/// let data = "Rugía la fiera: la verdadera, la única.";
 /// let mut buf = [0u8; 32];
 ///
 /// let result = lz4_hc::compress(
@@ -107,14 +107,16 @@ impl CompressionLevel {
 ///     lz4_hc::CompressionLevel::Default,
 /// )
 /// .unwrap();
+/// 
 /// let compressed = &buf[..result.dst_len()];
+/// let comsumed = result.src_len().unwrap();
 ///
 /// # assert_eq!(result.dst_len(), 32);
-/// # assert_eq!(result.src_len(), Some(30));
+/// # assert_eq!(comsumed, 31);
 /// # let mut buf = [0u8; 2048];
 /// # let len = lz4::decompress(
 /// #     compressed,
-/// #     &mut buf[..result.src_len().unwrap()],
+/// #     &mut buf[..comsumed],
 /// #     lz4::DecompressionMode::Default,
 /// # )
 /// # .unwrap().dst_len();
