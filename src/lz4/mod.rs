@@ -5,20 +5,6 @@ use crate::{LZ4Error, Result};
 use api::ExtState;
 
 /// Compression mode specifier
-///
-/// # Examples
-///
-/// Compress data into the `Vec<u8>` with the accelerated compression mode:
-/// ```
-/// use lzzzz::lz4;
-///
-/// let mut buf = Vec::new();
-/// lz4::compress(
-///     b"QUATRE HEURES.",
-///     &mut buf,
-///     lz4::CompressionMode::Fast { factor: 20 },
-/// );
-/// ```
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CompressionMode {
     /// `Default` is same as `Fast { factor: 1 }`.
@@ -81,7 +67,10 @@ pub fn compress_to_slice(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> R
 ///
 /// # Examples
 ///
-/// Compress data into the `Vec<u8>` with the default compression mode:
+/// ### Basic usage
+///
+/// Compress data into the `Vec<u8>` with the default compression mode.
+///
 /// ```
 /// use lzzzz::lz4;
 ///
@@ -91,7 +80,10 @@ pub fn compress_to_slice(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> R
 /// lz4::compress(data.as_bytes(), &mut buf, lz4::CompressionMode::Default);
 /// ```
 ///
-/// This function doesn't clear the content of `dst`:
+/// ### Preserving header
+///
+/// This function doesn't clear the content of `dst`.
+///
 /// ```
 /// use lzzzz::lz4;
 ///
@@ -101,6 +93,21 @@ pub fn compress_to_slice(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> R
 /// let data = b"Cito et velociter!";
 /// lz4::compress(data, &mut buf, lz4::CompressionMode::Default);
 /// assert!(buf.starts_with(header) && buf.len() > header.len());
+/// ```
+///
+/// ### Accelerated compression mode
+///
+/// Faster, but less effective compression.
+///
+/// ```
+/// use lzzzz::lz4;
+///
+/// let mut buf = Vec::new();
+/// lz4::compress(
+///     b"QUATRE HEURES.",
+///     &mut buf,
+///     lz4::CompressionMode::Fast { factor: 20 },
+/// );
 /// ```
 pub fn compress(src: &[u8], dst: &mut Vec<u8>, mode: CompressionMode) -> Result<()> {
     let orig_len = dst.len();
