@@ -47,6 +47,11 @@ pub use lz4::LZ4Stream;
 pub use lz4_hc::LZ4StreamHC;
 
 #[repr(C)]
+pub struct LZ4DecStream {
+    _private: [u8; 0],
+}
+
+#[repr(C)]
 pub struct LZ4FCompressionCtx {
     _private: [u8; 0],
 }
@@ -183,6 +188,8 @@ extern "C" {
     pub fn LZ4_createStream() -> *mut LZ4Stream;
     pub fn LZ4_freeStream(ptr: *mut LZ4Stream) -> c_int;
     pub fn LZ4_initStream(buffer: *mut c_void, size: size_t) -> *mut LZ4Stream;
+    pub fn LZ4_createStreamDecode() -> *mut LZ4DecStream;
+    pub fn LZ4_freeStreamDecode(stream: *mut LZ4DecStream) -> c_int;
 
     pub fn LZ4F_createCDict(
         dict_buffer: *const c_void,

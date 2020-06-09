@@ -1,6 +1,10 @@
 #![allow(unsafe_code)]
 
-use crate::{binding, binding::LZ4Stream, Error, Result};
+use crate::{
+    binding,
+    binding::{LZ4DecStream, LZ4Stream},
+    Error, Result,
+};
 
 use libc::{c_void, size_t};
 use std::{
@@ -44,6 +48,27 @@ impl Drop for CompressionContext {
             unsafe {
                 binding::LZ4_freeStream(ptr.as_mut());
             }
+        }
+    }
+}
+
+pub struct DecompressionContext {
+    stream: NonNull<LZ4DecStream>,
+}
+
+impl DecompressionContext {
+    pub fn new() -> Result<Self> {
+        unsafe {
+            let ptr = NonNull::new(binding::LZ4_createStreamDecode());
+            ptr.ok_or(Error::Generic).map(|stream| Self { stream })
+        }
+    }
+}
+
+impl Drop for DecompressionContext {
+    fn drop(&mut self) {
+        unsafe {
+            binding::LZ4_freeStreamDecode(self.stream.as_mut());
         }
     }
 }
