@@ -133,13 +133,24 @@ pub fn compress(
     mode: &CompressionMode,
     compression_level: &CompressionLevel,
 ) -> Result<Report> {
-    let result = ExtState::with(|state| match mode {
-        CompressionMode::Default => api::compress_ext_state(
-            &mut state.borrow_mut(),
-            src,
-            dst,
-            compression_level.as_i32(),
-        ),
+    let result = ExtState::with(|state, reset| match mode {
+        CompressionMode::Default => {
+            if reset {
+                api::compress_ext_state_fast_reset(
+                    &mut state.borrow_mut(),
+                    src,
+                    dst,
+                    compression_level.as_i32(),
+                )
+            } else {
+                api::compress_ext_state(
+                    &mut state.borrow_mut(),
+                    src,
+                    dst,
+                    compression_level.as_i32(),
+                )
+            }
+        }
         CompressionMode::Partial => api::compress_dest_size(
             &mut state.borrow_mut(),
             src,

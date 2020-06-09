@@ -113,22 +113,35 @@ impl ExtState {
         let size = size_of_state() + 1;
         let mut buf = Vec::with_capacity(size);
         unsafe { buf.set_len(size) };
-        *buf.last_mut().unwrap() = 0;
+        buf[size - 1] = 0;
         Self(RefCell::new(buf.into_boxed_slice()))
     }
 
     pub fn with<F, R>(f: F) -> R
     where
-        F: FnOnce(&Self) -> R,
+        F: FnOnce(&Self, bool) -> R,
     {
         #[cfg(feature = "use-tls")]
         {
-            EXT_STATE.with(f)
+            EXT_STATE.with(|state| {
+                let reset = {
+                    let mut state = state.borrow_mut();
+                    let last = state.len() - 1;
+                    if state[last] == 0 {
+                        state[last] = 1;
+                        false
+                    } else {
+                        true
+                    }
+                };
+
+                (f)(state, reset)
+            })
         }
 
         #[cfg(not(feature = "use-tls"))]
         {
-            (f)(&Self::new())
+            (f)(&Self::new(), false)
         }
     }
 }

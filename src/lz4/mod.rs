@@ -62,14 +62,12 @@ pub fn compress(src: &[u8], dst: &mut [u8], mode: &CompressionMode) -> Result<Re
         CompressionMode::Default => 1,
         CompressionMode::Accelerated { factor } => *factor,
     };
-    let len = ExtState::with(|state| {
+    let len = ExtState::with(|state, reset| {
         let mut state = state.borrow_mut();
-        let last = state.len() - 1;
-        if state[last] == 0 {
-            state[last] = 1;
-            api::compress_fast_ext_state(&mut state, src, dst, acc)
-        } else {
+        if reset {
             api::compress_fast_ext_state_fast_reset(&mut state, src, dst, acc)
+        } else {
+            api::compress_fast_ext_state(&mut state, src, dst, acc)
         }
     });
     if len.dst_len() > 0 {
@@ -272,15 +270,15 @@ pub fn decompress(src: &[u8], dst: &mut [u8], mode: &DecompressionMode) -> Resul
 mod tests {
     #[test]
     fn aaa() {
- use crate::lz4;
+        use crate::lz4;
 
-let data = b"QUATRE HEURES.";
- let mut buf = Vec::new();
+        let data = b"QUATRE HEURES.";
+        let mut buf = Vec::new();
 
- lz4::compress_to_vec(
-     data,
-     &mut buf,
-     &lz4::CompressionMode::Accelerated { factor: 20 },
- );
+        lz4::compress_to_vec(
+            data,
+            &mut buf,
+            &lz4::CompressionMode::Accelerated { factor: 20 },
+        );
     }
 }

@@ -152,6 +152,14 @@ extern "C" {
         dst_capacity: c_int,
         compression_level: c_int,
     ) -> c_int;
+    pub fn LZ4_compress_HC_extStateHC_fastReset(
+        state: *mut c_void,
+        src: *const c_char,
+        dst: *mut c_char,
+        src_size: c_int,
+        dst_capacity: c_int,
+        compression_level: c_int,
+    ) -> c_int;
     pub fn LZ4_compress_HC_destSize(
         state: *mut c_void,
         src: *const c_char,
