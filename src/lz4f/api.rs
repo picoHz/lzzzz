@@ -4,7 +4,7 @@ use super::{FrameInfo, Preferences};
 use crate::{binding, LZ4Error, Report, Result};
 use binding::{LZ4FDecompressionCtx, LZ4FDecompressionOptions};
 use libc::{c_char, c_int, c_void, size_t};
-use std::{ffi::CStr, ptr::NonNull};
+use std::{ffi::CStr, mem::MaybeUninit, ptr::NonNull};
 
 pub fn compress_bound(input_size: usize, prefs: &Preferences) -> usize {
     unsafe {
@@ -67,12 +67,12 @@ impl DecompressionContext {
     }
 
     pub fn get_frame_info(&mut self, src: &[u8]) -> Result<(FrameInfo, Report)> {
-        let mut info = FrameInfo::default();
+        let mut info = MaybeUninit::<FrameInfo>::uninit();
         let mut src_len = src.len() as size_t;
         let code = unsafe {
             binding::LZ4F_getFrameInfo(
                 self.ctx.as_ptr(),
-                &mut info as *mut FrameInfo,
+                info.as_mut_ptr() as *mut FrameInfo,
                 src.as_ptr() as *const c_void,
                 &mut src_len as *mut size_t,
             )
@@ -80,7 +80,7 @@ impl DecompressionContext {
         make_result(
             || {
                 (
-                    info,
+                    unsafe { info.assume_init() },
                     Report {
                         src_len: Some(src_len as usize),
                         dst_len: 0,
