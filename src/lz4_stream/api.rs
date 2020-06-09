@@ -9,6 +9,7 @@ use std::{
 };
 
 enum Stream {
+    #[cfg(feature = "lz4-use-stack")]
     Stack(LZ4Stream),
     Heap(NonNull<LZ4Stream>),
 }
@@ -20,6 +21,8 @@ pub struct CompressionContext {
 impl CompressionContext {
     pub fn new() -> Result<Self> {
         let mut stream = MaybeUninit::<LZ4Stream>::zeroed();
+
+        #[cfg(feature = "lz4-use-stack")]
         unsafe {
             let ptr = binding::LZ4_initStream(
                 stream.as_mut_ptr() as *mut c_void,
@@ -30,6 +33,9 @@ impl CompressionContext {
                     stream: Stream::Stack(stream.assume_init()),
                 });
             }
+        }
+
+        unsafe {
             let ptr = NonNull::new(binding::LZ4_createStream());
             ptr.ok_or(Error::Generic).map(|stream| Self {
                 stream: Stream::Heap(stream),

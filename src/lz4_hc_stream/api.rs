@@ -8,21 +8,48 @@ use std::{
     ptr::NonNull,
 };
 
+enum Stream {
+    #[cfg(feature = "lz4hc-use-stack")]
+    Stack(LZ4StreamHC),
+    Heap(NonNull<LZ4StreamHC>),
+}
+
 pub struct CompressionContext {
-    stream: NonNull<LZ4StreamHC>,
+    stream: Stream,
 }
 
 impl CompressionContext {
     pub fn new() -> Result<Self> {
-        let ptr = unsafe { NonNull::new(binding::LZ4_createStreamHC()) };
-        ptr.ok_or(Error::Generic).map(|stream| Self { stream })
+        let mut stream = MaybeUninit::<LZ4StreamHC>::zeroed();
+
+        #[cfg(feature = "lz4hc-use-stack")]
+        unsafe {
+            let ptr = binding::LZ4_initStreamHC(
+                stream.as_mut_ptr() as *mut c_void,
+                size_of::<LZ4StreamHC>() as size_t,
+            );
+            if !ptr.is_null() {
+                return Ok(Self {
+                    stream: Stream::Stack(stream.assume_init()),
+                });
+            }
+        }
+
+        unsafe {
+            let ptr = NonNull::new(binding::LZ4_createStreamHC());
+            ptr.ok_or(Error::Generic).map(|stream| Self {
+                stream: Stream::Heap(stream),
+            })
+        }
     }
 }
 
 impl Drop for CompressionContext {
     fn drop(&mut self) {
-        unsafe {
-            binding::LZ4_freeStreamHC(self.stream.as_mut());
+        if let Stream::Heap(mut ptr) = self.stream {
+            unsafe {
+                binding::LZ4_freeStreamHC(ptr.as_mut());
+            }
         }
     }
 }
