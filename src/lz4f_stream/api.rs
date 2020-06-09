@@ -6,12 +6,12 @@ use crate::{
     binding::{LZ4FCompressionCtx, LZ4FCompressionDict, LZ4FCompressionOptions},
     common,
     lz4f::Preferences,
-    Error, Result,
+    Result,
 };
 
 use libc::{c_void, size_t};
 use std::{
-    ffi::CStr,
+    mem::MaybeUninit,
     ops::{Deref, DerefMut},
     ptr::NonNull,
 };
@@ -25,17 +25,17 @@ pub struct CompressionContext {
 
 impl CompressionContext {
     pub fn new(dict: Option<Dictionary>) -> Result<Self> {
-        let mut ctx: *mut LZ4FCompressionCtx = std::ptr::null_mut();
-        let code = unsafe {
-            binding::LZ4F_createCompressionContext(
-                &mut ctx as *mut *mut binding::LZ4FCompressionCtx,
+        let mut ctx = MaybeUninit::<*mut LZ4FCompressionCtx>::uninit();
+        unsafe {
+            let code = binding::LZ4F_createCompressionContext(
+                ctx.as_ptr() as *mut *mut binding::LZ4FCompressionCtx,
                 binding::LZ4F_getVersion(),
-            )
-        };
-        common::result_from_code(code).map(|_| Self {
-            ctx: NonNull::new(ctx).unwrap(),
-            dict,
-        })
+            );
+            common::result_from_code(code).map(|_| Self {
+                ctx: NonNull::new(ctx.assume_init()).unwrap(),
+                dict,
+            })
+        }
     }
 
     pub fn begin(&mut self, dst: &mut [u8], prefs: &Preferences) -> Result<usize> {

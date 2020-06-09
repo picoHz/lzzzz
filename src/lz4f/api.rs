@@ -1,10 +1,10 @@
 #![allow(unsafe_code)]
 
 use super::{FrameInfo, Preferences};
-use crate::{binding, common, Error, Report, Result};
+use crate::{binding, common, Report, Result};
 use binding::{LZ4FDecompressionCtx, LZ4FDecompressionOptions};
-use libc::{c_char, c_int, c_void, size_t};
-use std::{ffi::CStr, mem::MaybeUninit, ptr::NonNull};
+use libc::{c_void, size_t};
+use std::{mem::MaybeUninit, ptr::NonNull};
 
 pub fn compress_bound(input_size: usize, prefs: &Preferences) -> usize {
     unsafe {
@@ -34,16 +34,16 @@ pub struct DecompressionContext {
 
 impl DecompressionContext {
     pub fn new() -> Result<Self> {
-        let mut ctx: *mut LZ4FDecompressionCtx = std::ptr::null_mut();
-        let code = unsafe {
-            binding::LZ4F_createDecompressionContext(
-                &mut ctx as *mut *mut binding::LZ4FDecompressionCtx,
+        let mut ctx = MaybeUninit::<*mut LZ4FDecompressionCtx>::uninit();
+        unsafe {
+            let code = binding::LZ4F_createDecompressionContext(
+                ctx.as_ptr() as *mut *mut binding::LZ4FDecompressionCtx,
                 binding::LZ4F_getVersion(),
-            )
-        };
-        common::result_from_code(code).map(|_| Self {
-            ctx: NonNull::new(ctx).unwrap(),
-        })
+            );
+            common::result_from_code(code).map(|_| Self {
+                ctx: NonNull::new(ctx.assume_init()).unwrap(),
+            })
+        }
     }
 
     pub fn get_frame_info(&mut self, src: &[u8]) -> Result<(FrameInfo, Report)> {
