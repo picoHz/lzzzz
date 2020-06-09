@@ -1,7 +1,7 @@
 #![allow(unsafe_code)]
 
 use super::{FrameInfo, Preferences};
-use crate::{binding, LZ4Error, Report, Result};
+use crate::{binding, Error, Report, Result};
 use binding::{LZ4FDecompressionCtx, LZ4FDecompressionOptions};
 use libc::{c_char, c_int, c_void, size_t};
 use std::{ffi::CStr, mem::MaybeUninit, ptr::NonNull};
@@ -34,7 +34,7 @@ pub fn compress(src: &[u8], dst: &mut [u8], prefs: &Preferences) -> Result<Repor
 fn make_result<T, F: FnOnce() -> T>(func: F, code: size_t) -> Result<T> {
     unsafe {
         if binding::LZ4F_isError(code) != 0 {
-            Err(LZ4Error::from(code))
+            Err(Error::from(code))
         } else {
             Ok((func)())
         }

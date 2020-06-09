@@ -1,7 +1,7 @@
 //! LZ4 Block Compressor/Decompressor
 mod api;
 
-use crate::{LZ4Error, Report, Result};
+use crate::{Error, Report, Result};
 use api::ExtState;
 
 /// Compression mode specifier
@@ -67,7 +67,7 @@ pub fn compress(src: &[u8], dst: &mut [u8], mode: &CompressionMode) -> Result<Re
     if len.dst_len() > 0 {
         Ok(len)
     } else {
-        Err(LZ4Error::Generic)
+        Err(Error::Generic)
     }
 }
 
@@ -244,7 +244,7 @@ pub fn decompress(src: &[u8], dst: &mut [u8], mode: &DecompressionMode) -> Resul
     if result.dst_len() > 0 {
         Ok(result)
     } else {
-        Err(LZ4Error::Generic)
+        Err(Error::Generic)
     }
 }
 

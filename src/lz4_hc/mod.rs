@@ -6,7 +6,7 @@
 //! [`lz4`]: ../lz4/index.html
 mod api;
 
-use crate::{LZ4Error, Report, Result};
+use crate::{Error, Report, Result};
 use api::ExtState;
 
 /// Compression mode specifier
@@ -150,7 +150,7 @@ pub fn compress(
     if result.dst_len() > 0 {
         Ok(result)
     } else {
-        Err(LZ4Error::Generic)
+        Err(Error::Generic)
     }
 }
 

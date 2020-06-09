@@ -5,7 +5,7 @@ use crate::{
     binding,
     binding::{LZ4FCompressionCtx, LZ4FCompressionDict, LZ4FCompressionOptions},
     lz4f::Preferences,
-    LZ4Error, Result,
+    Error, Result,
 };
 
 use libc::{c_void, size_t};
@@ -116,7 +116,7 @@ impl CompressionContext {
 fn make_result<T>(data: T, code: size_t) -> Result<T> {
     unsafe {
         if binding::LZ4F_isError(code) != 0 {
-            Err(LZ4Error::from(code))
+            Err(Error::from(code))
         } else {
             Ok(data)
         }

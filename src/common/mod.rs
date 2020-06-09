@@ -35,11 +35,11 @@ impl Report {
     }
 }
 
-pub type Result<T> = std::result::Result<T, LZ4Error>;
+pub type Result<T> = std::result::Result<T, Error>;
 
 /// Compression/Decompression error
 #[derive(Debug)]
-pub enum LZ4Error {
+pub enum Error {
     Generic,
     MaxBlockSizeInvalid,
     BlockModeInvalid,
@@ -63,27 +63,27 @@ pub enum LZ4Error {
     IOError(io::Error),
 }
 
-impl fmt::Display for LZ4Error {
+impl fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), fmt::Error> {
         <Self as fmt::Debug>::fmt(self, f)
     }
 }
-impl convert::From<LZ4Error> for io::Error {
-    fn from(err: LZ4Error) -> Self {
+impl convert::From<Error> for io::Error {
+    fn from(err: Error) -> Self {
         match err {
-            LZ4Error::IOError(err) => err,
+            Error::IOError(err) => err,
             _ => io::Error::new(io::ErrorKind::Other, err),
         }
     }
 }
 
-impl convert::From<io::Error> for LZ4Error {
+impl convert::From<io::Error> for Error {
     fn from(err: io::Error) -> Self {
         Self::IOError(err)
     }
 }
 
-impl convert::From<usize> for LZ4Error {
+impl convert::From<usize> for Error {
     fn from(value: usize) -> Self {
         match value.wrapping_neg() {
             1 => Self::Generic,
@@ -110,4 +110,4 @@ impl convert::From<usize> for LZ4Error {
     }
 }
 
-impl std::error::Error for LZ4Error {}
+impl std::error::Error for Error {}
