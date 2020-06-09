@@ -1,12 +1,20 @@
 use crate::lz4f::{FrameInfo, Preferences};
 use libc::{c_char, c_int, c_uint, c_void, size_t};
 
+const LZ4_MEMORY_USAGE: usize = 14;
+const LZ4_STREAMSIZE_U64: usize = (1 << (LZ4_MEMORY_USAGE - 3)) + 4;
+
 const LZ4HC_HASH_LOG: usize = 15;
 const LZ4HC_HASHTABLESIZE: usize = 1 << LZ4HC_HASH_LOG;
 const LZ4HC_DICTIONARY_LOGSIZE: usize = 16;
 const LZ4HC_MAXD: usize = 1 << LZ4HC_DICTIONARY_LOGSIZE;
 const LZ4_STREAMHCSIZE: usize = 4 * LZ4HC_HASHTABLESIZE + 2 * LZ4HC_MAXD + 56;
 const LZ4_STREAMHCSIZE_SIZET: usize = LZ4_STREAMHCSIZE / std::mem::size_of::<size_t>();
+
+#[repr(C)]
+pub struct LZ4Stream {
+    _private: [u64; LZ4_STREAMSIZE_U64],
+}
 
 #[repr(C)]
 pub struct LZ4StreamHC {
@@ -127,6 +135,7 @@ extern "C" {
         dict_size: size_t,
         opt: *const LZ4FDecompressionOptions,
     ) -> size_t;
+    pub fn LZ4_initStream(buffer: *mut c_void, size: size_t) -> *mut LZ4Stream;
 
     pub fn LZ4F_createCDict(
         dict_buffer: *const c_void,
