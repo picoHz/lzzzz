@@ -467,9 +467,7 @@ impl<'a> Default for DecompressionMode<'a> {
 
 /// Resolve a dictinary data from a dictionary id.
 pub trait DictResolver<'a> {
-    fn resolve(dict_id: u32) -> Result<&'a [u8]> {
-        Ok(&[])
-    }
+    fn resolve(dict_id: u32) -> Result<&'a [u8]>;
 }
 
 thread_local!(static DECOMPRESSION_CTX: RefCell<DecompressionContext> = 
