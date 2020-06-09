@@ -14,3 +14,11 @@ With `tokio` feature, `AsyncRead`, `AsyncBufRead` and `AsyncWrite` are also supp
 - LZ4_HC Streaming Compression (Reader/Writer)
 - LZ4F Compression/Decompression
 - LZ4F Streaming Compression/Decompression (Reader/Writer)
+
+
+## Features
+
+- `lz4-use-stack` (Enabled by default) Use the stack allocation for the LZ4 compressor stream.
+Disabling this future may resolve stack overflow errors.
+- `lz4hc-use-stack` Use the stack allocation for the LZ4_HC compressor stream. 
+Enabling this future may cause a stack overflow with the default stack size configuration.
