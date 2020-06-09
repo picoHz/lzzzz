@@ -133,7 +133,7 @@ pub fn compress(
     mode: &CompressionMode,
     compression_level: &CompressionLevel,
 ) -> Result<Report> {
-    let result = EXT_STATE.with(|state| match mode {
+    let result = ExtState::with(|state| match mode {
         CompressionMode::Default => api::compress_ext_state(
             &mut state.borrow_mut(),
             src,
@@ -239,5 +239,3 @@ pub fn compress_to_vec(
     );
     result
 }
-
-thread_local!(static EXT_STATE: ExtState = ExtState::new());

@@ -22,9 +22,11 @@ rand = { version = "0.7.3", features = ["small_rng"] }
 cc = "1.0.54"
 
 [features]
-default = ["lz4-use-stack"]
+default = ["lz4-use-stack", "tls-shared-state"]
 
 lz4-use-stack = []
 lz4hc-use-stack = []
+
+tls-shared-state = []
 
 tokio-io = ["tokio"]

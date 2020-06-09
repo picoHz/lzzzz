@@ -87,11 +87,26 @@ pub fn decompress_safe_using_dict(src: &[u8], dst: &mut [u8], dict: &[u8]) -> Re
 pub struct ExtState(RefCell<Box<[u8]>>);
 
 impl ExtState {
-    pub fn new() -> Self {
+    fn new() -> Self {
         let size = size_of_state();
         let mut buf = Vec::with_capacity(size);
         unsafe { buf.set_len(size) };
         Self(RefCell::new(buf.into_boxed_slice()))
+    }
+
+    pub fn with<F, R>(f: F) -> R
+    where
+        F: FnOnce(&Self) -> R,
+    {
+        #[cfg(feature = "tls-shared-state")]
+        {
+            EXT_STATE.with(f)
+        }
+
+        #[cfg(not(feature = "tls-shared-state"))]
+        {
+            (f)(&Self::new())
+        }
     }
 }
 
@@ -102,3 +117,6 @@ impl Deref for ExtState {
         &self.0
     }
 }
+
+#[cfg(feature = "tls-shared-state")]
+thread_local!(static EXT_STATE: ExtState = ExtState::new());

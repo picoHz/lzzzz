@@ -62,8 +62,9 @@ pub fn compress(src: &[u8], dst: &mut [u8], mode: &CompressionMode) -> Result<Re
         CompressionMode::Default => 1,
         CompressionMode::Accelerated { factor } => *factor,
     };
-    let len = EXT_STATE
-        .with(|state| api::compress_fast_ext_state(&mut state.borrow_mut(), src, dst, acc));
+    let len = ExtState::with(|state| {
+        api::compress_fast_ext_state(&mut state.borrow_mut(), src, dst, acc)
+    });
     if len.dst_len() > 0 {
         Ok(len)
     } else {
@@ -247,5 +248,3 @@ pub fn decompress(src: &[u8], dst: &mut [u8], mode: &DecompressionMode) -> Resul
         Err(Error::Generic)
     }
 }
-
-thread_local!(static EXT_STATE: ExtState = ExtState::new());
