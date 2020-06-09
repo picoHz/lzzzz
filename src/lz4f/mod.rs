@@ -384,7 +384,7 @@ pub fn compress(src: &[u8], dst: &mut [u8], prefs: &Preferences) -> Result<Repor
 /// lz4f::compress_to_vec(b"Hello world!", &mut buf, &lz4f::Preferences::default());
 ///
 /// let mut buf2 = vec![b'x'];
-/// lz4f::decompress_to_vec(&buf, &mut buf2, &lz4f::DecompressionMode::Default);
+/// lz4f::decompress_to_vec(&buf, &mut buf2);
 /// assert_eq!(buf2.as_slice(), &b"xHello world!"[..]);
 /// ```
 ///
@@ -412,28 +412,21 @@ pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, prefs: &Preferences) -> Re
     result
 }
 
-fn decompress(src: &[u8], dst: &mut [u8], mode: &DecompressionMode) -> Result<Report> {
+pub fn decompress(src: &[u8], dst: &mut [u8]) -> Result<Report> {
     DECOMPRESSION_CTX.with(|ctx| {
         let mut ctx = ctx.borrow_mut();
         ctx.reset();
-        match mode {
-            DecompressionMode::Default => ctx.decompress(src, dst, None),
-            DecompressionMode::Dictionary { data } => ctx.decompress_dict(src, dst, data, None),
-        }
+        ctx.decompress(src, dst, None)
     })
 }
 
 /// Read data from a slice and append decompressed data to `Vec<u8>`.
-pub fn decompress_to_vec(
-    src: &[u8],
-    dst: &mut Vec<u8>,
-    mode: &DecompressionMode,
-) -> Result<Report> {
+pub fn decompress_to_vec(src: &[u8], dst: &mut Vec<u8>) -> Result<Report> {
     let header_len = dst.len();
     let mut src_offset = 0;
     let mut dst_offset = header_len;
     loop {
-        let result = decompress(&src[src_offset..], &mut dst[dst_offset..], mode)?;
+        let result = decompress(&src[src_offset..], &mut dst[dst_offset..])?;
         src_offset += result.src_len().unwrap();
         dst_offset += result.dst_len();
         let expected = result.expected_len().unwrap();
@@ -452,26 +445,12 @@ pub fn decompress_to_vec(
     }
 }
 
-/// Decompression mode specifier
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-pub enum DecompressionMode<'a> {
-    Default,
-    Dictionary { data: &'a [u8] },
-}
-
-impl<'a> Default for DecompressionMode<'a> {
-    fn default() -> Self {
-        Self::Default
-    }
-}
-
 /// Resolve a dictinary data from a dictionary id.
 pub trait DictResolver<'a> {
     fn resolve(dict_id: u32) -> Result<&'a [u8]>;
 }
 
-thread_local!(static DECOMPRESSION_CTX: RefCell<DecompressionContext> = 
-    RefCell::new(DecompressionContext::new().unwrap()));
+thread_local!(static DECOMPRESSION_CTX: RefCell<DecompressionContext> = RefCell::new(DecompressionContext::new().unwrap()));
 
 // #[cfg(test)]
 // mod tests {
