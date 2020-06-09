@@ -1,6 +1,6 @@
 #![allow(unsafe_code)]
 
-use super::Preferences;
+use super::{FrameInfo, Preferences};
 use crate::{binding, LZ4Error, Report, Result};
 use binding::{LZ4FDecompressionCtx, LZ4FDecompressionOptions};
 use libc::{c_char, c_int, c_void, size_t};
@@ -64,6 +64,36 @@ impl DecompressionContext {
             },
             code,
         )
+    }
+
+    pub fn get_frame_info(&mut self, src: &[u8]) -> Result<(FrameInfo, Report)> {
+        let mut info = FrameInfo::default();
+        let mut src_len = src.len() as size_t;
+        let code = unsafe {
+            binding::LZ4F_getFrameInfo(
+                self.ctx.as_ptr(),
+                &mut info as *mut FrameInfo,
+                src.as_ptr() as *const c_void,
+                &mut src_len as *mut size_t,
+            )
+        };
+        make_result(
+            || {
+                (
+                    info,
+                    Report {
+                        src_len: Some(src_len as usize),
+                        dst_len: 0,
+                        expected_len: Some(code as usize),
+                    },
+                )
+            },
+            code,
+        )
+        .map_err(|err| {
+            self.reset();
+            err
+        })
     }
 
     pub fn decompress(
