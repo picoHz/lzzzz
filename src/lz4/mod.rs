@@ -64,15 +64,13 @@ pub fn compress(src: &[u8], dst: &mut [u8], mode: &CompressionMode) -> Result<Re
     };
     let len = ExtState::with(|state| {
         let mut state = state.borrow_mut();
-        api::compress_fast_ext_state(&mut state[1..], src, dst, acc)
-        /*
-        if state[0] == 0 {
-            state[0] = 1;
-            api::compress_fast_ext_state(&mut state[1..], src, dst, acc)
+        let last = state.len() - 1;
+        if state[last] == 0 {
+            state[last] = 1;
+            api::compress_fast_ext_state(&mut state, src, dst, acc)
         } else {
-            api::compress_fast_ext_state_fast_reset(&mut state[1..], src, dst, acc)
+            api::compress_fast_ext_state_fast_reset(&mut state, src, dst, acc)
         }
-        */
     });
     if len.dst_len() > 0 {
         Ok(len)

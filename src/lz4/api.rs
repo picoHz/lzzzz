@@ -112,8 +112,8 @@ impl ExtState {
     fn new() -> Self {
         let size = size_of_state() + 1;
         let mut buf = Vec::with_capacity(size);
-        buf.resize(size, 0);
-        //unsafe { buf.set_len(size) };
+        unsafe { buf.set_len(size) };
+        *buf.last_mut().unwrap() = 0;
         Self(RefCell::new(buf.into_boxed_slice()))
     }
 
