@@ -1,7 +1,7 @@
 #![allow(unsafe_code)]
 
 use super::{FrameInfo, Preferences};
-use crate::{binding, common, Report, Result};
+use crate::{binding, common, Error, Report, Result};
 use binding::{LZ4FDecompressionCtx, LZ4FDecompressionOptions};
 use libc::{c_void, size_t};
 use std::{mem::MaybeUninit, ptr::NonNull};
@@ -40,8 +40,10 @@ impl DecompressionContext {
                 ctx.as_ptr() as *mut *mut binding::LZ4FDecompressionCtx,
                 binding::LZ4F_getVersion(),
             );
-            common::result_from_code(code).map(|_| Self {
-                ctx: NonNull::new(ctx.assume_init()).unwrap(),
+            common::result_from_code(code).and_then(|_| {
+                NonNull::new(ctx.assume_init())
+                    .ok_or(Error::Generic)
+                    .map(|ctx| Self { ctx })
             })
         }
     }

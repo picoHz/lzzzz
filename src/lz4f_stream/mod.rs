@@ -247,7 +247,7 @@ impl<'a, D> StreamDecompressor<'a, D> {
 pub struct Dictionary(Arc<DictionaryHandle>);
 
 impl Dictionary {
-    pub fn new(data: &[u8]) -> Self {
-        Self(Arc::new(DictionaryHandle::new(data)))
+    pub fn new(data: &[u8]) -> Result<Self> {
+        DictionaryHandle::new(data).map(|dict| Self(Arc::new(dict)))
     }
 }

@@ -6,7 +6,7 @@ use crate::{
     binding::{LZ4FCompressionCtx, LZ4FCompressionDict, LZ4FCompressionOptions},
     common,
     lz4f::Preferences,
-    Result,
+    Error, Result,
 };
 
 use libc::{c_void, size_t};
@@ -31,9 +31,10 @@ impl CompressionContext {
                 ctx.as_ptr() as *mut *mut binding::LZ4FCompressionCtx,
                 binding::LZ4F_getVersion(),
             );
-            common::result_from_code(code).map(|_| Self {
-                ctx: NonNull::new(ctx.assume_init()).unwrap(),
-                dict,
+            common::result_from_code(code).and_then(|_| {
+                NonNull::new(ctx.assume_init())
+                    .ok_or(Error::Generic)
+                    .map(|ctx| Self { ctx, dict })
             })
         }
     }
@@ -161,11 +162,13 @@ unsafe impl Send for DictionaryHandle {}
 unsafe impl Sync for DictionaryHandle {}
 
 impl DictionaryHandle {
-    pub fn new(data: &[u8]) -> Self {
+    pub fn new(data: &[u8]) -> Result<Self> {
         let dict = unsafe {
             binding::LZ4F_createCDict(data.as_ptr() as *const c_void, data.len() as size_t)
         };
-        Self(NonNull::new(dict).unwrap())
+        NonNull::new(dict)
+            .ok_or(Error::Generic)
+            .map(|ctx| Self(ctx))
     }
 }
 
