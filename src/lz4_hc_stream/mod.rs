@@ -4,3 +4,5 @@
 //! Use the [`lz4_stream`] module instead.
 //!
 //! [`lz4_stream`]: ../lz4_stream/index.html
+
+mod api;
