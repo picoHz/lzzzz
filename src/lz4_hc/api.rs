@@ -70,12 +70,12 @@ impl ExtState {
     where
         F: FnOnce(&Self) -> R,
     {
-        #[cfg(feature = "tls-shared-state")]
+        #[cfg(feature = "use-tls")]
         {
             EXT_STATE.with(f)
         }
 
-        #[cfg(not(feature = "tls-shared-state"))]
+        #[cfg(not(feature = "use-tls"))]
         {
             (f)(&Self::new())
         }
@@ -90,5 +90,5 @@ impl Deref for ExtState {
     }
 }
 
-#[cfg(feature = "tls-shared-state")]
+#[cfg(feature = "use-tls")]
 thread_local!(static EXT_STATE: ExtState = ExtState::new());

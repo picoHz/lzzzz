@@ -19,7 +19,7 @@ With `tokio` feature, `AsyncRead`, `AsyncBufRead` and `AsyncWrite` are also supp
 ## Features
 
 - **tokio-io :** Add `AsyncRead`, `AsyncBufRead` and `AsyncWrite` support for streams.
-- **tls-shared-state :** (Enabled by default) Use a thread local storage to reuse the state buffer.
+- **use-tls :** (Enabled by default) Use the thread local storage to reuse resources.
 - **lz4-use-stack :** (Enabled by default) Use the stack allocation for the LZ4 compressor stream.
 Disabling this future may resolve stack overflow errors.
 - **lz4hc-use-stack :** Use the stack allocation for the LZ4_HC compressor stream. 
