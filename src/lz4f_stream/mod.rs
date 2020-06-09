@@ -63,7 +63,7 @@ impl<D: io::Write> StreamCompressor<D> {
         self.ensure_write();
         if let CompressorState::WriteActive { .. } = &self.state {
             self.state = CompressorState::WriteFinalized;
-            let len = self.ctx.end(&mut self.buffer, None)?;
+            let len = self.ctx.end(&mut self.buffer, false)?;
             self.device.write_all(&self.buffer[..len])?;
             self.device.flush()?;
         }
@@ -88,14 +88,14 @@ impl<D: io::Write> io::Write for StreamCompressor<D> {
             let len = self.ctx.begin(&mut self.buffer, &self.pref)?;
             self.device.write(&self.buffer[..len])?;
         }
-        let len = self.ctx.update(&mut self.buffer, src, None)?;
+        let len = self.ctx.update(&mut self.buffer, src, false)?;
         self.device.write(&self.buffer[..len])?;
         Ok(src.len())
     }
 
     fn flush(&mut self) -> io::Result<()> {
         self.ensure_write();
-        let len = self.ctx.flush(&mut self.buffer, None)?;
+        let len = self.ctx.flush(&mut self.buffer, false)?;
         self.device.write_all(&self.buffer[..len])?;
         self.device.flush()
     }
@@ -141,10 +141,10 @@ impl<D: io::Read> io::Read for StreamCompressor<D> {
         self.buffer.grow(len, &self.pref);
 
         let len = if len == 0 {
-            self.ctx.flush(&mut self.buffer[header_len..], None)?
+            self.ctx.flush(&mut self.buffer[header_len..], false)?
         } else {
             self.ctx
-                .update(&mut self.buffer[header_len..], &tmp[..len], None)?
+                .update(&mut self.buffer[header_len..], &tmp[..len], false)?
         };
         let len = header_len + len;
         let min_len = cmp::min(len, buf.len());

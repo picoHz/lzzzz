@@ -61,17 +61,36 @@ pub struct LZ4FCompressionDict {
     _private: [u8; 0],
 }
 
+#[derive(Debug, Default, Copy, Clone)]
 #[repr(C)]
 pub struct LZ4FCompressionOptions {
     pub stable_src: c_uint,
     pub _reserved: [c_uint; 3],
 }
 
-#[derive(Debug, Copy, Clone)]
+impl LZ4FCompressionOptions {
+    pub fn stable(stable: bool) -> Self {
+        Self {
+            stable_src: if stable { 1 } else { 0 },
+            ..Default::default()
+        }
+    }
+}
+
+#[derive(Debug, Default, Copy, Clone)]
 #[repr(C)]
 pub struct LZ4FDecompressionOptions {
     pub stable_dst: c_uint,
     pub _reserved: [c_uint; 3],
+}
+
+impl LZ4FDecompressionOptions {
+    pub fn stable(stable: bool) -> Self {
+        Self {
+            stable_dst: if stable { 1 } else { 0 },
+            ..Default::default()
+        }
+    }
 }
 
 #[link(name = "lz4")]

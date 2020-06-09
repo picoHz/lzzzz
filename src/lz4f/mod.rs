@@ -416,7 +416,7 @@ pub fn decompress(src: &[u8], dst: &mut [u8]) -> Result<Report> {
     DECOMPRESSION_CTX.with(|ctx| {
         let mut ctx = ctx.borrow_mut();
         // ctx.reset();
-        ctx.decompress(src, dst, None)
+        ctx.decompress(src, dst, false)
     })
 }
 

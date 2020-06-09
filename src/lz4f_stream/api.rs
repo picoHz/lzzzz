@@ -60,12 +60,8 @@ impl CompressionContext {
         common::result_from_code(code).map(|_| code)
     }
 
-    pub fn update(
-        &mut self,
-        dst: &mut [u8],
-        src: &[u8],
-        opt: Option<&LZ4FCompressionOptions>,
-    ) -> Result<usize> {
+    pub fn update(&mut self, dst: &mut [u8], src: &[u8], stable_src: bool) -> Result<usize> {
+        let opt = LZ4FCompressionOptions::stable(stable_src);
         let code = unsafe {
             binding::LZ4F_compressUpdate(
                 self.ctx.as_ptr(),
@@ -73,34 +69,33 @@ impl CompressionContext {
                 dst.len() as size_t,
                 src.as_ptr() as *const c_void,
                 src.len() as size_t,
-                opt.map(|p| p as *const LZ4FCompressionOptions)
-                    .unwrap_or(std::ptr::null()),
+                &opt as *const LZ4FCompressionOptions,
             )
         } as usize;
         common::result_from_code(code).map(|_| code)
     }
 
-    pub fn flush(&mut self, dst: &mut [u8], opt: Option<&LZ4FCompressionOptions>) -> Result<usize> {
+    pub fn flush(&mut self, dst: &mut [u8], stable_src: bool) -> Result<usize> {
+        let opt = LZ4FCompressionOptions::stable(stable_src);
         let code = unsafe {
             binding::LZ4F_flush(
                 self.ctx.as_ptr(),
                 dst.as_mut_ptr() as *mut c_void,
                 dst.len() as size_t,
-                opt.map(|p| p as *const LZ4FCompressionOptions)
-                    .unwrap_or(std::ptr::null()),
+                &opt as *const LZ4FCompressionOptions,
             )
         } as usize;
         common::result_from_code(code).map(|_| code)
     }
 
-    pub fn end(&mut self, dst: &mut [u8], opt: Option<&LZ4FCompressionOptions>) -> Result<usize> {
+    pub fn end(&mut self, dst: &mut [u8], stable_src: bool) -> Result<usize> {
+        let opt = LZ4FCompressionOptions::stable(stable_src);
         let code = unsafe {
             binding::LZ4F_compressEnd(
                 self.ctx.as_ptr(),
                 dst.as_mut_ptr() as *mut c_void,
                 dst.len() as size_t,
-                opt.map(|p| p as *const LZ4FCompressionOptions)
-                    .unwrap_or(std::ptr::null()),
+                &opt as *const LZ4FCompressionOptions,
             )
         } as usize;
         common::result_from_code(code).map(|_| code)
