@@ -34,11 +34,7 @@ pub fn compress(src: &[u8], dst: &mut [u8], prefs: &Preferences) -> Result<Repor
 fn make_result<T, F: FnOnce() -> T>(func: F, code: size_t) -> Result<T> {
     unsafe {
         if binding::LZ4F_isError(code) != 0 {
-            Err(LZ4Error::from(
-                CStr::from_ptr(binding::LZ4F_getErrorName(code))
-                    .to_str()
-                    .unwrap(),
-            ))
+            Err(LZ4Error::from(code))
         } else {
             Ok((func)())
         }

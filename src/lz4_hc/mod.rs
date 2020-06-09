@@ -150,7 +150,7 @@ pub fn compress(
     if result.dst_len() > 0 {
         Ok(result)
     } else {
-        Err(LZ4Error::from("Compression failed"))
+        Err(LZ4Error::Generic)
     }
 }
 

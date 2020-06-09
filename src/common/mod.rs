@@ -35,49 +35,11 @@ impl Report {
     }
 }
 
+pub type Result<T> = std::result::Result<T, LZ4Error>;
+
 /// Compression/Decompression error
 #[derive(Debug)]
 pub enum LZ4Error {
-    LZ4(&'static str),
-    IO(io::Error),
-}
-
-impl fmt::Display for LZ4Error {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), fmt::Error> {
-        match self {
-            Self::LZ4(err) => write!(f, "{}", err),
-            Self::IO(err) => err.fmt(f),
-        }
-    }
-}
-
-impl std::error::Error for LZ4Error {}
-
-impl From<&'static str> for LZ4Error {
-    fn from(err: &'static str) -> Self {
-        Self::LZ4(err)
-    }
-}
-
-impl convert::From<io::Error> for LZ4Error {
-    fn from(err: io::Error) -> Self {
-        Self::IO(err)
-    }
-}
-
-impl convert::From<LZ4Error> for io::Error {
-    fn from(err: LZ4Error) -> Self {
-        match err {
-            LZ4Error::LZ4(err) => io::Error::new(io::ErrorKind::Other, err),
-            LZ4Error::IO(err) => err,
-        }
-    }
-}
-
-pub type Result<T> = std::result::Result<T, LZ4Error>;
-
-#[derive(Debug)]
-pub enum ErrorKind {
     Generic,
     MaxBlockSizeInvalid,
     BlockModeInvalid,
@@ -101,19 +63,27 @@ pub enum ErrorKind {
     IOError(io::Error),
 }
 
-impl fmt::Display for ErrorKind {
+impl fmt::Display for LZ4Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), fmt::Error> {
         <Self as fmt::Debug>::fmt(self, f)
     }
 }
+impl convert::From<LZ4Error> for io::Error {
+    fn from(err: LZ4Error) -> Self {
+        match err {
+            LZ4Error::IOError(err) => err,
+            _ => io::Error::new(io::ErrorKind::Other, err),
+        }
+    }
+}
 
-impl convert::From<io::Error> for ErrorKind {
+impl convert::From<io::Error> for LZ4Error {
     fn from(err: io::Error) -> Self {
         Self::IOError(err)
     }
 }
 
-impl convert::From<usize> for ErrorKind {
+impl convert::From<usize> for LZ4Error {
     fn from(value: usize) -> Self {
         match value.wrapping_neg() {
             1 => Self::Generic,
@@ -140,4 +110,4 @@ impl convert::From<usize> for ErrorKind {
     }
 }
 
-impl std::error::Error for ErrorKind {}
+impl std::error::Error for LZ4Error {}
