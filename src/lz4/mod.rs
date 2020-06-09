@@ -176,6 +176,11 @@ pub enum DecompressionMode<'a> {
     Dictionary {
         data: &'a [u8],
     },
+    /// Tell the function that first `len` bytes of the dst buffer contains
+    /// the dictionary data.
+    ///
+    /// The decompressor reads the dictionary data from `dst[..len]` and
+    /// writes the decompressed data to `dst[len..]`.
     DictionaryLeadingDst {
         len: usize,
     },
