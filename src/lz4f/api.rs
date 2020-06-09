@@ -90,10 +90,6 @@ impl DecompressionContext {
             },
             code,
         )
-        .map_err(|err| {
-            self.reset();
-            err
-        })
     }
 
     pub fn decompress(
@@ -123,10 +119,6 @@ impl DecompressionContext {
             },
             code,
         )
-        .map_err(|err| {
-            self.reset();
-            err
-        })
     }
 
     pub fn decompress_dict(
@@ -159,13 +151,9 @@ impl DecompressionContext {
             },
             code,
         )
-        .map_err(|err| {
-            self.reset();
-            err
-        })
     }
 
-    fn reset(&mut self) {
+    pub fn reset(&mut self) {
         unsafe {
             binding::LZ4F_resetDecompressionContext(self.ctx.as_ptr());
         }

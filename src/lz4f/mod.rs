@@ -413,10 +413,12 @@ pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, prefs: &Preferences) -> Re
 }
 
 fn decompress(src: &[u8], dst: &mut [u8], mode: &DecompressionMode) -> Result<Report> {
-    DECOMPRESSION_CTX.with(|ctx| match mode {
-        DecompressionMode::Default => ctx.borrow_mut().decompress(src, dst, None),
-        DecompressionMode::Dictionary { data } => {
-            ctx.borrow_mut().decompress_dict(src, dst, data, None)
+    DECOMPRESSION_CTX.with(|ctx| {
+        let mut ctx = ctx.borrow_mut();
+        ctx.reset();
+        match mode {
+            DecompressionMode::Default => ctx.decompress(src, dst, None),
+            DecompressionMode::Dictionary { data } => ctx.decompress_dict(src, dst, data, None),
         }
     })
 }
