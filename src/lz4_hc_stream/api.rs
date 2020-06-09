@@ -4,7 +4,7 @@ use crate::{binding, binding::LZ4StreamHC, Error, Result};
 
 use libc::{c_void, size_t};
 use std::{
-    mem::{size_of, ManuallyDrop, MaybeUninit},
+    mem::{size_of, MaybeUninit},
     ptr::NonNull,
 };
 
@@ -45,13 +45,5 @@ impl Drop for CompressionContext {
                 binding::LZ4_freeStreamHC(ptr.as_mut());
             }
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn compression_contextX() {
-        println!("{}", super::CompressionContext::new().is_ok());
     }
 }
