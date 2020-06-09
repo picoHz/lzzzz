@@ -75,3 +75,69 @@ impl convert::From<LZ4Error> for io::Error {
 }
 
 pub type Result<T> = std::result::Result<T, LZ4Error>;
+
+#[derive(Debug)]
+pub enum ErrorKind {
+    Generic,
+    MaxBlockSizeInvalid,
+    BlockModeInvalid,
+    ContentChecksumFlagInvalid,
+    CompressionLevelInvalid,
+    HeaderVersionWrong,
+    BlockChecksumInvalid,
+    ReservedFlagSet,
+    AllocationFailed,
+    SrcSizeTooLarge,
+    DstMaxSizeTooSmall,
+    FrameHeaderIncomplete,
+    FrameTypeUnknown,
+    FrameSizeWrong,
+    SrcPtrWrong,
+    DecompressionFailed,
+    HeaderChecksumInvalid,
+    ContentChecksumInvalid,
+    FrameDecodingAlreadyStarted,
+    Unspecified,
+    IOError(io::Error),
+}
+
+impl fmt::Display for ErrorKind {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), fmt::Error> {
+        <Self as fmt::Debug>::fmt(self, f)
+    }
+}
+
+impl convert::From<io::Error> for ErrorKind {
+    fn from(err: io::Error) -> Self {
+        Self::IOError(err)
+    }
+}
+
+impl convert::From<usize> for ErrorKind {
+    fn from(value: usize) -> Self {
+        match value.wrapping_neg() {
+            1 => Self::Generic,
+            2 => Self::MaxBlockSizeInvalid,
+            3 => Self::BlockModeInvalid,
+            4 => Self::ContentChecksumFlagInvalid,
+            5 => Self::CompressionLevelInvalid,
+            6 => Self::HeaderVersionWrong,
+            7 => Self::BlockChecksumInvalid,
+            8 => Self::ReservedFlagSet,
+            9 => Self::AllocationFailed,
+            10 => Self::SrcSizeTooLarge,
+            11 => Self::DstMaxSizeTooSmall,
+            12 => Self::FrameHeaderIncomplete,
+            13 => Self::FrameTypeUnknown,
+            14 => Self::FrameSizeWrong,
+            15 => Self::SrcPtrWrong,
+            16 => Self::DecompressionFailed,
+            17 => Self::HeaderChecksumInvalid,
+            18 => Self::ContentChecksumInvalid,
+            19 => Self::FrameDecodingAlreadyStarted,
+            _ => Self::Unspecified,
+        }
+    }
+}
+
+impl std::error::Error for ErrorKind {}

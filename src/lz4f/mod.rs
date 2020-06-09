@@ -93,8 +93,8 @@ pub enum BlockSize {
 #[repr(C)]
 pub enum BlockMode {
     /// Default value
-    Linked = 0,
-    Independent = 1,
+    Linked,
+    Independent,
 }
 
 /// Compression content checksum flag
@@ -102,16 +102,16 @@ pub enum BlockMode {
 #[repr(C)]
 pub enum ContentChecksum {
     /// Default value
-    Disabled = 0,
-    Enabled = 1,
+    Disabled,
+    Enabled,
 }
 
 /// Compression frame type flag
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 #[repr(C)]
 pub enum FrameType {
-    Frame = 0,
-    SkippableFrame = 1,
+    Frame,
+    SkippableFrame,
 }
 
 /// Compression block checksum flag
@@ -119,8 +119,8 @@ pub enum FrameType {
 #[repr(C)]
 pub enum BlockChecksum {
     /// Default value
-    Disabled = 0,
-    Enabled = 1,
+    Disabled,
+    Enabled,
 }
 
 /// Auto flush flag
@@ -131,8 +131,8 @@ pub enum BlockChecksum {
 #[repr(C)]
 pub enum AutoFlush {
     /// Default value
-    Disabled = 0,
-    Enabled = 1,
+    Disabled,
+    Enabled,
 }
 
 /// Decompression speed flag
@@ -144,8 +144,8 @@ pub enum AutoFlush {
 #[repr(C)]
 pub enum FavorDecSpeed {
     /// Default value
-    Disabled = 0,
-    Enabled = 1,
+    Disabled,
+    Enabled,
 }
 
 /// LZ4 Frame parameters

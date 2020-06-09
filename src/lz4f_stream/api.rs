@@ -119,7 +119,7 @@ fn make_result<T>(data: T, code: size_t) -> Result<T> {
             Err(LZ4Error::from(
                 CStr::from_ptr(binding::LZ4F_getErrorName(code))
                     .to_str()
-                    .map_err(|_| LZ4Error::from("Invalid UTF-8"))?,
+                    .unwrap(),
             ))
         } else {
             Ok(data)
