@@ -113,6 +113,14 @@ extern "C" {
         dst_capacity: c_int,
         acceleration: c_int,
     ) -> c_int;
+    pub fn LZ4_compress_fast_extState_fastReset(
+        state: *mut c_void,
+        src: *const c_char,
+        dst: *mut c_char,
+        src_size: c_int,
+        dst_capacity: c_int,
+        acceleration: c_int,
+    ) -> c_int;
     pub fn LZ4_decompress_safe(
         src: *const c_char,
         dst: *mut c_char,

@@ -35,6 +35,28 @@ pub fn compress_fast_ext_state(
     }
 }
 
+pub fn compress_fast_ext_state_fast_reset(
+    state: &mut [u8],
+    src: &[u8],
+    dst: &mut [u8],
+    acceleration: i32,
+) -> Report {
+    let dst_len = unsafe {
+        binding::LZ4_compress_fast_extState_fastReset(
+            state.as_mut_ptr() as *mut c_void,
+            src.as_ptr() as *const c_char,
+            dst.as_mut_ptr() as *mut c_char,
+            src.len() as c_int,
+            dst.len() as c_int,
+            acceleration as c_int,
+        ) as usize
+    };
+    Report {
+        dst_len,
+        ..Default::default()
+    }
+}
+
 pub fn decompress_safe(src: &[u8], dst: &mut [u8]) -> Report {
     let dst_len = unsafe {
         binding::LZ4_decompress_safe(
@@ -88,9 +110,10 @@ pub struct ExtState(RefCell<Box<[u8]>>);
 
 impl ExtState {
     fn new() -> Self {
-        let size = size_of_state();
+        let size = size_of_state() + 1;
         let mut buf = Vec::with_capacity(size);
-        unsafe { buf.set_len(size) };
+        buf.resize(size, 0);
+        //unsafe { buf.set_len(size) };
         Self(RefCell::new(buf.into_boxed_slice()))
     }
 
