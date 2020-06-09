@@ -90,6 +90,7 @@ impl CompressionLevel {
 /// # let len = lz4::decompress(
 /// #     compressed,
 /// #     &mut buf[..data.len()],
+/// #     &lz4::DecompressionMode::Default,
 /// # )
 /// # .unwrap().dst_len();
 /// # assert_eq!(&buf[..len], data.as_bytes());
@@ -120,6 +121,7 @@ impl CompressionLevel {
 /// # let len = lz4::decompress(
 /// #     compressed,
 /// #     &mut buf[..comsumed],
+/// #     &lz4::DecompressionMode::Default,
 /// # )
 /// # .unwrap().dst_len();
 /// # let compressed = &buf[..len];
@@ -183,6 +185,7 @@ pub fn compress(
 /// # let len = lzzzz::lz4::decompress(
 /// #     compressed,
 /// #     &mut buf[..data.len()],
+/// #     &lzzzz::lz4::DecompressionMode::Default,
 /// # )
 /// # .unwrap().dst_len();
 /// # assert_eq!(&buf[..len], data.as_bytes());
@@ -207,6 +210,7 @@ pub fn compress(
 /// # let len = lzzzz::lz4::decompress(
 /// #     compressed,
 /// #     &mut buf[..data.len()],
+/// #     &lzzzz::lz4::DecompressionMode::Default,
 /// # )
 /// # .unwrap().dst_len();
 /// # assert_eq!(&buf[..len], data.as_bytes());

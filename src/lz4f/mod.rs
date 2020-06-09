@@ -415,7 +415,7 @@ pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, prefs: &Preferences) -> Re
 pub fn decompress(src: &[u8], dst: &mut [u8]) -> Result<Report> {
     DECOMPRESSION_CTX.with(|ctx| {
         let mut ctx = ctx.borrow_mut();
-        ctx.reset();
+        // ctx.reset();
         ctx.decompress(src, dst, None)
     })
 }
@@ -449,6 +449,12 @@ pub fn decompress_to_vec(src: &[u8], dst: &mut Vec<u8>) -> Result<Report> {
 pub trait DictResolver<'a> {
     fn resolve(dict_id: u32) -> Result<&'a [u8]>;
 }
+
+pub trait BufAllocator {
+    fn allocate(expected: u32);
+}
+
+pub struct Decompressor {}
 
 thread_local!(static DECOMPRESSION_CTX: RefCell<DecompressionContext> = RefCell::new(DecompressionContext::new().unwrap()));
 
