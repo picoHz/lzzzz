@@ -111,3 +111,5 @@ impl convert::From<usize> for Error {
 }
 
 impl std::error::Error for Error {}
+
+pub(crate) use api::result_from_code;

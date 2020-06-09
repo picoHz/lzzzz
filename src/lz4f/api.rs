@@ -1,7 +1,7 @@
 #![allow(unsafe_code)]
 
 use super::{FrameInfo, Preferences};
-use crate::{binding, Error, Report, Result};
+use crate::{binding, common, Error, Report, Result};
 use binding::{LZ4FDecompressionCtx, LZ4FDecompressionOptions};
 use libc::{c_char, c_int, c_void, size_t};
 use std::{ffi::CStr, mem::MaybeUninit, ptr::NonNull};
@@ -22,23 +22,10 @@ pub fn compress(src: &[u8], dst: &mut [u8], prefs: &Preferences) -> Result<Repor
             prefs as *const Preferences,
         ) as usize
     };
-    make_result(
-        || Report {
-            dst_len: code,
-            ..Default::default()
-        },
-        code,
-    )
-}
-
-fn make_result<T, F: FnOnce() -> T>(func: F, code: size_t) -> Result<T> {
-    unsafe {
-        if binding::LZ4F_isError(code) != 0 {
-            Err(Error::from(code))
-        } else {
-            Ok((func)())
-        }
-    }
+    common::result_from_code(code).map(|_| Report {
+        dst_len: code,
+        ..Default::default()
+    })
 }
 
 pub struct DecompressionContext {
@@ -54,12 +41,9 @@ impl DecompressionContext {
                 binding::LZ4F_getVersion(),
             )
         };
-        make_result(
-            || Self {
-                ctx: NonNull::new(ctx).unwrap(),
-            },
-            code,
-        )
+        common::result_from_code(code).map(|_| Self {
+            ctx: NonNull::new(ctx).unwrap(),
+        })
     }
 
     pub fn get_frame_info(&mut self, src: &[u8]) -> Result<(FrameInfo, Report)> {
@@ -73,19 +57,16 @@ impl DecompressionContext {
                 &mut src_len as *mut size_t,
             )
         };
-        make_result(
-            || {
-                (
-                    unsafe { info.assume_init() },
-                    Report {
-                        src_len: Some(src_len as usize),
-                        dst_len: 0,
-                        expected_len: Some(code as usize),
-                    },
-                )
-            },
-            code,
-        )
+        common::result_from_code(code).map(|_| {
+            (
+                unsafe { info.assume_init() },
+                Report {
+                    src_len: Some(src_len as usize),
+                    dst_len: 0,
+                    expected_len: Some(code as usize),
+                },
+            )
+        })
     }
 
     pub fn decompress(
@@ -107,14 +88,11 @@ impl DecompressionContext {
                     .unwrap_or(std::ptr::null()),
             )
         };
-        make_result(
-            || Report {
-                src_len: Some(src_len as usize),
-                dst_len: dst_len as usize,
-                expected_len: Some(code as usize),
-            },
-            code,
-        )
+        common::result_from_code(code).map(|_| Report {
+            src_len: Some(src_len as usize),
+            dst_len: dst_len as usize,
+            expected_len: Some(code as usize),
+        })
     }
 
     pub fn decompress_dict(
@@ -139,14 +117,11 @@ impl DecompressionContext {
                     .unwrap_or(std::ptr::null()),
             )
         };
-        make_result(
-            || Report {
-                src_len: Some(src_len as usize),
-                dst_len: dst_len as usize,
-                expected_len: Some(code as usize),
-            },
-            code,
-        )
+        common::result_from_code(code).map(|_| Report {
+            src_len: Some(src_len as usize),
+            dst_len: dst_len as usize,
+            expected_len: Some(code as usize),
+        })
     }
 
     pub fn reset(&mut self) {

@@ -4,6 +4,7 @@ use super::Dictionary;
 use crate::{
     binding,
     binding::{LZ4FCompressionCtx, LZ4FCompressionDict, LZ4FCompressionOptions},
+    common,
     lz4f::Preferences,
     Error, Result,
 };
@@ -31,13 +32,10 @@ impl CompressionContext {
                 binding::LZ4F_getVersion(),
             )
         };
-        make_result(
-            Self {
-                ctx: NonNull::new(ctx).unwrap(),
-                dict,
-            },
-            code,
-        )
+        common::result_from_code(code).map(|_| Self {
+            ctx: NonNull::new(ctx).unwrap(),
+            dict,
+        })
     }
 
     pub fn begin(&mut self, dst: &mut [u8], prefs: &Preferences) -> Result<usize> {
@@ -58,8 +56,8 @@ impl CompressionContext {
                     prefs,
                 )
             }
-        };
-        make_result(code as usize, code)
+        } as usize;
+        common::result_from_code(code).map(|_| code)
     }
 
     pub fn update(
@@ -78,8 +76,8 @@ impl CompressionContext {
                 opt.map(|p| p as *const LZ4FCompressionOptions)
                     .unwrap_or(std::ptr::null()),
             )
-        };
-        make_result(code as usize, code)
+        } as usize;
+        common::result_from_code(code).map(|_| code)
     }
 
     pub fn flush(&mut self, dst: &mut [u8], opt: Option<&LZ4FCompressionOptions>) -> Result<usize> {
@@ -91,8 +89,8 @@ impl CompressionContext {
                 opt.map(|p| p as *const LZ4FCompressionOptions)
                     .unwrap_or(std::ptr::null()),
             )
-        };
-        make_result(code as usize, code)
+        } as usize;
+        common::result_from_code(code).map(|_| code)
     }
 
     pub fn end(&mut self, dst: &mut [u8], opt: Option<&LZ4FCompressionOptions>) -> Result<usize> {
@@ -104,22 +102,12 @@ impl CompressionContext {
                 opt.map(|p| p as *const LZ4FCompressionOptions)
                     .unwrap_or(std::ptr::null()),
             )
-        };
-        make_result(code as usize, code)
+        } as usize;
+        common::result_from_code(code).map(|_| code)
     }
 
     pub fn compress_bound(src_size: usize, prefs: &Preferences) -> usize {
         unsafe { binding::LZ4F_compressBound(src_size as size_t, prefs as *const Preferences) }
-    }
-}
-
-fn make_result<T>(data: T, code: size_t) -> Result<T> {
-    unsafe {
-        if binding::LZ4F_isError(code) != 0 {
-            Err(Error::from(code))
-        } else {
-            Ok(data)
-        }
     }
 }
 
