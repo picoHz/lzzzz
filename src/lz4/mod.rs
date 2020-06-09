@@ -176,6 +176,9 @@ pub enum DecompressionMode<'a> {
     Dictionary {
         data: &'a [u8],
     },
+    DictionaryLeadingDst {
+        len: usize,
+    },
 }
 
 impl<'a> Default for DecompressionMode<'a> {
@@ -241,6 +244,10 @@ pub fn decompress(src: &[u8], dst: &mut [u8], mode: &DecompressionMode) -> Resul
             api::decompress_safe_partial(src, dst, *uncompressed_size)
         }
         DecompressionMode::Dictionary { data } => api::decompress_safe_using_dict(src, dst, data),
+        DecompressionMode::DictionaryLeadingDst { len } => {
+            let (dict, dst) = dst.split_at_mut(*len);
+            api::decompress_safe_using_dict(src, dst, dict)
+        }
     };
     if result.dst_len() > 0 {
         Ok(result)
