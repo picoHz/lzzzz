@@ -22,4 +22,4 @@ With `tokio` feature, `AsyncRead`, `AsyncBufRead` and `AsyncWrite` are also supp
 - **"lz4-use-stack" :** (Enabled by default) Use the stack allocation for the LZ4 compressor stream.
 Disabling this future may resolve stack overflow errors.
 - **"lz4hc-use-stack" :** Use the stack allocation for the LZ4_HC compressor stream. 
-Enabling this future may cause a stack overflow with the default stack size configuration.
+Enabling this future may cause stack overflow errors with the default stack size configuration.
