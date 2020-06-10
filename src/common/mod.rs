@@ -1,7 +1,6 @@
 mod api;
 use std::{
     convert, fmt, io,
-    marker::PhantomData,
     rc::{Rc, Weak},
 };
 

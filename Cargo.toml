@@ -24,9 +24,7 @@ cc = "1.0.54"
 [features]
 default = ["lz4-use-stack", "use-tls"]
 
+tokio-io = ["tokio"]
+use-tls = []
 lz4-use-stack = []
 lz4hc-use-stack = []
-
-use-tls = []
-
-tokio-io = ["tokio"]
