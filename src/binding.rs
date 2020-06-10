@@ -9,6 +9,7 @@ mod lz4 {
     #[repr(C)]
     pub struct LZ4Stream {
         _private: [u64; LZ4_STREAMSIZE_U64],
+        _pin: std::marker::PhantomPinned,
     }
 }
 
@@ -32,6 +33,7 @@ mod lz4_hc {
     #[repr(C)]
     pub struct LZ4StreamHC {
         _private: [size_t; LZ4_STREAMHCSIZE_SIZET],
+        _pin: std::marker::PhantomPinned,
     }
 }
 
