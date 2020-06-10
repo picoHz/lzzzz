@@ -3,6 +3,7 @@ mod api;
 
 use crate::{Error, Report, Result};
 use api::ExtState;
+use std::borrow::Cow;
 
 /// Compression mode specifier
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
@@ -165,7 +166,7 @@ pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, mode: &CompressionMode) ->
 }
 
 /// Decompression mode specifier
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum DecompressionMode<'a> {
     /// Decompress the whole data.
     ///
@@ -179,7 +180,7 @@ pub enum DecompressionMode<'a> {
         uncompressed_size: usize,
     },
     Dictionary {
-        data: &'a [u8],
+        data: Cow<'a, [u8]>,
     },
     /// Tell the function that first `len` bytes of the dst buffer contains
     /// the dictionary data.
