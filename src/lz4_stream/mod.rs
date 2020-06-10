@@ -36,7 +36,7 @@ impl<'a> StreamCompressor<'a> {
     }
 
     pub fn next_copy(&mut self, src: &[u8], dst: &mut [u8], mode: &CompressionMode) -> Result<()> {
-        Ok(())
+        self.next(&[], dst, mode)
     }
 
     pub fn next_copy_to_vec(
@@ -45,7 +45,7 @@ impl<'a> StreamCompressor<'a> {
         dst: &mut Vec<u8>,
         mode: &CompressionMode,
     ) -> Result<()> {
-        Ok(())
+        self.next_to_vec(&[], dst, mode)
     }
 }
 
