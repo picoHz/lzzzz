@@ -2,40 +2,44 @@
 
 mod api;
 
-use crate::Outlive;
-use std::rc::Rc;
+use crate::Result;
+use std::{any::Any, ops::Deref, pin::Pin, rc::Rc};
 
 pub struct StreamCompressor {
-    rc: Rc<()>,
+    outlives: Vec<Box<dyn Any>>,
 }
 
 impl StreamCompressor {
     pub fn new() -> Self {
-        Self { rc: Rc::new(()) }
-    }
-
-    pub fn begin<'a, 'b>(&mut self, src: &'a [u8], dst: &'b mut [u8]) -> Outlive<'a> {
-        // Invalidate the current Outlive.
-        self.rc = Rc::new(());
-        Outlive::new(Rc::downgrade(&self.rc))
-    }
-
-    pub fn next<'a, 'b, 'c>(
-        &mut self,
-        prev: Outlive<'a>,
-        src: &'b [u8],
-        dst: &'c mut [u8],
-    ) -> Outlive<'b> {
-        if !prev.is_owner(&self.rc) {
-            panic!("aaaa");
+        Self {
+            outlives: Vec::new(),
         }
-        Outlive::new(Rc::downgrade(&self.rc))
     }
 
-    pub fn end<'a, 'b>(&mut self, prev: Outlive<'a>, dst: &'b mut [u8]) {
-        if !prev.is_owner(&self.rc) {
-            panic!("aaaa");
-        }
+    pub fn next_pin<P, T>(&mut self, src: Pin<P>, dst: &mut [u8]) -> Result<()>
+    where
+        P: 'static + Deref<Target = T>,
+        T: ?Sized + AsRef<[u8]>,
+    {
+        self.outlives.push(Box::new(src));
+        Ok(())
+    }
+
+    pub fn next_pin_to_vec<P, T>(&mut self, src: Pin<P>, dst: &mut Vec<u8>) -> Result<()>
+    where
+        P: 'static + Deref<Target = T>,
+        T: ?Sized + AsRef<[u8]>,
+    {
+        self.outlives.push(Box::new(src));
+        Ok(())
+    }
+
+    pub fn next(&mut self, src: &[u8], dst: &mut [u8]) -> Result<()> {
+        Ok(())
+    }
+
+    pub fn next_to_vec(&mut self, src: &[u8], dst: &mut Vec<u8>) -> Result<()> {
+        Ok(())
     }
 }
 
