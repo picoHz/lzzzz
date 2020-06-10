@@ -412,7 +412,7 @@ pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, prefs: &Preferences) -> Re
     result
 }
 
-pub fn decompress(src: &[u8], dst: &mut [u8]) -> Result<Report> {
+pub fn decompress_partial(src: &[u8], dst: &mut [u8]) -> Result<Report> {
     DECOMPRESSION_CTX.with(|ctx| {
         let mut ctx = ctx.borrow_mut();
         // ctx.reset();
@@ -426,7 +426,7 @@ pub fn decompress_to_vec(src: &[u8], dst: &mut Vec<u8>) -> Result<Report> {
     let mut src_offset = 0;
     let mut dst_offset = header_len;
     loop {
-        let result = decompress(&src[src_offset..], &mut dst[dst_offset..])?;
+        let result = decompress_partial(&src[src_offset..], &mut dst[dst_offset..])?;
         src_offset += result.src_len().unwrap();
         dst_offset += result.dst_len();
         let expected = result.expected_len().unwrap();

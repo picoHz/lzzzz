@@ -9,7 +9,14 @@ mod lz4 {
     #[repr(C)]
     pub struct LZ4Stream {
         _private: [u64; LZ4_STREAMSIZE_U64],
-        _pin: std::marker::PhantomPinned,
+    }
+
+    impl LZ4Stream {
+        pub fn new() -> Self {
+            Self {
+                _private: [0u64; LZ4_STREAMSIZE_U64],
+            }
+        }
     }
 }
 
@@ -18,6 +25,12 @@ mod lz4 {
     #[repr(C)]
     pub struct LZ4Stream {
         _private: [u8; 0],
+    }
+
+    impl LZ4Stream {
+        pub fn new() -> Self {
+            Self { _private: [0u8; 0] }
+        }
     }
 }
 
@@ -33,7 +46,14 @@ mod lz4_hc {
     #[repr(C)]
     pub struct LZ4StreamHC {
         _private: [size_t; LZ4_STREAMHCSIZE_SIZET],
-        _pin: std::marker::PhantomPinned,
+    }
+
+    impl LZ4StreamHC {
+        pub fn new() -> Self {
+            Self {
+                _private: [0u64; LZ4_STREAMHCSIZE_SIZET],
+            }
+        }
     }
 }
 
@@ -42,6 +62,12 @@ mod lz4_hc {
     #[repr(C)]
     pub struct LZ4StreamHC {
         _private: [u8; 0],
+    }
+
+    impl LZ4StreamHC {
+        pub fn new() -> Self {
+            Self { _private: [0u8; 0] }
+        }
     }
 }
 
@@ -206,6 +232,7 @@ extern "C" {
     pub fn LZ4_createStream() -> *mut LZ4Stream;
     pub fn LZ4_freeStream(ptr: *mut LZ4Stream) -> c_int;
     pub fn LZ4_initStream(buffer: *mut c_void, size: size_t) -> *mut LZ4Stream;
+    pub fn LZ4_loadDict(ptr: *mut LZ4Stream, dictionary: *const c_char, dict_size: c_int) -> c_int;
     pub fn LZ4_createStreamDecode() -> *mut LZ4DecStream;
     pub fn LZ4_freeStreamDecode(stream: *mut LZ4DecStream) -> c_int;
 

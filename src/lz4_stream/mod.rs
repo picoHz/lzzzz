@@ -2,43 +2,46 @@
 
 mod api;
 
-use crate::Result;
-use std::{any::Any, ops::Deref, pin::Pin, rc::Rc};
+use crate::{lz4::CompressionMode, Result};
+use api::CompressionContext;
 
-pub struct StreamCompressor {
-    outlives: Vec<Box<dyn Any>>,
+pub struct StreamCompressor<'a> {
+    ctx: CompressionContext,
+    dict: &'a [u8],
 }
 
-impl StreamCompressor {
-    pub fn new() -> Self {
-        Self {
-            outlives: Vec::new(),
-        }
+impl<'a> StreamCompressor<'a> {
+    pub fn new() -> Result<Self> {
+        Self::with_dict(&[])
     }
 
-    pub fn next_pin<P, T>(&mut self, src: Pin<P>, dst: &mut [u8]) -> Result<()>
-    where
-        P: 'static + Deref<Target = T>,
-        T: ?Sized + AsRef<[u8]>,
-    {
-        self.outlives.push(Box::new(src));
+    pub fn with_dict(dict: &'a [u8]) -> Result<Self> {
+        CompressionContext::new().map(|ctx| Self { ctx, dict: &[] })
+    }
+
+    pub fn next(&mut self, src: &'a [u8], dst: &mut [u8], mode: &CompressionMode) -> Result<()> {
         Ok(())
     }
 
-    pub fn next_pin_to_vec<P, T>(&mut self, src: Pin<P>, dst: &mut Vec<u8>) -> Result<()>
-    where
-        P: 'static + Deref<Target = T>,
-        T: ?Sized + AsRef<[u8]>,
-    {
-        self.outlives.push(Box::new(src));
+    pub fn next_to_vec(
+        &mut self,
+        src: &'a [u8],
+        dst: &mut Vec<u8>,
+        mode: &CompressionMode,
+    ) -> Result<()> {
         Ok(())
     }
 
-    pub fn next(&mut self, src: &[u8], dst: &mut [u8]) -> Result<()> {
+    pub fn next_copy(&mut self, src: &[u8], dst: &mut [u8], mode: &CompressionMode) -> Result<()> {
         Ok(())
     }
 
-    pub fn next_to_vec(&mut self, src: &[u8], dst: &mut Vec<u8>) -> Result<()> {
+    pub fn next_copy_to_vec(
+        &mut self,
+        src: &[u8],
+        dst: &mut Vec<u8>,
+        mode: &CompressionMode,
+    ) -> Result<()> {
         Ok(())
     }
 }
@@ -47,10 +50,6 @@ impl StreamCompressor {
 mod tests {
     #[test]
     fn compression_context() {
-        let mut a = super::StreamCompressor::new();
-        let c = vec![0, 4];
-        let r = { a.begin(&c, &mut []) };
-        let c = vec![0, 4];
-        let r = a.next(r, &c, &mut []);
+        super::StreamCompressor::new();
     }
 }
