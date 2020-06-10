@@ -9,6 +9,9 @@ use crate::{
 use api::{CompressionContext, DictionaryHandle, LZ4Buffer};
 use std::{cmp, io, ops, sync::Arc};
 
+#[cfg(feature = "tokio-io")]
+use tokio::io::AsyncRead;
+
 enum CompressorState<D> {
     Created,
     WriteActive {
@@ -48,6 +51,21 @@ impl<D> StreamCompressor<D> {
             buffer: LZ4Buffer::new(),
         })
     }
+
+    fn ensure_read(&self) {
+        match self.state {
+            CompressorState::WriteActive { .. } | CompressorState::WriteFinalized => {
+                panic!("Write operations are not permitted")
+            }
+            _ => (),
+        }
+    }
+
+    fn ensure_write(&self) {
+        if let CompressorState::ReadActive { .. } = self.state {
+            panic!("Read operations are not permitted")
+        }
+    }
 }
 
 impl<D: io::Write> StreamCompressor<D> {
@@ -68,12 +86,6 @@ impl<D: io::Write> StreamCompressor<D> {
             self.device.flush()?;
         }
         Ok(())
-    }
-
-    fn ensure_write(&self) {
-        if let CompressorState::ReadActive { .. } = self.state {
-            panic!("Read operations are not permitted")
-        }
     }
 }
 
@@ -98,17 +110,6 @@ impl<D: io::Write> io::Write for StreamCompressor<D> {
         let len = self.ctx.flush(&mut self.buffer, false)?;
         self.device.write_all(&self.buffer[..len])?;
         self.device.flush()
-    }
-}
-
-impl<D: io::Read> StreamCompressor<D> {
-    fn ensure_read(&self) {
-        match self.state {
-            CompressorState::WriteActive { .. } | CompressorState::WriteFinalized => {
-                panic!("Write operations are not permitted")
-            }
-            _ => (),
-        }
     }
 }
 
