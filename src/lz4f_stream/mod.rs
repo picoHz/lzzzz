@@ -52,6 +52,16 @@ impl<D> StreamCompressor<D> {
         })
     }
 
+    pub fn with_dict(device: D, dict: Dictionary, pref: Preferences) -> Result<Self> {
+        Ok(Self {
+            pref,
+            ctx: CompressionContext::new(Some(dict))?,
+            device,
+            state: CompressorState::Created,
+            buffer: LZ4Buffer::new(),
+        })
+    }
+
     fn ensure_read(&self) {
         match self.state {
             CompressorState::WriteActive { .. } | CompressorState::WriteFinalized => {
@@ -238,7 +248,7 @@ impl<'a, D> StreamDecompressor<'a, D> {
     }
 }
 
-/// A user-defined dictionary for the efficient compression.
+/// A pre-compiled dictionary for the efficient compression.
 ///
 /// **Cited from lz4frame.h:**
 ///
