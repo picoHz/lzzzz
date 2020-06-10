@@ -8,10 +8,10 @@ use std::borrow::Cow;
 /// Compression mode specifier
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum CompressionMode {
-    /// `Default` is same as `Accelerated { factor: 1 }`.
+    /// `Default` is same as `Acceleration { factor: 1 }`.
     Default,
     /// Custom acceleration factor.
-    Accelerated {
+    Acceleration {
         /// Larger value increases the processing speed in exchange for the
         /// loss of compression ratio.
         factor: i32,
@@ -61,7 +61,7 @@ pub fn max_compressed_size(uncompressed_size: usize) -> usize {
 pub fn compress(src: &[u8], dst: &mut [u8], mode: &CompressionMode) -> Result<Report> {
     let acc = match mode {
         CompressionMode::Default => 1,
-        CompressionMode::Accelerated { factor } => *factor,
+        CompressionMode::Acceleration { factor } => *factor,
     };
     let len = ExtState::with(|state, reset| {
         let mut state = state.borrow_mut();
@@ -126,10 +126,10 @@ pub fn compress(src: &[u8], dst: &mut [u8], mode: &CompressionMode) -> Result<Re
 /// ### Accelerated compression mode
 ///
 /// Faster, but less effective compression.
-/// See [`CompressionMode::Accelerated`] for details.
+/// See [`CompressionMode::Acceleration`] for details.
 ///
-/// [`CompressionMode::Accelerated`]:
-/// ./enum.CompressionMode.html#variant.Accelerated
+/// [`CompressionMode::Acceleration`]:
+/// ./enum.CompressionMode.html#variant.Acceleration
 ///
 /// ```
 /// use lzzzz::lz4;
@@ -140,7 +140,7 @@ pub fn compress(src: &[u8], dst: &mut [u8], mode: &CompressionMode) -> Result<Re
 /// lz4::compress_to_vec(
 ///     data,
 ///     &mut buf,
-///     &lz4::CompressionMode::Accelerated { factor: 20 },
+///     &lz4::CompressionMode::Acceleration { factor: 20 },
 /// );
 ///
 /// # let compressed = &buf;
@@ -279,7 +279,7 @@ mod tests {
         lz4::compress_to_vec(
             data,
             &mut buf,
-            &lz4::CompressionMode::Accelerated { factor: 20 },
+            &lz4::CompressionMode::Acceleration { factor: 20 },
         );
     }
 }
