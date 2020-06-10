@@ -1,5 +1,9 @@
 mod api;
-use std::{convert, fmt, io};
+use std::{
+    convert, fmt, io,
+    marker::PhantomData,
+    rc::{Rc, Weak},
+};
 
 pub use api::{version_number, version_string};
 
@@ -113,3 +117,22 @@ impl convert::From<usize> for Error {
 impl std::error::Error for Error {}
 
 pub(crate) use api::result_from_code;
+
+/// A marker struct to guarantee a buffer outlives until a next iteration.
+pub struct Outlive<'a> {
+    owner: Weak<()>,
+    phantom: PhantomData<&'a ()>,
+}
+
+impl<'a> Outlive<'a> {
+    pub(crate) fn new(owner: Weak<()>) -> Self {
+        Self {
+            owner,
+            phantom: PhantomData,
+        }
+    }
+
+    pub(crate) fn is_owner(&self, owner: &Rc<()>) -> bool {
+        self.owner.ptr_eq(&Rc::downgrade(owner))
+    }
+}

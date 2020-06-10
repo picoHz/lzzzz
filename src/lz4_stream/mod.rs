@@ -2,25 +2,8 @@
 
 mod api;
 
-use std::{
-    any::Any,
-    marker::PhantomData,
-    rc::{Rc, Weak},
-};
-
-pub struct Outlive<'a> {
-    owner: Weak<()>,
-    phantom: PhantomData<&'a ()>,
-}
-
-impl<'a> Outlive<'a> {
-    fn new(owner: Weak<()>) -> Self {
-        Self {
-            owner,
-            phantom: PhantomData,
-        }
-    }
-}
+use crate::Outlive;
+use std::rc::Rc;
 
 pub struct StreamCompressor {
     rc: Rc<()>,
@@ -43,14 +26,14 @@ impl StreamCompressor {
         src: &'b [u8],
         dst: &'c mut [u8],
     ) -> Outlive<'b> {
-        if !prev.owner.ptr_eq(&Rc::downgrade(&self.rc)) {
+        if !prev.is_owner(&self.rc) {
             panic!("aaaa");
         }
         Outlive::new(Rc::downgrade(&self.rc))
     }
 
     pub fn end<'a, 'b>(&mut self, prev: Outlive<'a>, dst: &'b mut [u8]) {
-        if !prev.owner.ptr_eq(&Rc::downgrade(&self.rc)) {
+        if !prev.is_owner(&self.rc) {
             panic!("aaaa");
         }
     }

@@ -37,4 +37,4 @@ pub mod lz4f;
 pub mod lz4f_stream;
 
 use common::Result;
-pub use common::{version_number, version_string, Error, Report};
+pub use common::{version_number, version_string, Error, Outlive, Report};
