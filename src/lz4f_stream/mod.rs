@@ -7,7 +7,7 @@ use crate::{
     Result,
 };
 use api::{CompressionContext, DictionaryHandle, LZ4Buffer};
-use std::{cmp, io, ops, sync::Arc};
+use std::{borrow::Cow, cmp, io, ops, sync::Arc};
 
 #[cfg(feature = "tokio-io")]
 use tokio::io::AsyncRead;
@@ -213,19 +213,15 @@ enum DecompressorState {
 pub struct StreamDecompressor<'a, D> {
     device: D,
     state: DecompressorState,
-    dict: &'a [u8],
+    dict: Cow<'a, [u8]>,
 }
 
 impl<'a, D> StreamDecompressor<'a, D> {
     pub fn new(device: D) -> Result<Self> {
-        Ok(Self {
-            device,
-            state: DecompressorState::Created,
-            dict: &[],
-        })
+        Self::with_dict(device, Cow::Borrowed(&[]))
     }
 
-    pub fn with_dict(device: D, dict: &'a [u8]) -> Result<Self> {
+    pub fn with_dict(device: D, dict: Cow<'a, [u8]>) -> Result<Self> {
         Ok(Self {
             device,
             state: DecompressorState::Created,
@@ -233,7 +229,7 @@ impl<'a, D> StreamDecompressor<'a, D> {
         })
     }
 
-    pub fn set_dict(&mut self, dict: &'a [u8]) {
+    pub fn set_dict(&mut self, dict: Cow<'a, [u8]>) {
         self.dict = dict;
     }
 
