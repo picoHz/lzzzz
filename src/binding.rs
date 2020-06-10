@@ -41,11 +41,11 @@ mod lz4_hc {
     const LZ4HC_DICTIONARY_LOGSIZE: usize = 16;
     const LZ4HC_MAXD: usize = 1 << LZ4HC_DICTIONARY_LOGSIZE;
     const LZ4_STREAMHCSIZE: usize = 4 * LZ4HC_HASHTABLESIZE + 2 * LZ4HC_MAXD + 56;
-    const LZ4_STREAMHCSIZE_SIZET: usize = LZ4_STREAMHCSIZE / std::mem::size_of::<size_t>();
+    const LZ4_STREAMHCSIZE_SIZET: usize = LZ4_STREAMHCSIZE / std::mem::size_of::<libc::size_t>();
 
     #[repr(C)]
     pub struct LZ4StreamHC {
-        _private: [size_t; LZ4_STREAMHCSIZE_SIZET],
+        _private: [libc::size_t; LZ4_STREAMHCSIZE_SIZET],
     }
 
     impl LZ4StreamHC {

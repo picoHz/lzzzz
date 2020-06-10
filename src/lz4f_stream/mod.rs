@@ -113,6 +113,14 @@ impl<D: io::Write> io::Write for StreamCompressor<D> {
     }
 }
 
+#[cfg(feature = "tokio-io")]
+#[cfg_attr(docsrs, doc(cfg(feature = "tokio-io")))]
+impl<D: AsyncRead> AsRef<[u8]> for StreamCompressor<D> {
+    fn as_ref(&self) -> &[u8] {
+        todo!();
+    }
+}
+
 impl<D: io::Read> io::Read for StreamCompressor<D> {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         self.ensure_read();
