@@ -166,9 +166,7 @@ impl DictionaryHandle {
         let dict = unsafe {
             binding::LZ4F_createCDict(data.as_ptr() as *const c_void, data.len() as size_t)
         };
-        NonNull::new(dict)
-            .ok_or(Error::Generic)
-            .map(|ctx| Self(ctx))
+        NonNull::new(dict).ok_or(Error::Generic).map(Self)
     }
 }
 

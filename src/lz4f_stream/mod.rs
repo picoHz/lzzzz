@@ -98,10 +98,10 @@ impl<D: io::Write> io::Write for StreamCompressor<D> {
                 finalizer: StreamCompressor::<D>::finalize_write,
             };
             let len = self.ctx.begin(&mut self.buffer, &self.pref)?;
-            self.device.write(&self.buffer[..len])?;
+            self.device.write_all(&self.buffer[..len])?;
         }
         let len = self.ctx.update(&mut self.buffer, src, false)?;
-        self.device.write(&self.buffer[..len])?;
+        self.device.write_all(&self.buffer[..len])?;
         Ok(src.len())
     }
 

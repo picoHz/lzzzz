@@ -337,7 +337,7 @@ impl PreferencesBuilder {
     /// To make I/O operations to the returned `StreamCompressor<D>`,
     /// the `device` should implement `Read`, `BufRead` or `Write`.
     pub fn build(&self) -> Preferences {
-        self.pref.clone()
+        self.pref
     }
 }
 
