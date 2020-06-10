@@ -6,7 +6,7 @@ use crate::{
     Error, Result,
 };
 
-use libc::{c_void, size_t};
+use libc::{c_char, c_int, c_void, size_t};
 use std::{
     mem::{size_of, MaybeUninit},
     ptr::NonNull,
@@ -38,6 +38,16 @@ impl CompressionContext {
             ptr.ok_or(Error::Generic).map(|stream| Self {
                 stream: Stream::Heap(stream),
             })
+        }
+    }
+
+    pub fn set_dict(&mut self, dict: &[u8]) {
+        let stream = match &mut self.stream {
+            Stream::Stack(stream) => stream as *mut LZ4Stream,
+            Stream::Heap(ptr) => ptr.as_ptr(),
+        };
+        unsafe {
+            binding::LZ4_loadDict(stream, dict.as_ptr() as *const c_char, dict.len() as c_int);
         }
     }
 }

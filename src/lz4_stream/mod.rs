@@ -16,7 +16,10 @@ impl<'a> StreamCompressor<'a> {
     }
 
     pub fn with_dict(dict: &'a [u8]) -> Result<Self> {
-        CompressionContext::new().map(|ctx| Self { ctx, dict: &[] })
+        CompressionContext::new().map(|mut ctx| {
+            ctx.set_dict(dict);
+            Self { ctx, dict: &[] }
+        })
     }
 
     pub fn next(&mut self, src: &'a [u8], dst: &mut [u8], mode: &CompressionMode) -> Result<()> {
