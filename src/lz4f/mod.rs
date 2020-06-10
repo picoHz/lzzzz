@@ -415,7 +415,7 @@ pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, prefs: &Preferences) -> Re
 pub fn decompress_partial(src: &[u8], dst: &mut [u8]) -> Result<Report> {
     DECOMPRESSION_CTX.with(|ctx| {
         let mut ctx = ctx.borrow_mut();
-        // ctx.reset();
+        ctx.reset();
         ctx.decompress(src, dst, false)
     })
 }
@@ -425,24 +425,28 @@ pub fn decompress_to_vec(src: &[u8], dst: &mut Vec<u8>) -> Result<Report> {
     let header_len = dst.len();
     let mut src_offset = 0;
     let mut dst_offset = header_len;
-    loop {
-        let result = decompress_partial(&src[src_offset..], &mut dst[dst_offset..])?;
-        src_offset += result.src_len().unwrap();
-        dst_offset += result.dst_len();
-        let expected = result.expected_len().unwrap();
-        if expected == 0 {
-            dst.resize_with(dst_offset, Default::default);
-            return Ok(Report {
-                dst_len: dst_offset - header_len,
-                ..Default::default()
-            });
+    DECOMPRESSION_CTX.with(|ctx| {
+        let mut ctx = ctx.borrow_mut();
+        ctx.reset();
+        loop {
+            let result = ctx.decompress(&src[src_offset..], &mut dst[dst_offset..], false)?;
+            src_offset += result.src_len().unwrap();
+            dst_offset += result.dst_len();
+            let expected = result.expected_len().unwrap();
+            if expected == 0 {
+                dst.resize_with(dst_offset, Default::default);
+                return Ok(Report {
+                    dst_len: dst_offset - header_len,
+                    ..Default::default()
+                });
+            }
+            dst.reserve(expected);
+            #[allow(unsafe_code)]
+            unsafe {
+                dst.set_len(dst.capacity());
+            }
         }
-        dst.reserve(expected);
-        #[allow(unsafe_code)]
-        unsafe {
-            dst.set_len(dst.capacity());
-        }
-    }
+    })
 }
 
 /// Resolve a dictinary data from a dictionary id.
