@@ -51,7 +51,7 @@ mod lz4_hc {
     impl LZ4StreamHC {
         pub fn new() -> Self {
             Self {
-                _private: [0u64; LZ4_STREAMHCSIZE_SIZET],
+                _private: [0; LZ4_STREAMHCSIZE_SIZET],
             }
         }
     }
