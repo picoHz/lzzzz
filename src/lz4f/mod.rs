@@ -65,6 +65,12 @@ use api::DecompressionContext;
 use libc::{c_int, c_uint, c_ulonglong};
 use std::{cell::RefCell, cmp};
 
+#[cfg(test)]
+use rand::{
+    distributions::{Distribution, Standard},
+    Rng, SeedableRng,
+};
+
 /// Compression block size flag
 ///
 /// **Cited from lz4frame.h:**
@@ -146,6 +152,17 @@ pub enum FavorDecSpeed {
     /// Default value
     Disabled,
     Enabled,
+}
+
+#[cfg(test)]
+impl Distribution<FavorDecSpeed> for Standard {
+    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> FavorDecSpeed {
+        if rng.gen_bool(0.5) {
+            FavorDecSpeed::Disabled
+        } else {
+            FavorDecSpeed::Enabled
+        }
+    }
 }
 
 /// LZ4 Frame parameters

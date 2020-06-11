@@ -2,10 +2,15 @@ use lzzzz::{
     lz4f,
     lz4f::{
         AutoFlush, BlockChecksum, BlockMode, BlockSize, CompressionLevel, ContentChecksum,
-        Preferences,
+        FavorDecSpeed, Preferences,
     },
 };
-use rand::{distributions::Standard, rngs::SmallRng, Rng, SeedableRng};
+use rand::{
+    distributions::{Distribution, Standard},
+    prelude::*,
+    rngs::SmallRng,
+    Rng, SeedableRng,
+};
 use rayon::prelude::*;
 
 #[test]
@@ -17,7 +22,7 @@ fn parallel_compression_decompression() {
             rng.sample_iter(Standard).take(n).collect::<Vec<_>>()
         })
         .map(|plain| {
-            preferences(4095).map(move |pref| {
+            preferences(3).map(move |pref| {
                 let mut comp = Vec::new();
                 lz4f::compress_to_vec(&plain, &mut comp, &pref).unwrap();
                 (plain.clone(), comp)
@@ -63,6 +68,11 @@ fn preferences(n: usize) -> impl ParallelIterator<Item = Preferences> {
                 2 => BlockSize::Max64KB,
                 3 => BlockSize::Max256KB,
                 _ => BlockSize::Default,
+            })
+            .favor_dec_speed(if rng.gen_bool(0.5) {
+                FavorDecSpeed::Disabled
+            } else {
+                FavorDecSpeed::Enabled
             })
             .compression_level(CompressionLevel::Custom(rng.gen()))
             .dict_id(rng.gen())
