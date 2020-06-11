@@ -15,7 +15,7 @@ use rayon::prelude::*;
 
 #[test]
 fn parallel_compression_decompression() {
-    let all_ok = (0..4095usize)
+    let all_ok = (0..40usize)
         .into_par_iter()
         .map(|n| {
             let rng = SmallRng::seed_from_u64(n as u64);
