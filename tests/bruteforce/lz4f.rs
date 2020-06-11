@@ -1,6 +1,9 @@
-use lzzzz::lz4f;
-use lzzzz::lz4f::{
-    AutoFlush, BlockChecksum, BlockMode, BlockSize, CompressionLevel, ContentChecksum, Preferences,
+use lzzzz::{
+    lz4f,
+    lz4f::{
+        AutoFlush, BlockChecksum, BlockMode, BlockSize, CompressionLevel, ContentChecksum,
+        Preferences,
+    },
 };
 use rand::{distributions::Standard, rngs::SmallRng, Rng, SeedableRng};
 use rayon::prelude::*;
@@ -34,7 +37,6 @@ fn preferences(n: usize) -> impl ParallelIterator<Item = Preferences> {
     (0..n).into_par_iter().map(|n| {
         let mut rng = SmallRng::seed_from_u64(n as u64);
         lz4f::PreferencesBuilder::new()
-            /*
             .auto_flush(if rng.gen_bool(0.5) {
                 AutoFlush::Disabled
             } else {
@@ -62,9 +64,8 @@ fn preferences(n: usize) -> impl ParallelIterator<Item = Preferences> {
                 3 => BlockSize::Max256KB,
                 _ => BlockSize::Default,
             })
-            .dict_id(rng.gen())
-            */
             .compression_level(CompressionLevel::Custom(rng.gen()))
+            .dict_id(rng.gen())
             .build()
     })
 }

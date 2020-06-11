@@ -63,7 +63,7 @@ mod api;
 use crate::{Report, Result};
 use api::DecompressionContext;
 use libc::{c_int, c_uint, c_ulonglong};
-use std::cell::RefCell;
+use std::{cell::RefCell, cmp};
 
 /// Compression block size flag
 ///
@@ -316,7 +316,9 @@ impl PreferencesBuilder {
 
     /// Set the compression level.
     pub fn compression_level(mut self, level: CompressionLevel) -> Self {
-        self.pref.compression_level = level.as_i32() as c_int;
+        // Workaround for the integer overflow bug in liblz4.
+        const MIN_COMPRESSION_LEVEL: i32 = -33554430;
+        self.pref.compression_level = cmp::max(level.as_i32(), MIN_COMPRESSION_LEVEL) as c_int;
         self
     }
 

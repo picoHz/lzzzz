@@ -87,6 +87,7 @@ all32: all
 liblz4.a: $(SRCFILES)
 ifeq ($(BUILD_STATIC),yes)  # can be disabled on command line
 	@echo compiling static library
+	@echo "$(Q)$(CC) $(CPPFLAGS) $(CFLAGS) -c $^"
 	$(Q)$(CC) $(CPPFLAGS) $(CFLAGS) -c $^
 	$(Q)$(AR) rcs $@ *.o
 endif
