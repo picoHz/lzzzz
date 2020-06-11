@@ -34,6 +34,7 @@ fn preferences(n: usize) -> impl ParallelIterator<Item = Preferences> {
     (0..n).into_par_iter().map(|n| {
         let mut rng = SmallRng::seed_from_u64(n as u64);
         lz4f::PreferencesBuilder::new()
+            /*
             .auto_flush(if rng.gen_bool(0.5) {
                 AutoFlush::Disabled
             } else {
@@ -61,8 +62,9 @@ fn preferences(n: usize) -> impl ParallelIterator<Item = Preferences> {
                 3 => BlockSize::Max256KB,
                 _ => BlockSize::Default,
             })
-            .compression_level(CompressionLevel::Custom(0))
             .dict_id(rng.gen())
+            */
+            .compression_level(CompressionLevel::Custom(rng.gen()))
             .build()
     })
 }

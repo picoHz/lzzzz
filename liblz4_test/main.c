@@ -1,16 +1,19 @@
 #include <stdio.h>
 #include <string.h>
+#include <memory.h>
 #include "lz4frame.h"
 
 int main(int argc, const char * argv[]) {
-    LZ4F_preferences_t pref = { 0 };
-    pref.compressionLevel = 0;
-    
-    const char *src = "Hello";
-    char dst[256];
-    LZ4F_compressFrame(dst, sizeof(dst), src, strlen(src), &pref);
-    
-    // insert code here...
-    printf("Hello, World!\n");
+    char src[1023];
+    char dst[65544];
+    LZ4F_preferences_t pref;
+
+    memset(&pref, 0, sizeof(pref));
+    pref.compressionLevel = -47366883;
+    for (int i = 0; i < sizeof(src); ++i) {
+        src[i] = i;
+    }
+
+    LZ4F_compressFrame(dst, sizeof(dst), src, sizeof(src), &pref);
     return 0;
 }
