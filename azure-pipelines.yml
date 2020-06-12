@@ -3,24 +3,16 @@ trigger:
     include: ['*']
   tags:
     include: ['*']
-
-resources:
-  repositories:
-    - repository: rust_pipelines
-      type: github
-      name: xoac/rust-azure-pipelines
-      ref: refs/tags/v0.1.0
-      endpoint: github.com_picoHz # TODO YOU NEED TO CHANGE THIS!
-
-stages:
-- stage: check
-  displayName: "Quick checks"
-  jobs:
-  - template: ci/scenarios/check.yml@rust_pipelines
-
-- stage: test
-  displayName: "Multi OS native tests"
-  jobs:
-  - template: ci/scenarios/test.yml@rust_pipelines
-    parameters:
-      min_rust_supported: 1.31  # Use first rust version you wanna support
+pool:
+  name: Azure Pipelines
+steps:
+- task: Rust@1
+  inputs:
+    installNightly: false
+- task: Cargo@1
+  inputs:
+    cargoCommand: 'test --all-features --release'
+    verbose: false
+  displayName: Cargo
+  env:
+    LZZZZ_FUZZER_ITERATION: 1000000
