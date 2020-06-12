@@ -23,7 +23,7 @@ where
         .and_then(|n| n.parse().ok())
         .unwrap_or(10000u64);
 
-    let step = 1000;
+    let step = 100;
 
     let (tx, rx) = channel();
 
