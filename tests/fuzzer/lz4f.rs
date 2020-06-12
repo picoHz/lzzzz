@@ -1,9 +1,8 @@
-use lzzzz::lz4f::PreferencesBuilder;
 use lzzzz::{
     lz4f,
     lz4f::{
         AutoFlush, BlockChecksum, BlockMode, BlockSize, CompressionLevel, ContentChecksum,
-        FavorDecSpeed, Preferences,
+        FavorDecSpeed, Preferences, PreferencesBuilder,
     },
 };
 use rand::{
@@ -13,41 +12,37 @@ use rand::{
     Rng, SeedableRng,
 };
 use rayon::prelude::*;
+use std::sync::atomic::{AtomicU64, Ordering};
+
+static TASK_COUNT: AtomicU64 = AtomicU64::new(0);
 
 #[test]
 fn parallel_compression_decompression() {
-    let all_ok = (0..40usize)
+    let n = 40000u64;
+    TASK_COUNT.fetch_add(n, Ordering::Relaxed);
+    (0..n)
         .into_par_iter()
-        .map(|n| {
-            let rng = SmallRng::seed_from_u64(n as u64);
-            rng.sample_iter(Standard).take(n).collect::<Vec<_>>()
-        })
-        .map(|plain| {
-            let pref = generate_preference(0).build();
-            let mut comp = Vec::new();
-            lz4f::compress_to_vec(&plain, &mut comp, &pref).unwrap();
-            (plain, comp)
-        })
-        .map(|(plain, comp)| {
-            let mut decomp = Vec::new();
-            lz4f::decompress_to_vec(&comp, &mut decomp).unwrap();
-            (plain, decomp)
-        })
-        .all(|(plain, decomp)| plain == decomp);
-    assert!(all_ok);
+        .map(|n| compression_decompression(n).err())
+        .inspect(|_| { TASK_COUNT.fetch_sub(1, Ordering::Relaxed); })
+        .find_any(|err| err.is_some())
+        .map(|err| panic!("{:?}", err));
 }
 
 fn compression_decompression(state: u64) -> Result<(), (Vec<u8>, Preferences)> {
     let data = generate_data(state, 1024);
     let pref = generate_preference(state).build();
+    let err = |_| (data.clone(), pref);
+
     let mut comp = Vec::new();
-    lz4f::compress_to_vec(&data, &mut comp, &pref).map_err(|_| (data.clone(), pref))?;
+    lz4f::compress_to_vec(&data, &mut comp, &pref).map_err(err)?;
+
     let mut decomp = Vec::new();
-    lz4f::decompress_to_vec(&comp, &mut decomp).map_err(|_| (data.clone(), pref))?;
+    lz4f::decompress_to_vec(&comp, &mut decomp).map_err(err)?;
+
     if decomp == data {
         Ok(())
     } else {
-        Err((data.clone(), pref))
+        Err((data, pref))
     }
 }
 
