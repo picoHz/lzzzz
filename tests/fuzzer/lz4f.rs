@@ -11,21 +11,10 @@ use rand::{
     rngs::SmallRng,
     Rng, SeedableRng,
 };
-use rayon::prelude::*;
-use std::sync::atomic::{AtomicU64, Ordering};
-
-static TASK_COUNT: AtomicU64 = AtomicU64::new(0);
 
 #[test]
 fn parallel_compression_decompression() {
-    let n = 40000u64;
-    TASK_COUNT.fetch_add(n, Ordering::Relaxed);
-    (0..n)
-        .into_par_iter()
-        .map(|n| compression_decompression(n).err())
-        .inspect(|_| { TASK_COUNT.fetch_sub(1, Ordering::Relaxed); })
-        .find_any(|err| err.is_some())
-        .map(|err| panic!("{:?}", err));
+    super::run(compression_decompression);
 }
 
 fn compression_decompression(state: u64) -> Result<(), (Vec<u8>, Preferences)> {

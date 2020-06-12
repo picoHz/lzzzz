@@ -17,6 +17,7 @@ tokio = { version = "0.2.21", optional = true }
 [dev-dependencies]
 rayon = "1.3.0"
 rand = { version = "0.7.3", features = ["small_rng"] }
+pbr = "1.0.3"
 
 [build-dependencies]
 cc = "1.0.54"
