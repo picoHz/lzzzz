@@ -4,7 +4,7 @@ trigger:
   tags:
     include: ['*']
 pool:
-  name: Azure Pipelines
+  vmImage: 'vs2017-win2016'
 steps:
 - task: Rust@1
   inputs:
