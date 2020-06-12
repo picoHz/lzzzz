@@ -5,12 +5,7 @@ use lzzzz::{
         FavorDecSpeed, Preferences, PreferencesBuilder,
     },
 };
-use rand::{
-    distributions::{Distribution, Standard},
-    prelude::*,
-    rngs::SmallRng,
-    Rng, SeedableRng,
-};
+use rand::{distributions::Standard, rngs::SmallRng, Rng, SeedableRng};
 
 #[test]
 fn parallel_compression_decompression() {

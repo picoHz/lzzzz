@@ -5,11 +5,7 @@ use pbr::ProgressBar;
 use rayon::prelude::*;
 use std::{
     cmp, env, fmt,
-    sync::{
-        atomic::{AtomicUsize, Ordering},
-        mpsc::{channel, RecvTimeoutError},
-        Arc,
-    },
+    sync::mpsc::{channel, RecvTimeoutError},
     thread,
     time::Duration,
 };
