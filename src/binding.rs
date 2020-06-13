@@ -208,6 +208,13 @@ extern "C" {
         src_size: c_int,
         dst_capacity: c_int,
     ) -> c_int;
+    pub fn LZ4_compress_HC_continue_destSize(
+        ptr: *mut LZ4StreamHC,
+        src: *const c_char,
+        dst: *mut c_char,
+        src_size_ptr: *mut c_int,
+        target_dst_size: c_int,
+    ) -> c_int;
     pub fn LZ4_setCompressionLevel(ptr: *mut LZ4StreamHC, compression_level: c_int);
     pub fn LZ4_favorDecompressionSpeed(ptr: *mut LZ4StreamHC, favor: c_int);
 

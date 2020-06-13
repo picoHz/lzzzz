@@ -1,6 +1,6 @@
 #![allow(unsafe_code)]
 
-use crate::{binding, binding::LZ4StreamHC, Error, Result};
+use crate::{binding, binding::LZ4StreamHC, Error, Report, Result};
 
 use crate::lz4_hc::CompressionLevel;
 use libc::{c_char, c_int, c_void, size_t};
@@ -55,8 +55,8 @@ impl CompressionContext {
         }
     }
 
-    pub fn next(&mut self, src: &[u8], dst: &mut [u8]) -> usize {
-        unsafe {
+    pub fn next(&mut self, src: &[u8], dst: &mut [u8]) -> Result<Report> {
+        let dst_len = unsafe {
             binding::LZ4_compress_HC_continue(
                 self.get_ptr(),
                 src.as_ptr() as *const c_char,
@@ -64,6 +64,36 @@ impl CompressionContext {
                 src.len() as c_int,
                 dst.len() as c_int,
             ) as usize
+        };
+        if dst_len > 0 {
+            Ok(Report {
+                dst_len,
+                ..Default::default()
+            })
+        } else {
+            Err(Error::Generic)
+        }
+    }
+
+    pub fn next_partial(&mut self, src: &[u8], dst: &mut [u8]) -> Result<Report> {
+        let mut src_len = src.len() as c_int;
+        let dst_len = unsafe {
+            binding::LZ4_compress_HC_continue_destSize(
+                self.get_ptr(),
+                src.as_ptr() as *const c_char,
+                dst.as_mut_ptr() as *mut c_char,
+                &mut src_len as *mut c_int,
+                dst.len() as c_int,
+            ) as usize
+        };
+        if dst_len > 0 {
+            Ok(Report {
+                dst_len,
+                src_len: Some(src_len as usize),
+                ..Default::default()
+            })
+        } else {
+            Err(Error::Generic)
         }
     }
 }

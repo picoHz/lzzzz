@@ -32,8 +32,7 @@ impl Report {
         self.src_len
     }
 
-    /// Return the length of the expected data capacity for the next operation.
-    pub const fn expected_len(&self) -> Option<usize> {
+    pub(crate) const fn expected_len(&self) -> Option<usize> {
         self.expected_len
     }
 }
