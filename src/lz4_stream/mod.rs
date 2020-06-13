@@ -92,6 +92,7 @@ impl<'a> StreamCompressor<'a> {
             CompressionMode::Acceleration { factor } => factor,
         };
         let src = src.into();
+        let src_is_empty = src.is_empty();
         let dst_len = self.ctx.next(&src, dst, acc);
         self.prev = src;
         if dst_len > 0 {
@@ -99,8 +100,8 @@ impl<'a> StreamCompressor<'a> {
                 dst_len,
                 ..Default::default()
             })
-        } else if src.is_empty() && dst.is_empty() {
-            Report::default()
+        } else if src_is_empty && dst.is_empty() {
+            Ok(Report::default())
         } else {
             Err(Error::Generic)
         }

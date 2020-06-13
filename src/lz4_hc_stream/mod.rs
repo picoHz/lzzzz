@@ -97,10 +97,12 @@ impl<'a> StreamCompressor<'a> {
         mode: CompressionMode,
     ) -> Result<Report> {
         let src = src.into();
-        match mode {
+        let result = match mode {
             CompressionMode::Default => self.ctx.next(&src, dst),
             _ => self.ctx.next_partial(&src, dst),
-        }
+        };
+        self.prev = src;
+        result
     }
 
     pub fn next_to_vec<S: Into<Cow<'a, [u8]>>>(

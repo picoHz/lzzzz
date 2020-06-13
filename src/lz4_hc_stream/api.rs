@@ -71,7 +71,7 @@ impl CompressionContext {
                 ..Default::default()
             })
         } else if src.is_empty() && dst.is_empty() {
-            Report::default()
+            Ok(Report::default())
         } else {
             Err(Error::Generic)
         }
@@ -95,7 +95,7 @@ impl CompressionContext {
                 ..Default::default()
             })
         } else if src.is_empty() && dst.is_empty() {
-            Report::default()
+            Ok(Report::default())
         } else {
             Err(Error::Generic)
         }
