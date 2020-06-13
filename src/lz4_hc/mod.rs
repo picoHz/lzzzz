@@ -283,23 +283,23 @@ mod tests {
         );
 
         let mut sorted = vec![
-            CompressionLevel::Custom(i32::MIN),
+            CompressionLevel::Custom(std::i32::MIN),
             CompressionLevel::Min,
             CompressionLevel::Default,
             CompressionLevel::OptMin,
             CompressionLevel::Max,
-            CompressionLevel::Custom(i32::MAX),
+            CompressionLevel::Custom(std::i32::MAX),
         ];
         sorted.sort_unstable();
         assert_eq!(
             sorted,
             vec![
-                CompressionLevel::Custom(i32::MIN),
+                CompressionLevel::Custom(std::i32::MIN),
                 CompressionLevel::Min,
                 CompressionLevel::Default,
                 CompressionLevel::OptMin,
                 CompressionLevel::Max,
-                CompressionLevel::Custom(i32::MAX),
+                CompressionLevel::Custom(std::i32::MAX),
             ]
         );
     }

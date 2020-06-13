@@ -323,7 +323,7 @@ impl PreferencesBuilder {
     /// Set the compression level.
     pub fn compression_level(mut self, level: CompressionLevel) -> Self {
         // Workaround for the integer overflow bug in liblz4.
-        const MIN_COMPRESSION_LEVEL: i32 = -33554430;
+        const MIN_COMPRESSION_LEVEL: i32 = -33_554_430;
         self.pref.compression_level = cmp::max(level.as_i32(), MIN_COMPRESSION_LEVEL) as c_int;
         self
     }
@@ -457,7 +457,7 @@ pub fn decompress_to_vec(src: &[u8], dst: &mut Vec<u8>) -> Result<Report> {
     })
 }
 
-/// Resolve a dictinary data from a dictionary id.
+/// Resolve a dictionary data from a dictionary id.
 pub trait DictResolver<'a> {
     fn resolve(dict_id: u32) -> Result<&'a [u8]>;
 }
@@ -472,11 +472,121 @@ thread_local!(static DECOMPRESSION_CTX: RefCell<DecompressionContext> = RefCell:
 
 #[cfg(test)]
 mod tests {
-    use crate::lz4f::{CompressionLevel, Preferences, PreferencesBuilder};
+    use crate::lz4f::{
+        BlockChecksum, BlockMode, BlockSize, CompressionLevel, ContentChecksum, FavorDecSpeed,
+        Preferences, PreferencesBuilder,
+    };
 
     #[test]
     fn preferences_default() {
         assert_eq!(PreferencesBuilder::new().build(), Preferences::default());
+        assert_eq!(
+            PreferencesBuilder::new()
+                .favor_dec_speed(FavorDecSpeed::Enabled)
+                .build()
+                .favor_dec_speed,
+            FavorDecSpeed::Enabled
+        );
+        assert_eq!(
+            PreferencesBuilder::new()
+                .block_size(BlockSize::Max64KB)
+                .build()
+                .frame_info
+                .block_size,
+            BlockSize::Max64KB
+        );
+        assert_eq!(
+            PreferencesBuilder::new()
+                .block_size(BlockSize::Max256KB)
+                .build()
+                .frame_info
+                .block_size,
+            BlockSize::Max256KB
+        );
+        assert_eq!(
+            PreferencesBuilder::new()
+                .block_size(BlockSize::Max1MB)
+                .build()
+                .frame_info
+                .block_size,
+            BlockSize::Max1MB
+        );
+        assert_eq!(
+            PreferencesBuilder::new()
+                .block_size(BlockSize::Max4MB)
+                .build()
+                .frame_info
+                .block_size,
+            BlockSize::Max4MB
+        );
+        assert_eq!(
+            PreferencesBuilder::new()
+                .content_checksum(ContentChecksum::Enabled)
+                .build()
+                .frame_info
+                .content_checksum,
+            ContentChecksum::Enabled
+        );
+        assert_eq!(
+            PreferencesBuilder::new()
+                .block_mode(BlockMode::Independent)
+                .build()
+                .frame_info
+                .block_mode,
+            BlockMode::Independent
+        );
+        assert_eq!(
+            PreferencesBuilder::new()
+                .compression_level(CompressionLevel::Custom(std::i32::MAX))
+                .build()
+                .compression_level,
+            CompressionLevel::Custom(std::i32::MAX).as_i32()
+        );
+        assert_eq!(
+            PreferencesBuilder::new()
+                .compression_level(CompressionLevel::High)
+                .build()
+                .compression_level,
+            CompressionLevel::High.as_i32()
+        );
+        assert_eq!(
+            PreferencesBuilder::new()
+                .compression_level(CompressionLevel::Max)
+                .build()
+                .compression_level,
+            CompressionLevel::Max.as_i32()
+        );
+        assert_eq!(
+            PreferencesBuilder::new()
+                .compression_level(CompressionLevel::Custom(std::i32::MIN))
+                .build()
+                .compression_level,
+            -33_554_430
+        );
+        assert_eq!(
+            PreferencesBuilder::new()
+                .block_checksum(BlockChecksum::Enabled)
+                .build()
+                .frame_info
+                .block_checksum,
+            BlockChecksum::Enabled
+        );
+        assert_eq!(
+            PreferencesBuilder::new()
+                .dict_id(std::u32::MAX)
+                .build()
+                .frame_info
+                .dict_id,
+            std::u32::MAX
+        );
+        assert_eq!(
+            PreferencesBuilder::new()
+                .dict_id(std::u32::MIN)
+                .build()
+                .frame_info
+                .dict_id,
+            std::u32::MIN
+        );
     }
 
     #[test]
@@ -496,21 +606,21 @@ mod tests {
         );
 
         let mut sorted = vec![
-            CompressionLevel::Custom(i32::MAX),
+            CompressionLevel::Custom(std::i32::MAX),
             CompressionLevel::Max,
             CompressionLevel::High,
             CompressionLevel::Default,
-            CompressionLevel::Custom(i32::MIN),
+            CompressionLevel::Custom(std::i32::MIN),
         ];
         sorted.sort_unstable();
         assert_eq!(
             sorted,
             vec![
-                CompressionLevel::Custom(i32::MIN),
+                CompressionLevel::Custom(std::i32::MIN),
                 CompressionLevel::Default,
                 CompressionLevel::High,
                 CompressionLevel::Max,
-                CompressionLevel::Custom(i32::MAX),
+                CompressionLevel::Custom(std::i32::MAX),
             ]
         );
     }
