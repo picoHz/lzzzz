@@ -3,7 +3,9 @@
 use super::Dictionary;
 use crate::{
     binding,
-    binding::{LZ4FCompressionCtx, LZ4FCompressionDict, LZ4FCompressionOptions},
+    binding::{
+        LZ4FCompressionCtx, LZ4FCompressionDict, LZ4FCompressionOptions, LZ4FDecompressionCtx,
+    },
     common,
     lz4f::Preferences,
     Error, Result,
@@ -32,9 +34,10 @@ impl CompressionContext {
                 binding::LZ4F_getVersion(),
             );
             common::result_from_code(code).and_then(|_| {
-                NonNull::new(ctx.assume_init())
-                    .ok_or(Error::NullPointerUnexprected)
-                    .map(|ctx| Self { ctx, dict })
+                Ok(Self {
+                    ctx: NonNull::new(ctx.assume_init()).ok_or(Error::NullPointerUnexprected)?,
+                    dict,
+                })
             })
         }
     }
@@ -111,6 +114,41 @@ impl Drop for CompressionContext {
     fn drop(&mut self) {
         unsafe {
             binding::LZ4F_freeCompressionContext(self.ctx.as_ptr());
+        }
+    }
+}
+
+pub struct DecompressionContext {
+    ctx: NonNull<LZ4FDecompressionCtx>,
+}
+
+impl DecompressionContext {
+    pub fn new() -> Result<Self> {
+        let mut ctx = MaybeUninit::<*mut LZ4FDecompressionCtx>::uninit();
+        unsafe {
+            let code = binding::LZ4F_createDecompressionContext(
+                ctx.as_ptr() as *mut *mut binding::LZ4FDecompressionCtx,
+                binding::LZ4F_getVersion(),
+            );
+            common::result_from_code(code).and_then(|_| {
+                Ok(Self {
+                    ctx: NonNull::new(ctx.assume_init()).ok_or(Error::NullPointerUnexprected)?,
+                })
+            })
+        }
+    }
+
+    pub fn reset(&mut self) {
+        unsafe {
+            binding::LZ4F_resetDecompressionContext(self.ctx.as_ptr());
+        }
+    }
+}
+
+impl Drop for DecompressionContext {
+    fn drop(&mut self) {
+        unsafe {
+            binding::LZ4F_freeDecompressionContext(self.ctx.as_ptr());
         }
     }
 }

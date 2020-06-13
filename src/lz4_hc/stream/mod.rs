@@ -48,8 +48,8 @@ pub struct StreamCompressor<'a> {
 
 impl<'a> StreamCompressor<'a> {
     pub fn new() -> Result<Self> {
-        CompressionContext::new().map(|ctx| Self {
-            ctx,
+        Ok(Self {
+            ctx: CompressionContext::new()?,
             compression_level: CompressionLevel::Default,
             dict: Cow::Borrowed(&[]),
             prev: Cow::Borrowed(&[]),

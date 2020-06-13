@@ -41,9 +41,9 @@ impl DecompressionContext {
                 binding::LZ4F_getVersion(),
             );
             common::result_from_code(code).and_then(|_| {
-                NonNull::new(ctx.assume_init())
-                    .ok_or(Error::NullPointerUnexprected)
-                    .map(|ctx| Self { ctx })
+                Ok(Self {
+                    ctx: NonNull::new(ctx.assume_init()).ok_or(Error::NullPointerUnexprected)?,
+                })
             })
         }
     }

@@ -6,7 +6,7 @@ use crate::{
     lz4f::{FrameInfo, Preferences},
     Result,
 };
-use api::{CompressionContext, DictionaryHandle, LZ4Buffer};
+use api::{CompressionContext, DecompressionContext, DictionaryHandle, LZ4Buffer};
 use std::{borrow::Cow, cmp, io, ops, sync::Arc};
 
 #[cfg(feature = "tokio-io")]
@@ -256,6 +256,7 @@ enum DecompressorState {
 /// and writer.
 pub struct StreamDecompressor<'a, D> {
     device: D,
+    ctx: DecompressionContext,
     state: DecompressorState,
     dict: Cow<'a, [u8]>,
 }
@@ -264,6 +265,7 @@ impl<'a, D> StreamDecompressor<'a, D> {
     pub fn new(device: D) -> Result<Self> {
         Ok(Self {
             device,
+            ctx: DecompressionContext::new()?,
             state: DecompressorState::Created,
             dict: Cow::Borrowed(&[]),
         })
@@ -271,6 +273,10 @@ impl<'a, D> StreamDecompressor<'a, D> {
 
     pub fn load_dict(&mut self, dict: Cow<'a, [u8]>) {
         self.dict = dict;
+    }
+
+    pub fn reset(&mut self) {
+        self.ctx.reset();
     }
 
     pub fn frame_info(&mut self) -> Result<FrameInfo> {
