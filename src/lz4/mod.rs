@@ -266,20 +266,3 @@ pub fn decompress(src: &[u8], dst: &mut [u8], mode: &DecompressionMode) -> Resul
         Err(Error::Generic)
     }
 }
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn aaa() {
-        use crate::lz4;
-
-        let data = b"QUATRE HEURES.";
-        let mut buf = Vec::new();
-
-        lz4::compress_to_vec(
-            data,
-            &mut buf,
-            &lz4::CompressionMode::Acceleration { factor: 20 },
-        );
-    }
-}

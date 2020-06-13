@@ -149,7 +149,7 @@ pub enum FavorDecSpeed {
 }
 
 /// LZ4 Frame parameters
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
 #[repr(C)]
 pub struct FrameInfo {
     block_size: BlockSize,
@@ -238,7 +238,7 @@ impl Default for CompressionLevel {
 }
 
 /// Compression preferences
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
 #[repr(C)]
 pub struct Preferences {
     frame_info: FrameInfo,
@@ -463,3 +463,30 @@ pub trait BufAllocator {
 pub struct Decompressor {}
 
 thread_local!(static DECOMPRESSION_CTX: RefCell<DecompressionContext> = RefCell::new(DecompressionContext::new().unwrap()));
+
+#[cfg(test)]
+mod tests {
+    use crate::lz4f::{CompressionLevel, Preferences, PreferencesBuilder};
+
+    #[test]
+    fn preferences_default() {
+        assert_eq!(PreferencesBuilder::new().build(), Preferences::default());
+    }
+
+    #[test]
+    fn compression_level() {
+        assert_eq!(CompressionLevel::Default, CompressionLevel::default());
+        assert_eq!(
+            CompressionLevel::Default.as_i32(),
+            CompressionLevel::Custom(0).as_i32()
+        );
+        assert_eq!(
+            CompressionLevel::High.as_i32(),
+            CompressionLevel::Custom(10).as_i32()
+        );
+        assert_eq!(
+            CompressionLevel::Max.as_i32(),
+            CompressionLevel::Custom(12).as_i32()
+        );
+    }
+}
