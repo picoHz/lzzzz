@@ -62,8 +62,6 @@ impl<'a> StreamCompressor<'a> {
 
     /// LZ4 Streaming Compressor/Decompressor
     ///
-    /// If `dst` is empty, this function fails even if `src` is also empty.
-    ///
     /// # Example
     /// ```
     /// use lzzzz::{lz4, lz4_hc, lz4_hc_stream};
@@ -99,6 +97,9 @@ impl<'a> StreamCompressor<'a> {
         mode: CompressionMode,
     ) -> Result<Report> {
         let src = src.into();
+        if src.is_empty() && dst.is_empty() {
+            return Ok(Report::default());
+        }
         match mode {
             CompressionMode::Default => self.ctx.next(&src, dst),
             _ => self.ctx.next_partial(&src, dst),
