@@ -22,7 +22,7 @@
 //! # let len = lz4::decompress(
 //! #     compressed,
 //! #     &mut buf[..data.len()],
-//! #     &lz4::DecompressionMode::Default,
+//! #     lz4::DecompressionMode::Default,
 //! # )
 //! # .unwrap()
 //! # .dst_len();
@@ -31,10 +31,9 @@
 
 mod api;
 
-use crate::lz4;
-use crate::lz4_hc::CompressionLevel;
-use crate::lz4_hc_stream::api::CompressionContext;
-use crate::{Error, Report, Result};
+use crate::{
+    lz4, lz4_hc::CompressionLevel, lz4_hc_stream::api::CompressionContext, Error, Report, Result,
+};
 use std::borrow::Cow;
 
 pub struct StreamCompressor<'a> {
@@ -50,7 +49,7 @@ impl<'a> StreamCompressor<'a> {
         })
     }
 
-    pub fn set_compression_level(&mut self, level: &CompressionLevel) {
+    pub fn set_compression_level(&mut self, level: CompressionLevel) {
         self.ctx.set_compression_level(level.as_i32());
     }
 
@@ -72,16 +71,14 @@ impl<'a> StreamCompressor<'a> {
     /// // The slice should have enough space.
     /// assert!(buf.len() >= lz4::max_compressed_size(data.len()));
     ///
-    /// let len = stream.next(data, &mut buf)
-    ///     .unwrap()
-    ///     .dst_len();
+    /// let len = stream.next(data, &mut buf).unwrap().dst_len();
     /// let compressed = &buf[..len];
     ///
     /// # let mut buf = [0u8; 2048];
     /// # let len = lz4::decompress(
     /// #     compressed,
     /// #     &mut buf[..data.len()],
-    /// #     &lz4::DecompressionMode::Default,
+    /// #     lz4::DecompressionMode::Default,
     /// # )
     /// # .unwrap()
     /// # .dst_len();

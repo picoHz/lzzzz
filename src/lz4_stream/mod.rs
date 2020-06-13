@@ -9,14 +9,14 @@
 //! let data = &b"aaaaa"[..];
 //! let mut buf = Vec::new();
 //!
-//! stream.next_to_vec(data, &mut buf, &lz4::CompressionMode::Default);
+//! stream.next_to_vec(data, &mut buf, lz4::CompressionMode::Default);
 //!
 //! # let compressed = &buf;
 //! # let mut buf = [0u8; 2048];
 //! # let len = lz4::decompress(
 //! #     compressed,
 //! #     &mut buf[..data.len()],
-//! #     &lz4::DecompressionMode::Default,
+//! #     lz4::DecompressionMode::Default,
 //! # )
 //! # .unwrap()
 //! # .dst_len();
@@ -65,7 +65,8 @@ impl<'a> StreamCompressor<'a> {
     /// // The slice should have enough space.
     /// assert!(buf.len() >= lz4::max_compressed_size(data.len()));
     ///
-    /// let len = stream.next(data, &mut buf, &lz4::CompressionMode::Default)
+    /// let len = stream
+    ///     .next(data, &mut buf, lz4::CompressionMode::Default)
     ///     .unwrap()
     ///     .dst_len();
     /// let compressed = &buf[..len];
@@ -74,7 +75,7 @@ impl<'a> StreamCompressor<'a> {
     /// # let len = lz4::decompress(
     /// #     compressed,
     /// #     &mut buf[..data.len()],
-    /// #     &lz4::DecompressionMode::Default,
+    /// #     lz4::DecompressionMode::Default,
     /// # )
     /// # .unwrap()
     /// # .dst_len();
@@ -84,11 +85,11 @@ impl<'a> StreamCompressor<'a> {
         &mut self,
         src: S,
         dst: &mut [u8],
-        mode: &CompressionMode,
+        mode: CompressionMode,
     ) -> Result<Report> {
         let acc = match mode {
             CompressionMode::Default => 1,
-            CompressionMode::Acceleration { factor } => *factor,
+            CompressionMode::Acceleration { factor } => factor,
         };
         let src = src.into();
         let dst_len = self.ctx.next(&src, dst, acc);
@@ -107,7 +108,7 @@ impl<'a> StreamCompressor<'a> {
         &mut self,
         src: S,
         dst: &mut Vec<u8>,
-        mode: &CompressionMode,
+        mode: CompressionMode,
     ) -> Result<Report> {
         let src = src.into();
         let orig_len = dst.len();
@@ -129,22 +130,21 @@ impl<'a> StreamCompressor<'a> {
 mod tests {
     #[test]
     fn compression_context() {
-        use crate::lz4;
-        use crate::lz4_stream;
+        use crate::{lz4, lz4_stream};
 
         let mut stream = lz4_stream::StreamCompressor::new().unwrap();
 
         let data = &b"aaaaa"[..];
         let mut buf = Vec::new();
 
-        stream.next_to_vec(data, &mut buf, &lz4::CompressionMode::Default);
+        stream.next_to_vec(data, &mut buf, lz4::CompressionMode::Default);
 
         let compressed = &buf;
         let mut buf = [0u8; 2048];
         let len = lz4::decompress(
             compressed,
             &mut buf[..data.len()],
-            &lz4::DecompressionMode::Default,
+            lz4::DecompressionMode::Default,
         )
         .unwrap()
         .dst_len();

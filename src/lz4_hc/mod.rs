@@ -87,8 +87,8 @@ impl CompressionLevel {
 /// let len = lz4_hc::compress(
 ///     data.as_bytes(),
 ///     &mut buf,
-///     &lz4_hc::CompressionMode::Default,
-///     &lz4_hc::CompressionLevel::Default,
+///     lz4_hc::CompressionMode::Default,
+///     lz4_hc::CompressionLevel::Default,
 /// )
 /// .unwrap().dst_len();
 /// let compressed = &buf[..len];
@@ -97,7 +97,7 @@ impl CompressionLevel {
 /// # let len = lz4::decompress(
 /// #     compressed,
 /// #     &mut buf[..data.len()],
-/// #     &lz4::DecompressionMode::Default,
+/// #     lz4::DecompressionMode::Default,
 /// # )
 /// # .unwrap().dst_len();
 /// # assert_eq!(&buf[..len], data.as_bytes());
@@ -114,8 +114,8 @@ impl CompressionLevel {
 /// let result = lz4_hc::compress(
 ///     data.as_bytes(),
 ///     &mut buf,
-///     &lz4_hc::CompressionMode::Partial,
-///     &lz4_hc::CompressionLevel::Default,
+///     lz4_hc::CompressionMode::Partial,
+///     lz4_hc::CompressionLevel::Default,
 /// )
 /// .unwrap();
 ///
@@ -128,7 +128,7 @@ impl CompressionLevel {
 /// # let len = lz4::decompress(
 /// #     compressed,
 /// #     &mut buf[..comsumed],
-/// #     &lz4::DecompressionMode::Default,
+/// #     lz4::DecompressionMode::Default,
 /// # )
 /// # .unwrap().dst_len();
 /// # let compressed = &buf[..len];
@@ -137,8 +137,8 @@ impl CompressionLevel {
 pub fn compress(
     src: &[u8],
     dst: &mut [u8],
-    mode: &CompressionMode,
-    compression_level: &CompressionLevel,
+    mode: CompressionMode,
+    compression_level: CompressionLevel,
 ) -> Result<Report> {
     let result = ExtState::with(|state, reset| match mode {
         CompressionMode::Default => {
@@ -195,15 +195,17 @@ pub fn compress(
 /// lz4_hc::compress_to_vec(
 ///     data.as_bytes(),
 ///     &mut buf,
-///     &lz4_hc::CompressionMode::Default,
-///     &lz4_hc::CompressionLevel::Default,
+///     lz4_hc::CompressionMode::Default,
+///     lz4_hc::CompressionLevel::Default,
 /// );
+///
+/// # use lzzzz::lz4;
 /// # let compressed = &buf;
 /// # let mut buf = [0u8; 2048];
 /// # let len = lzzzz::lz4::decompress(
 /// #     compressed,
 /// #     &mut buf[..data.len()],
-/// #     &lzzzz::lz4::DecompressionMode::Default,
+/// #     lz4::DecompressionMode::Default,
 /// # )
 /// # .unwrap().dst_len();
 /// # assert_eq!(&buf[..len], data.as_bytes());
@@ -220,15 +222,17 @@ pub fn compress(
 /// lz4_hc::compress_to_vec(
 ///     data.as_bytes(),
 ///     &mut buf,
-///     &lz4_hc::CompressionMode::Default,
-///     &lz4_hc::CompressionLevel::Max,
+///     lz4_hc::CompressionMode::Default,
+///     lz4_hc::CompressionLevel::Max,
 /// );
+///
+/// # use lzzzz::lz4;
 /// # let compressed = &buf;
 /// # let mut buf = [0u8; 2048];
 /// # let len = lzzzz::lz4::decompress(
 /// #     compressed,
 /// #     &mut buf[..data.len()],
-/// #     &lzzzz::lz4::DecompressionMode::Default,
+/// #     lz4::DecompressionMode::Default,
 /// # )
 /// # .unwrap().dst_len();
 /// # assert_eq!(&buf[..len], data.as_bytes());
@@ -236,8 +240,8 @@ pub fn compress(
 pub fn compress_to_vec(
     src: &[u8],
     dst: &mut Vec<u8>,
-    mode: &CompressionMode,
-    compression_level: &CompressionLevel,
+    mode: CompressionMode,
+    compression_level: CompressionLevel,
 ) -> Result<Report> {
     let orig_len = dst.len();
     dst.reserve(crate::lz4::max_compressed_size(src.len()));
@@ -248,7 +252,7 @@ pub fn compress_to_vec(
     let result = compress(
         src,
         &mut dst[orig_len..],
-        &CompressionMode::Default,
+        CompressionMode::Default,
         compression_level,
     );
     dst.resize_with(

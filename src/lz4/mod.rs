@@ -47,7 +47,7 @@ pub fn max_compressed_size(uncompressed_size: usize) -> usize {
 /// // The slice should have enough space.
 /// assert!(buf.len() >= lz4::max_compressed_size(data.len()));
 ///
-/// let len = lz4::compress(data, &mut buf, &lz4::CompressionMode::Default)
+/// let len = lz4::compress(data, &mut buf, lz4::CompressionMode::Default)
 ///     .unwrap()
 ///     .dst_len();
 /// let compressed = &buf[..len];
@@ -55,13 +55,13 @@ pub fn max_compressed_size(uncompressed_size: usize) -> usize {
 /// # let mut buf = [0u8; 2048];
 /// # let len = lz4::decompress(compressed,
 /// #    &mut buf[..data.len()],
-/// #    &lz4::DecompressionMode::Default).unwrap().dst_len();
+/// #    lz4::DecompressionMode::Default).unwrap().dst_len();
 /// # assert_eq!(&buf[..len], &data[..]);
 /// ```
-pub fn compress(src: &[u8], dst: &mut [u8], mode: &CompressionMode) -> Result<Report> {
+pub fn compress(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> Result<Report> {
     let acc = match mode {
         CompressionMode::Default => 1,
-        CompressionMode::Acceleration { factor } => *factor,
+        CompressionMode::Acceleration { factor } => factor,
     };
     let len = ExtState::with(|state, reset| {
         let mut state = state.borrow_mut();
@@ -92,12 +92,12 @@ pub fn compress(src: &[u8], dst: &mut [u8], mode: &CompressionMode) -> Result<Re
 /// let data = "En vérité, ne ferait-on pas, pour moins que cela, le Tour du Monde ?";
 /// let mut buf = Vec::new();
 ///
-/// lz4::compress_to_vec(data.as_bytes(), &mut buf, &lz4::CompressionMode::Default);
+/// lz4::compress_to_vec(data.as_bytes(), &mut buf, lz4::CompressionMode::Default);
 /// # let compressed = &buf;
 /// # let mut buf = [0u8; 2048];
 /// # let len = lz4::decompress(compressed,
 /// #    &mut buf[..data.len()],
-/// #    &lz4::DecompressionMode::Default).unwrap().dst_len();
+/// #    lz4::DecompressionMode::Default).unwrap().dst_len();
 /// # assert_eq!(&buf[..len], data.as_bytes());
 /// ```
 ///
@@ -112,14 +112,14 @@ pub fn compress(src: &[u8], dst: &mut [u8], mode: &CompressionMode) -> Result<Re
 /// let mut buf = Vec::from(&header[..]);
 ///
 /// let data = b"Cito et velociter!";
-/// lz4::compress_to_vec(data, &mut buf, &lz4::CompressionMode::Default);
+/// lz4::compress_to_vec(data, &mut buf, lz4::CompressionMode::Default);
 /// assert!(buf.starts_with(header) && buf.len() > header.len());
 ///
 /// # let compressed = &buf[header.len()..];
 /// # let mut buf = [0u8; 2048];
 /// # let len = lz4::decompress(compressed,
 ///     &mut buf[..data.len()],
-///     &lz4::DecompressionMode::Default).unwrap().dst_len();
+///     lz4::DecompressionMode::Default).unwrap().dst_len();
 /// # assert_eq!(&buf[..len], &data[..]);
 /// ```
 ///
@@ -140,17 +140,17 @@ pub fn compress(src: &[u8], dst: &mut [u8], mode: &CompressionMode) -> Result<Re
 /// lz4::compress_to_vec(
 ///     data,
 ///     &mut buf,
-///     &lz4::CompressionMode::Acceleration { factor: 20 },
+///     lz4::CompressionMode::Acceleration { factor: 20 },
 /// );
 ///
 /// # let compressed = &buf;
 /// # let mut buf = [0u8; 2048];
 /// # let len = lz4::decompress(compressed,
 ///     &mut buf[..data.len()],
-///     &lz4::DecompressionMode::Default).unwrap().dst_len();
+///     lz4::DecompressionMode::Default).unwrap().dst_len();
 /// # assert_eq!(&buf[..len], &data[..]);
 /// ```
-pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, mode: &CompressionMode) -> Result<Report> {
+pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, mode: CompressionMode) -> Result<Report> {
     let orig_len = dst.len();
     dst.reserve(max_compressed_size(src.len()));
     #[allow(unsafe_code)]
@@ -214,7 +214,7 @@ impl<'a> Default for DecompressionMode<'a> {
 /// ];
 ///
 /// let mut buf = [0u8; ORIGINAL_SIZE];
-/// lz4::decompress(&data[..], &mut buf[..], &lz4::DecompressionMode::Default);
+/// lz4::decompress(&data[..], &mut buf[..], lz4::DecompressionMode::Default);
 ///
 /// assert_eq!(
 ///     &buf[..],
@@ -241,22 +241,22 @@ impl<'a> Default for DecompressionMode<'a> {
 /// lz4::decompress(
 ///     &data[..],
 ///     &mut buf[..],
-///     &lz4::DecompressionMode::Partial {
+///     lz4::DecompressionMode::Partial {
 ///         uncompressed_size: ORIGINAL_SIZE,
 ///     },
 /// );
 ///
 /// assert_eq!(&buf[..], b"Alb. The weight of this sad ti");
 /// ```
-pub fn decompress(src: &[u8], dst: &mut [u8], mode: &DecompressionMode) -> Result<Report> {
+pub fn decompress(src: &[u8], dst: &mut [u8], mode: DecompressionMode) -> Result<Report> {
     match mode {
         DecompressionMode::Default => api::decompress_safe(src, dst),
         DecompressionMode::Partial { uncompressed_size } => {
-            api::decompress_safe_partial(src, dst, *uncompressed_size)
+            api::decompress_safe_partial(src, dst, uncompressed_size)
         }
-        DecompressionMode::Dictionary { data } => api::decompress_safe_using_dict(src, dst, data),
+        DecompressionMode::Dictionary { data } => api::decompress_safe_using_dict(src, dst, &data),
         DecompressionMode::DictionaryLeadingDst { len } => {
-            let (dict, dst) = dst.split_at_mut(*len);
+            let (dict, dst) = dst.split_at_mut(len);
             api::decompress_safe_using_dict(src, dst, dict)
         }
     }
