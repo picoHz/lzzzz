@@ -11,7 +11,7 @@ steps:
     installNightly: false
 - task: Cargo@1
   inputs:
-    cargoCommand: 'test --all-features --release'
+    cargoCommand: 'test --release'
     verbose: false
   displayName: Cargo
   env:
