@@ -140,6 +140,9 @@ pub fn compress(
     mode: CompressionMode,
     compression_level: CompressionLevel,
 ) -> Result<Report> {
+    if src.is_empty() && dst.is_empty() {
+        return Ok(Report::default());
+    }
     let result = ExtState::with(|state, reset| match mode {
         CompressionMode::Default => {
             if reset {
@@ -167,6 +170,8 @@ pub fn compress(
     });
     if result.dst_len() > 0 {
         Ok(result)
+    } else if src.is_empty() && dst.is_empty() {
+        Report::default()
     } else {
         Err(Error::Generic)
     }

@@ -70,6 +70,8 @@ impl CompressionContext {
                 dst_len,
                 ..Default::default()
             })
+        } else if src.is_empty() && dst.is_empty() {
+            Report::default()
         } else {
             Err(Error::Generic)
         }
@@ -92,6 +94,8 @@ impl CompressionContext {
                 src_len: Some(src_len as usize),
                 ..Default::default()
             })
+        } else if src.is_empty() && dst.is_empty() {
+            Report::default()
         } else {
             Err(Error::Generic)
         }

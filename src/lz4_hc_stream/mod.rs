@@ -97,9 +97,6 @@ impl<'a> StreamCompressor<'a> {
         mode: CompressionMode,
     ) -> Result<Report> {
         let src = src.into();
-        if src.is_empty() && dst.is_empty() {
-            return Ok(Report::default());
-        }
         match mode {
             CompressionMode::Default => self.ctx.next(&src, dst),
             _ => self.ctx.next_partial(&src, dst),

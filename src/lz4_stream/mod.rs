@@ -87,14 +87,11 @@ impl<'a> StreamCompressor<'a> {
         dst: &mut [u8],
         mode: CompressionMode,
     ) -> Result<Report> {
-        let src = src.into();
-        if src.is_empty() && dst.is_empty() {
-            return Ok(Report::default());
-        }
         let acc = match mode {
             CompressionMode::Default => 1,
             CompressionMode::Acceleration { factor } => factor,
         };
+        let src = src.into();
         let dst_len = self.ctx.next(&src, dst, acc);
         self.prev = src;
         if dst_len > 0 {
@@ -102,6 +99,8 @@ impl<'a> StreamCompressor<'a> {
                 dst_len,
                 ..Default::default()
             })
+        } else if src.is_empty() && dst.is_empty() {
+            Report::default()
         } else {
             Err(Error::Generic)
         }
