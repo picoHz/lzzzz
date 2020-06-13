@@ -34,6 +34,7 @@ where
             };
             pb.tick();
         }
+        pb.set(count);
         pb.finish_print("done");
     });
 

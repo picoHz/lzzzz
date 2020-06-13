@@ -15,4 +15,4 @@ steps:
     verbose: false
   displayName: Cargo
   env:
-    LZZZZ_FUZZER_ITERATION: 1000000
+    LZZZZ_FUZZER_ITERATION: 100000
