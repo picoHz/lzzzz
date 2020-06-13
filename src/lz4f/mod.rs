@@ -420,6 +420,14 @@ pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, prefs: &Preferences) -> Re
     result
 }
 
+pub fn get_frame_info(src: &[u8], dst: &mut [u8]) -> Result<(FrameInfo, usize)> {
+    DECOMPRESSION_CTX.with(|ctx| {
+        let mut ctx = ctx.borrow_mut();
+        ctx.reset();
+        ctx.get_frame_info(src)
+    })
+}
+
 pub fn decompress(src: &[u8], dst: &mut [u8]) -> Result<Report> {
     DECOMPRESSION_CTX.with(|ctx| {
         let mut ctx = ctx.borrow_mut();

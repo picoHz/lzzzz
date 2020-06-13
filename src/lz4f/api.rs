@@ -48,7 +48,7 @@ impl DecompressionContext {
         }
     }
 
-    pub fn get_frame_info(&mut self, src: &[u8]) -> Result<(FrameInfo, Report)> {
+    pub fn get_frame_info(&mut self, src: &[u8]) -> Result<(FrameInfo, usize)> {
         let mut info = MaybeUninit::<FrameInfo>::uninit();
         let mut src_len = src.len() as size_t;
         let code = unsafe {
@@ -59,16 +59,7 @@ impl DecompressionContext {
                 &mut src_len as *mut size_t,
             )
         };
-        common::result_from_code(code).map(|_| {
-            (
-                unsafe { info.assume_init() },
-                Report {
-                    src_len: Some(src_len as usize),
-                    dst_len: 0,
-                    expected_src_len: Some(code as usize),
-                },
-            )
-        })
+        common::result_from_code(code).map(|_| (unsafe { info.assume_init() }, src_len as usize))
     }
 
     pub fn decompress(&mut self, src: &[u8], dst: &mut [u8], stable_dst: bool) -> Result<Report> {
