@@ -53,7 +53,7 @@ impl<'a> StreamCompressor<'a> {
 
     /// LZ4 Streaming Compressor/Decompressor
     ///
-    /// If `dst` is empty, this function always fails.
+    /// If `dst` is empty, this function fails even if `src` is also empty.
     ///
     /// # Example
     /// ```
