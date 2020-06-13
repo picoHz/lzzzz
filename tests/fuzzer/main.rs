@@ -47,7 +47,7 @@ where
                 .into_par_iter()
                 .map(func)
                 .find_map_any(|result| result.err());
-            tx.send(len).unwrap();
+            let _ = tx.send(len);
             err
         })
         .find_map_any(|err| err);
