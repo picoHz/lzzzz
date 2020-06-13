@@ -34,7 +34,7 @@ mod api;
 use crate::{
     lz4,
     lz4_hc::{CompressionLevel, CompressionMode},
-    Error, Report, Result,
+    Report, Result,
 };
 use api::CompressionContext;
 use std::borrow::Cow;
@@ -147,10 +147,7 @@ impl<'a> StreamCompressor<'a> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        lz4_hc::{CompressionMode, StreamCompressor},
-        Error,
-    };
+    use crate::lz4_hc::{CompressionMode, StreamCompressor};
 
     #[test]
     fn empty_dst() {

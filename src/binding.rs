@@ -273,7 +273,6 @@ extern "C" {
     pub fn LZ4F_freeCDict(dict: *mut LZ4FCompressionDict);
 
     pub fn LZ4F_isError(code: size_t) -> c_uint;
-    pub fn LZ4F_getErrorName(code: size_t) -> *const c_char;
 
     pub fn LZ4F_createCompressionContext(
         ctx: *mut *mut LZ4FCompressionCtx,

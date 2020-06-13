@@ -109,11 +109,3 @@ impl Drop for DecompressionContext {
         }
     }
 }
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn compression_context() {
-        println!("{}", super::CompressionContext::new().is_ok());
-    }
-}

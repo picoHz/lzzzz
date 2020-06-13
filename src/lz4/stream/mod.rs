@@ -168,10 +168,7 @@ impl<'a> StreamDecompressor<'a> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        lz4::{CompressionMode, StreamCompressor},
-        Error,
-    };
+    use crate::lz4::{CompressionMode, StreamCompressor};
 
     #[test]
     fn empty_dst() {

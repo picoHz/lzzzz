@@ -46,9 +46,9 @@ impl Default for CompressionLevel {
 }
 
 impl CompressionLevel {
-    pub(crate) fn as_i32(&self) -> i32 {
+    pub(crate) fn as_i32(self) -> i32 {
         match self {
-            Self::Custom(level) => *level,
+            Self::Custom(level) => level,
             Self::Min => 3,
             Self::Default => 9,
             Self::OptMin => 10,
