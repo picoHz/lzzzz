@@ -26,12 +26,11 @@ where
     thread::spawn(move || {
         let mut pb = ProgressBar::new(count);
         while !pb.is_finish {
-            match rx.recv_timeout(Duration::from_millis(400)) {
+            match rx.recv() {
                 Ok(n) => {
                     pb.add(n);
                 }
-                Err(RecvTimeoutError::Timeout) => (),
-                Err(RecvTimeoutError::Disconnected) => break,
+                Err(_) => break,
             };
             pb.tick();
         }

@@ -21,6 +21,9 @@ enum CompressorState<D> {
     ReadActive {
         buffered: ops::Range<usize>,
     },
+    ReadEof {
+        buffered: ops::Range<usize>,
+    },
 }
 
 /// The `StreamCompressor<D>` provides a transparent compression to any reader
@@ -139,7 +142,7 @@ impl<D: io::Read> io::Read for StreamCompressor<D> {
             self.state = CompressorState::ReadActive { buffered: 0..0 };
             self.buffer.grow(0, &self.pref);
             self.ctx.begin(&mut self.buffer, &self.pref)?
-        } else if let CompressorState::ReadActive { buffered } = &self.state {
+        } else if let CompressorState::ReadEof { buffered } = &self.state {
             let len = buffered.end - buffered.start;
             let min_len = cmp::min(len, buf.len());
             buf[..min_len].copy_from_slice(&self.buffer[buffered.start..buffered.start + min_len]);
@@ -151,29 +154,60 @@ impl<D: io::Read> io::Read for StreamCompressor<D> {
                 },
             };
             return Ok(min_len);
+        } else if let CompressorState::ReadActive { buffered } = &self.state {
+            let len = buffered.end - buffered.start;
+            if len > 0 {
+                let min_len = cmp::min(len, buf.len());
+                buf[..min_len]
+                    .copy_from_slice(&self.buffer[buffered.start..buffered.start + min_len]);
+                self.state = CompressorState::ReadActive {
+                    buffered: if min_len < len {
+                        buffered.start + min_len..buffered.end
+                    } else {
+                        0..0
+                    },
+                };
+                return Ok(min_len);
+            } else {
+                0
+            }
         } else {
             0
         };
 
         let mut tmp = [0u8; 2048];
-        let len = self.device.read(&mut tmp[..])?;
-        self.buffer.grow(len, &self.pref);
 
-        let len = if len == 0 {
-            self.ctx.flush(&mut self.buffer[header_len..], false)?
-        } else {
-            self.ctx
-                .update(&mut self.buffer[header_len..], &tmp[..len], false)?
-        };
-        let len = header_len + len;
-        let min_len = cmp::min(len, buf.len());
-        buf[..min_len].copy_from_slice(&self.buffer[..min_len]);
-        if min_len < len {
-            self.state = CompressorState::ReadActive {
-                buffered: min_len..len,
+        loop {
+            let read_len = self.device.read(&mut tmp[..])?;
+            self.buffer.grow(read_len, &self.pref);
+
+            let len = if read_len == 0 {
+                self.ctx.end(&mut self.buffer[header_len..], false)?
+            } else {
+                self.ctx
+                    .update(&mut self.buffer[header_len..], &tmp[..read_len], false)?
             };
+
+            let len = header_len + len;
+            if read_len > 0 && len == 0 {
+                continue;
+            }
+
+            let min_len = cmp::min(len, buf.len());
+            buf[..min_len].copy_from_slice(&self.buffer[..min_len]);
+
+            self.state = if read_len > 0 {
+                CompressorState::ReadActive {
+                    buffered: if min_len < len { min_len..len } else { 0..0 },
+                }
+            } else {
+                CompressorState::ReadEof {
+                    buffered: if min_len < len { min_len..len } else { 0..0 },
+                }
+            };
+
+            return Ok(min_len);
         }
-        Ok(min_len)
     }
 }
 

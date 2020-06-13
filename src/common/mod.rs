@@ -11,7 +11,7 @@ pub use api::{version_number, version_string};
 pub struct Report {
     pub(crate) dst_len: usize,
     pub(crate) src_len: Option<usize>,
-    pub(crate) expected_len: Option<usize>,
+    pub(crate) expected_src_len: Option<usize>,
 }
 
 impl Report {
@@ -32,8 +32,8 @@ impl Report {
         self.src_len
     }
 
-    pub(crate) const fn expected_len(&self) -> Option<usize> {
-        self.expected_len
+    pub(crate) const fn expected_src_len(&self) -> Option<usize> {
+        self.expected_src_len
     }
 }
 

@@ -65,7 +65,7 @@ impl DecompressionContext {
                 Report {
                     src_len: Some(src_len as usize),
                     dst_len: 0,
-                    expected_len: Some(code as usize),
+                    expected_src_len: Some(code as usize),
                 },
             )
         })
@@ -88,7 +88,7 @@ impl DecompressionContext {
         common::result_from_code(code).map(|_| Report {
             src_len: Some(src_len as usize),
             dst_len: dst_len as usize,
-            expected_len: Some(code as usize),
+            expected_src_len: Some(code as usize),
         })
     }
 
@@ -117,7 +117,7 @@ impl DecompressionContext {
         common::result_from_code(code).map(|_| Report {
             src_len: Some(src_len as usize),
             dst_len: dst_len as usize,
-            expected_len: Some(code as usize),
+            expected_src_len: Some(code as usize),
         })
     }
 
