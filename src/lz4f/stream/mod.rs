@@ -262,18 +262,14 @@ pub struct StreamDecompressor<'a, D> {
 
 impl<'a, D> StreamDecompressor<'a, D> {
     pub fn new(device: D) -> Result<Self> {
-        Self::with_dict(device, Cow::Borrowed(&[]))
-    }
-
-    pub fn with_dict(device: D, dict: Cow<'a, [u8]>) -> Result<Self> {
         Ok(Self {
             device,
             state: DecompressorState::Created,
-            dict,
+            dict: Cow::Borrowed(&[]),
         })
     }
 
-    pub fn set_dict(&mut self, dict: Cow<'a, [u8]>) {
+    pub fn load_dict(&mut self, dict: Cow<'a, [u8]>) {
         self.dict = dict;
     }
 

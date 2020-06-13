@@ -41,6 +41,8 @@ use std::borrow::Cow;
 
 pub struct StreamCompressor<'a> {
     ctx: CompressionContext,
+    compression_level: CompressionLevel,
+    dict: Cow<'a, [u8]>,
     prev: Cow<'a, [u8]>,
 }
 
@@ -48,16 +50,32 @@ impl<'a> StreamCompressor<'a> {
     pub fn new() -> Result<Self> {
         CompressionContext::new().map(|ctx| Self {
             ctx,
+            compression_level: CompressionLevel::Default,
+            dict: Cow::Borrowed(&[]),
             prev: Cow::Borrowed(&[]),
         })
     }
 
     pub fn set_compression_level(&mut self, level: CompressionLevel) {
+        self.compression_level = level;
         self.ctx.set_compression_level(level.as_i32());
     }
 
     pub fn set_favor_dec_speed(&mut self, flag: bool) {
         self.ctx.set_favor_dec_speed(flag);
+    }
+
+    pub fn reset(&mut self) {
+        self.ctx.reset(self.compression_level.as_i32());
+    }
+
+    pub fn reset_with_dict(&mut self, dict: Cow<'a, [u8]>) {
+        if dict.is_empty() {
+            self.reset();
+        } else {
+            self.ctx.load_dict(&dict);
+        }
+        self.dict = dict;
     }
 
     /// LZ4 Streaming Compressor/Decompressor

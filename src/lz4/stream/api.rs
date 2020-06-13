@@ -48,16 +48,6 @@ impl CompressionContext {
         }
     }
 
-    pub fn set_dict(&mut self, dict: &[u8]) {
-        unsafe {
-            binding::LZ4_loadDict(
-                self.get_ptr(),
-                dict.as_ptr() as *const c_char,
-                dict.len() as c_int,
-            );
-        }
-    }
-
     pub fn next(&mut self, src: &[u8], dst: &mut [u8], acceleration: i32) -> usize {
         unsafe {
             binding::LZ4_compress_fast_continue(
@@ -74,6 +64,16 @@ impl CompressionContext {
     pub fn reset(&mut self) {
         unsafe {
             binding::LZ4_resetStream_fast(self.get_ptr());
+        }
+    }
+
+    pub fn load_dict(&mut self, dict: &[u8]) {
+        unsafe {
+            binding::LZ4_loadDict(
+                self.get_ptr(),
+                dict.as_ptr() as *const c_char,
+                dict.len() as c_int,
+            );
         }
     }
 }

@@ -56,7 +56,7 @@ impl<'a> StreamCompressor<'a> {
         if dict.is_empty() {
             self.reset();
         } else {
-            self.ctx.set_dict(&dict);
+            self.ctx.load_dict(&dict);
         }
         self.dict = dict;
     }

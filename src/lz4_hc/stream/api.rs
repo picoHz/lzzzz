@@ -54,6 +54,22 @@ impl CompressionContext {
         }
     }
 
+    pub fn reset(&mut self, compression_level: i32) {
+        unsafe {
+            binding::LZ4_resetStreamHC_fast(self.get_ptr(), compression_level);
+        }
+    }
+
+    pub fn load_dict(&mut self, dict: &[u8]) {
+        unsafe {
+            binding::LZ4_loadDictHC(
+                self.get_ptr(),
+                dict.as_ptr() as *const c_char,
+                dict.len() as c_int,
+            );
+        }
+    }
+
     pub fn next(&mut self, src: &[u8], dst: &mut [u8]) -> Result<Report> {
         let dst_len = unsafe {
             binding::LZ4_compress_HC_continue(
