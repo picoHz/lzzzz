@@ -478,7 +478,7 @@ mod tests {
     };
 
     #[test]
-    fn preferences_default() {
+    fn preferences_builder() {
         assert_eq!(PreferencesBuilder::new().build(), Preferences::default());
         assert_eq!(
             PreferencesBuilder::new()
