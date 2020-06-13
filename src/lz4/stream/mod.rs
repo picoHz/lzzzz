@@ -25,7 +25,11 @@
 
 mod api;
 
-use crate::{lz4, lz4::CompressionMode, Error, Report, Result};
+use crate::{
+    lz4,
+    lz4::{CompressionMode, DecompressionMode},
+    Error, Report, Result,
+};
 use api::{CompressionContext, DecompressionContext};
 use std::borrow::Cow;
 
@@ -142,7 +146,12 @@ impl<'a> StreamDecompressor<'a> {
         })
     }
 
-    pub fn next<S: Into<Cow<'a, [u8]>>>(&mut self, src: S, dst: &mut [u8]) -> Result<Report> {
+    pub fn next<S: Into<Cow<'a, [u8]>>>(
+        &mut self,
+        src: S,
+        dst: &mut [u8],
+        mode: DecompressionMode,
+    ) -> Result<Report> {
         todo!();
     }
 }
