@@ -1,4 +1,4 @@
-use lzzzz::{lz4f, lz4f_stream::StreamCompressor};
+use lzzzz::{lz4f, lz4f::StreamCompressor};
 use std::io::Read;
 
 #[test]
