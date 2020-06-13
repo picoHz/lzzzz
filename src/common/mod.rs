@@ -70,6 +70,7 @@ impl fmt::Display for Error {
         <Self as fmt::Debug>::fmt(self, f)
     }
 }
+
 impl convert::From<Error> for io::Error {
     fn from(err: Error) -> Self {
         match err {

@@ -62,6 +62,8 @@ impl<'a> StreamCompressor<'a> {
 
     /// LZ4 Streaming Compressor/Decompressor
     ///
+    /// If `dst` is empty, this function always fails.
+    ///
     /// # Example
     /// ```
     /// use lzzzz::{lz4, lz4_hc, lz4_hc_stream};
@@ -122,5 +124,18 @@ impl<'a> StreamCompressor<'a> {
             Default::default,
         );
         result
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{lz4_hc::CompressionMode, lz4_hc_stream::StreamCompressor, Error};
+
+    #[test]
+    fn empty_dst() {
+        assert!(StreamCompressor::new()
+            .unwrap()
+            .next(&b"hello"[..], &mut [], CompressionMode::Default)
+            .is_err());
     }
 }

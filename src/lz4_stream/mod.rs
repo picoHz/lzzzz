@@ -53,6 +53,8 @@ impl<'a> StreamCompressor<'a> {
 
     /// LZ4 Streaming Compressor/Decompressor
     ///
+    /// If `dst` is empty, this function always fails.
+    ///
     /// # Example
     /// ```
     /// use lzzzz::{lz4, lz4_stream};
@@ -128,26 +130,13 @@ impl<'a> StreamCompressor<'a> {
 
 #[cfg(test)]
 mod tests {
+    use crate::{lz4::CompressionMode, lz4_stream::StreamCompressor, Error};
+
     #[test]
-    fn compression_context() {
-        use crate::{lz4, lz4_stream};
-
-        let mut stream = lz4_stream::StreamCompressor::new().unwrap();
-
-        let data = &b"aaaaa"[..];
-        let mut buf = Vec::new();
-
-        stream.next_to_vec(data, &mut buf, lz4::CompressionMode::Default);
-
-        let compressed = &buf;
-        let mut buf = [0u8; 2048];
-        let len = lz4::decompress(
-            compressed,
-            &mut buf[..data.len()],
-            lz4::DecompressionMode::Default,
-        )
-        .unwrap()
-        .dst_len();
-        assert_eq!(&buf[..len], &data[..]);
+    fn empty_dst() {
+        assert!(StreamCompressor::new()
+            .unwrap()
+            .next(&b"hello"[..], &mut [], CompressionMode::Default)
+            .is_err());
     }
 }
