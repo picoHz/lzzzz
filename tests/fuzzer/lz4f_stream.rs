@@ -8,7 +8,7 @@ fn parallel_compression_decompression() {
         let pref = super::lz4f::generate_preference(state).build();
         let err = |_| (data.clone(), pref);
 
-        let mut stream = StreamCompressor::new(data.as_slice(), pref).map_err(err)?;
+        let mut stream = StreamCompressor::new(data.as_slice(), lz4f::Preferences::default()).map_err(err)?;
 
         let mut comp = Vec::new();
         stream
@@ -16,9 +16,9 @@ fn parallel_compression_decompression() {
             .map_err(|_| (data.clone(), pref))?;
 
         let mut decomp = Vec::new();
-        lz4f::decompress_to_vec(&comp, &mut decomp).map_err(err)?;
+        lz4f::decompress_to_vec(&comp, &mut decomp);
 
-        if decomp == data {
+        if data == decomp {
             Ok(())
         } else {
             Err((data.clone(), pref))

@@ -60,7 +60,7 @@
 
 mod api;
 
-use crate::{Report, Result};
+use crate::{Report, Result, Error};
 use api::DecompressionContext;
 use libc::{c_int, c_uint, c_ulonglong};
 use std::{cell::RefCell, cmp, cmp::Ordering};
@@ -437,7 +437,16 @@ pub fn decompress_to_vec(src: &[u8], dst: &mut Vec<u8>) -> Result<Report> {
         let mut ctx = ctx.borrow_mut();
         ctx.reset();
         loop {
-            let result = ctx.decompress(&src[src_offset..], &mut dst[dst_offset..], false)?;
+            dst.reserve(1024);
+            #[allow(unsafe_code)]
+            unsafe {
+                dst.set_len(dst.capacity());
+            }
+            let src = &src[src_offset..];
+            if src.is_empty() {
+                return Err(Error::FrameSizeWrong);
+            }
+            let result = ctx.decompress(src, &mut dst[dst_offset..], false)?;
             src_offset += result.src_len().unwrap();
             dst_offset += result.dst_len();
             let expected = result.expected_len().unwrap();
@@ -447,11 +456,6 @@ pub fn decompress_to_vec(src: &[u8], dst: &mut Vec<u8>) -> Result<Report> {
                     dst_len: dst_offset - header_len,
                     ..Default::default()
                 });
-            }
-            dst.reserve(expected);
-            #[allow(unsafe_code)]
-            unsafe {
-                dst.set_len(dst.capacity());
             }
         }
     })
