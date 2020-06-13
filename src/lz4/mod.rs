@@ -249,7 +249,7 @@ impl<'a> Default for DecompressionMode<'a> {
 /// assert_eq!(&buf[..], b"Alb. The weight of this sad ti");
 /// ```
 pub fn decompress(src: &[u8], dst: &mut [u8], mode: &DecompressionMode) -> Result<Report> {
-    let result = match mode {
+    match mode {
         DecompressionMode::Default => api::decompress_safe(src, dst),
         DecompressionMode::Partial { uncompressed_size } => {
             api::decompress_safe_partial(src, dst, *uncompressed_size)
@@ -259,10 +259,5 @@ pub fn decompress(src: &[u8], dst: &mut [u8], mode: &DecompressionMode) -> Resul
             let (dict, dst) = dst.split_at_mut(*len);
             api::decompress_safe_using_dict(src, dst, dict)
         }
-    };
-    if result.dst_len() > 0 {
-        Ok(result)
-    } else {
-        Err(Error::Generic)
     }
 }

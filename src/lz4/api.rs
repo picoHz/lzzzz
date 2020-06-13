@@ -1,6 +1,6 @@
 #![allow(unsafe_code)]
 
-use crate::{binding, Report};
+use crate::{binding, common, Report, Result};
 
 use libc::{c_char, c_int, c_void};
 use std::{cell::RefCell, ops::Deref};
@@ -57,8 +57,8 @@ pub fn compress_fast_ext_state_fast_reset(
     }
 }
 
-pub fn decompress_safe(src: &[u8], dst: &mut [u8]) -> Report {
-    let dst_len = unsafe {
+pub fn decompress_safe(src: &[u8], dst: &mut [u8]) -> Result<Report> {
+    let code = unsafe {
         binding::LZ4_decompress_safe(
             src.as_ptr() as *const c_char,
             dst.as_mut_ptr() as *mut c_char,
@@ -66,14 +66,14 @@ pub fn decompress_safe(src: &[u8], dst: &mut [u8]) -> Report {
             dst.len() as c_int,
         ) as usize
     };
-    Report {
-        dst_len,
+    common::result_from_code(code).map(|_| Report {
+        dst_len: code,
         ..Default::default()
-    }
+    })
 }
 
-pub fn decompress_safe_partial(src: &[u8], dst: &mut [u8], original_size: usize) -> Report {
-    let dst_len = unsafe {
+pub fn decompress_safe_partial(src: &[u8], dst: &mut [u8], original_size: usize) -> Result<Report> {
+    let code = unsafe {
         binding::LZ4_decompress_safe_partial(
             src.as_ptr() as *const c_char,
             dst.as_mut_ptr() as *mut c_char,
@@ -82,14 +82,14 @@ pub fn decompress_safe_partial(src: &[u8], dst: &mut [u8], original_size: usize)
             dst.len() as c_int,
         ) as usize
     };
-    Report {
-        dst_len,
+    common::result_from_code(code).map(|_| Report {
+        dst_len: code,
         ..Default::default()
-    }
+    })
 }
 
-pub fn decompress_safe_using_dict(src: &[u8], dst: &mut [u8], dict: &[u8]) -> Report {
-    let dst_len = unsafe {
+pub fn decompress_safe_using_dict(src: &[u8], dst: &mut [u8], dict: &[u8]) -> Result<Report> {
+    let code = unsafe {
         binding::LZ4_decompress_safe_usingDict(
             src.as_ptr() as *const c_char,
             dst.as_mut_ptr() as *mut c_char,
@@ -99,10 +99,10 @@ pub fn decompress_safe_using_dict(src: &[u8], dst: &mut [u8], dict: &[u8]) -> Re
             dict.len() as c_int,
         ) as usize
     };
-    Report {
-        dst_len,
+    common::result_from_code(code).map(|_| Report {
+        dst_len: code,
         ..Default::default()
-    }
+    })
 }
 
 #[derive(Clone)]

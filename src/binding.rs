@@ -233,6 +233,14 @@ extern "C" {
     pub fn LZ4_freeStream(ptr: *mut LZ4Stream) -> c_int;
     pub fn LZ4_initStream(buffer: *mut c_void, size: size_t) -> *mut LZ4Stream;
     pub fn LZ4_loadDict(ptr: *mut LZ4Stream, dictionary: *const c_char, dict_size: c_int) -> c_int;
+    pub fn LZ4_compress_fast_continue(
+        ptr: *mut LZ4Stream,
+        src: *const c_char,
+        dst: *mut c_char,
+        src_size: c_int,
+        dst_capacity: c_int,
+        acceleration: c_int,
+    ) -> c_int;
     pub fn LZ4_createStreamDecode() -> *mut LZ4DecStream;
     pub fn LZ4_freeStreamDecode(stream: *mut LZ4DecStream) -> c_int;
 
