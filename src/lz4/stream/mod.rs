@@ -41,18 +41,24 @@ pub struct StreamCompressor<'a> {
 
 impl<'a> StreamCompressor<'a> {
     pub fn new() -> Result<Self> {
-        Self::with_dict(Cow::Borrowed(&[]))
+        CompressionContext::new().map(|ctx| Self {
+            ctx,
+            dict: Cow::Borrowed(&[]),
+            prev: Cow::Borrowed(&[]),
+        })
     }
 
-    pub fn with_dict(dict: Cow<'a, [u8]>) -> Result<Self> {
-        CompressionContext::new().map(|mut ctx| {
-            ctx.set_dict(&dict);
-            Self {
-                ctx,
-                dict,
-                prev: Cow::Borrowed(&[]),
-            }
-        })
+    pub fn reset(&mut self) {
+        self.ctx.reset();
+    }
+
+    pub fn reset_with_dict(&mut self, dict: Cow<'a, [u8]>) {
+        if dict.is_empty() {
+            self.reset();
+        } else {
+            self.ctx.set_dict(&dict);
+        }
+        self.dict = dict;
     }
 
     /// LZ4 Streaming Compressor/Decompressor

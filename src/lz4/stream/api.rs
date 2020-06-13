@@ -70,6 +70,12 @@ impl CompressionContext {
             ) as usize
         }
     }
+
+    pub fn reset(&mut self) {
+        unsafe {
+            binding::LZ4_resetStream_fast(self.get_ptr());
+        }
+    }
 }
 
 impl Drop for CompressionContext {
