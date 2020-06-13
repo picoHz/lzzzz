@@ -1,8 +1,5 @@
 mod api;
-use std::{
-    convert, fmt, io,
-    rc::{Rc, Weak},
-};
+use std::{convert, fmt, io};
 
 pub use api::{version_number, version_string};
 
@@ -42,6 +39,17 @@ pub type Result<T> = std::result::Result<T, Error>;
 /// Compression/Decompression error
 #[derive(Debug)]
 pub enum Error {
+    LZ4Error(LZ4Error),
+    IOError(io::Error),
+    CompressionFailed,
+    CompressedDataIncomplete,
+    NullPointerUnexprected,
+    CompressionModeInvalid,
+    DecompressionModeInvalid,
+}
+
+#[derive(Debug)]
+pub enum LZ4Error {
     Generic,
     MaxBlockSizeInvalid,
     BlockModeInvalid,
@@ -62,7 +70,6 @@ pub enum Error {
     ContentChecksumInvalid,
     FrameDecodingAlreadyStarted,
     Unspecified,
-    IOError(io::Error),
 }
 
 impl fmt::Display for Error {
@@ -88,28 +95,28 @@ impl convert::From<io::Error> for Error {
 
 impl convert::From<usize> for Error {
     fn from(value: usize) -> Self {
-        match value.wrapping_neg() {
-            1 => Self::Generic,
-            2 => Self::MaxBlockSizeInvalid,
-            3 => Self::BlockModeInvalid,
-            4 => Self::ContentChecksumFlagInvalid,
-            5 => Self::CompressionLevelInvalid,
-            6 => Self::HeaderVersionWrong,
-            7 => Self::BlockChecksumInvalid,
-            8 => Self::ReservedFlagSet,
-            9 => Self::AllocationFailed,
-            10 => Self::SrcSizeTooLarge,
-            11 => Self::DstMaxSizeTooSmall,
-            12 => Self::FrameHeaderIncomplete,
-            13 => Self::FrameTypeUnknown,
-            14 => Self::FrameSizeWrong,
-            15 => Self::SrcPtrWrong,
-            16 => Self::DecompressionFailed,
-            17 => Self::HeaderChecksumInvalid,
-            18 => Self::ContentChecksumInvalid,
-            19 => Self::FrameDecodingAlreadyStarted,
-            _ => Self::Unspecified,
-        }
+        Self::LZ4Error(match value.wrapping_neg() {
+            1 => LZ4Error::Generic,
+            2 => LZ4Error::MaxBlockSizeInvalid,
+            3 => LZ4Error::BlockModeInvalid,
+            4 => LZ4Error::ContentChecksumFlagInvalid,
+            5 => LZ4Error::CompressionLevelInvalid,
+            6 => LZ4Error::HeaderVersionWrong,
+            7 => LZ4Error::BlockChecksumInvalid,
+            8 => LZ4Error::ReservedFlagSet,
+            9 => LZ4Error::AllocationFailed,
+            10 => LZ4Error::SrcSizeTooLarge,
+            11 => LZ4Error::DstMaxSizeTooSmall,
+            12 => LZ4Error::FrameHeaderIncomplete,
+            13 => LZ4Error::FrameTypeUnknown,
+            14 => LZ4Error::FrameSizeWrong,
+            15 => LZ4Error::SrcPtrWrong,
+            16 => LZ4Error::DecompressionFailed,
+            17 => LZ4Error::HeaderChecksumInvalid,
+            18 => LZ4Error::ContentChecksumInvalid,
+            19 => LZ4Error::FrameDecodingAlreadyStarted,
+            _ => LZ4Error::Unspecified,
+        })
     }
 }
 

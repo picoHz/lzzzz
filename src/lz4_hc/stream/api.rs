@@ -2,7 +2,6 @@
 
 use crate::{binding, binding::LZ4StreamHC, Error, Report, Result};
 
-use crate::lz4_hc::CompressionLevel;
 use libc::{c_char, c_int, c_void, size_t};
 use std::{
     mem::{size_of, MaybeUninit},
@@ -32,7 +31,7 @@ impl CompressionContext {
                 });
             }
             let ptr = NonNull::new(binding::LZ4_createStreamHC());
-            ptr.ok_or(Error::Generic).map(|stream| Self {
+            ptr.ok_or(Error::NullPointerUnexprected).map(|stream| Self {
                 stream: Stream::Heap(stream),
             })
         }
@@ -73,7 +72,7 @@ impl CompressionContext {
         } else if src.is_empty() && dst.is_empty() {
             Ok(Report::default())
         } else {
-            Err(Error::Generic)
+            Err(Error::CompressionFailed)
         }
     }
 
@@ -97,7 +96,7 @@ impl CompressionContext {
         } else if src.is_empty() && dst.is_empty() {
             Ok(Report::default())
         } else {
-            Err(Error::Generic)
+            Err(Error::CompressionFailed)
         }
     }
 }

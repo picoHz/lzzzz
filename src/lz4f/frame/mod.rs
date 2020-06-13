@@ -442,7 +442,7 @@ pub fn decompress_to_vec(src: &[u8], dst: &mut Vec<u8>) -> Result<Report> {
                     ..Default::default()
                 });
             } else if src_offset >= src.len() {
-                return Err(Error::FrameSizeWrong);
+                return Err(Error::CompressedDataIncomplete);
             }
         }
     })

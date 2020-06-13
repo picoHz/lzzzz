@@ -170,7 +170,7 @@ pub fn compress(
     } else if src.is_empty() && dst.is_empty() {
         Ok(Report::default())
     } else {
-        Err(Error::Generic)
+        Err(Error::CompressionFailed)
     }
 }
 
@@ -245,18 +245,16 @@ pub fn compress_to_vec(
     mode: CompressionMode,
     compression_level: CompressionLevel,
 ) -> Result<Report> {
+    if mode != CompressionMode::Default {
+        return Err(Error::CompressionModeInvalid);
+    }
     let orig_len = dst.len();
     dst.reserve(crate::lz4::max_compressed_size(src.len()));
     #[allow(unsafe_code)]
     unsafe {
         dst.set_len(dst.capacity());
     }
-    let result = compress(
-        src,
-        &mut dst[orig_len..],
-        CompressionMode::Default,
-        compression_level,
-    );
+    let result = compress(src, &mut dst[orig_len..], mode, compression_level);
     dst.resize_with(
         orig_len + result.as_ref().map(|r| r.dst_len()).unwrap_or(0),
         Default::default,

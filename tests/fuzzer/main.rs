@@ -3,12 +3,7 @@ mod lz4f_stream;
 
 use pbr::ProgressBar;
 use rayon::prelude::*;
-use std::{
-    cmp, env, fmt,
-    sync::mpsc::{channel, RecvTimeoutError},
-    thread,
-    time::Duration,
-};
+use std::{cmp, env, fmt, sync::mpsc::channel, thread};
 
 pub fn run<R>(func: fn(u64) -> Result<(), R>)
 where

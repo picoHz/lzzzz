@@ -2,7 +2,7 @@ use lzzzz::{
     lz4f,
     lz4f::{
         AutoFlush, BlockChecksum, BlockMode, BlockSize, CompressionLevel, ContentChecksum,
-        FavorDecSpeed, Preferences, PreferencesBuilder,
+        FavorDecSpeed, PreferencesBuilder,
     },
 };
 use rand::{distributions::Standard, rngs::SmallRng, Rng, SeedableRng};

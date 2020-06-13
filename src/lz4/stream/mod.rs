@@ -107,7 +107,7 @@ impl<'a> StreamCompressor<'a> {
         } else if src_is_empty && dst.is_empty() {
             Ok(Report::default())
         } else {
-            Err(Error::Generic)
+            Err(Error::CompressionFailed)
         }
     }
 
@@ -152,7 +152,11 @@ impl<'a> StreamDecompressor<'a> {
         dst: &mut [u8],
         mode: DecompressionMode,
     ) -> Result<Report> {
-        todo!();
+        match mode {
+            DecompressionMode::Default => Ok(Default::default()),
+            DecompressionMode::Dictionary { data } => Ok(Default::default()),
+            _ => Err(Error::DecompressionModeInvalid),
+        }
     }
 }
 

@@ -76,7 +76,7 @@ pub fn compress(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> Result<Rep
     } else if src.is_empty() && dst.is_empty() {
         Ok(Report::default())
     } else {
-        Err(Error::Generic)
+        Err(Error::CompressionFailed)
     }
 }
 

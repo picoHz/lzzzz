@@ -42,7 +42,7 @@ impl DecompressionContext {
             );
             common::result_from_code(code).and_then(|_| {
                 NonNull::new(ctx.assume_init())
-                    .ok_or(Error::Generic)
+                    .ok_or(Error::NullPointerUnexprected)
                     .map(|ctx| Self { ctx })
             })
         }
