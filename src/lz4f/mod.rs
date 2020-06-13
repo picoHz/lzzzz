@@ -63,7 +63,7 @@ mod api;
 use crate::{Report, Result};
 use api::DecompressionContext;
 use libc::{c_int, c_uint, c_ulonglong};
-use std::{cell::RefCell, cmp};
+use std::{cell::RefCell, cmp, cmp::Ordering};
 
 /// Compression block size flag
 ///
@@ -206,7 +206,7 @@ impl FrameInfo {
 }
 
 /// Compression level specifier
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Ord, Hash)]
 pub enum CompressionLevel {
     /// Custom compression level.
     /// Values larger then 12 are same as 12. Minus values trigger fast
@@ -218,6 +218,12 @@ pub enum CompressionLevel {
     High,
     /// `Max` is same as `Custom(12)`
     Max,
+}
+
+impl PartialOrd for CompressionLevel {
+    fn partial_cmp(&self, other: &CompressionLevel) -> Option<Ordering> {
+        Some(self.as_i32().cmp(&other.as_i32()))
+    }
 }
 
 impl CompressionLevel {
@@ -487,6 +493,25 @@ mod tests {
         assert_eq!(
             CompressionLevel::Max.as_i32(),
             CompressionLevel::Custom(12).as_i32()
+        );
+
+        let mut sorted = vec![
+            CompressionLevel::Custom(i32::MAX),
+            CompressionLevel::Max,
+            CompressionLevel::High,
+            CompressionLevel::Default,
+            CompressionLevel::Custom(i32::MIN),
+        ];
+        sorted.sort_unstable();
+        assert_eq!(
+            sorted,
+            vec![
+                CompressionLevel::Custom(i32::MIN),
+                CompressionLevel::Default,
+                CompressionLevel::High,
+                CompressionLevel::Max,
+                CompressionLevel::Custom(i32::MAX),
+            ]
         );
     }
 }

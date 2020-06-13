@@ -8,6 +8,7 @@ mod api;
 
 use crate::{Error, Report, Result};
 use api::ExtState;
+use std::cmp::Ordering;
 
 /// Compression mode specifier
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
@@ -23,7 +24,7 @@ impl Default for CompressionMode {
 }
 
 /// Compression level specifier
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Ord, Hash)]
 pub enum CompressionLevel {
     /// Custom compression level.
     /// Any value between 1 and 12 is valid.
@@ -36,6 +37,12 @@ pub enum CompressionLevel {
     OptMin,
     /// `Max` is same as `Custom(12)`.
     Max,
+}
+
+impl PartialOrd for CompressionLevel {
+    fn partial_cmp(&self, other: &CompressionLevel) -> Option<Ordering> {
+        Some(self.as_i32().cmp(&other.as_i32()))
+    }
 }
 
 impl Default for CompressionLevel {
@@ -249,4 +256,51 @@ pub fn compress_to_vec(
         Default::default,
     );
     result
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::lz4_hc::CompressionLevel;
+
+    #[test]
+    fn compression_level() {
+        assert_eq!(CompressionLevel::Default, CompressionLevel::default());
+        assert_eq!(
+            CompressionLevel::Min.as_i32(),
+            CompressionLevel::Custom(3).as_i32()
+        );
+        assert_eq!(
+            CompressionLevel::Default.as_i32(),
+            CompressionLevel::Custom(9).as_i32()
+        );
+        assert_eq!(
+            CompressionLevel::OptMin.as_i32(),
+            CompressionLevel::Custom(10).as_i32()
+        );
+        assert_eq!(
+            CompressionLevel::Max.as_i32(),
+            CompressionLevel::Custom(12).as_i32()
+        );
+
+        let mut sorted = vec![
+            CompressionLevel::Custom(i32::MIN),
+            CompressionLevel::Min,
+            CompressionLevel::Default,
+            CompressionLevel::OptMin,
+            CompressionLevel::Max,
+            CompressionLevel::Custom(i32::MAX),
+        ];
+        sorted.sort_unstable();
+        assert_eq!(
+            sorted,
+            vec![
+                CompressionLevel::Custom(i32::MIN),
+                CompressionLevel::Min,
+                CompressionLevel::Default,
+                CompressionLevel::OptMin,
+                CompressionLevel::Max,
+                CompressionLevel::Custom(i32::MAX),
+            ]
+        );
+    }
 }
