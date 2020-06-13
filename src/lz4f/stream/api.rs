@@ -5,10 +5,11 @@ use crate::{
     binding,
     binding::{
         LZ4FCompressionCtx, LZ4FCompressionDict, LZ4FCompressionOptions, LZ4FDecompressionCtx,
+        LZ4FDecompressionOptions,
     },
     common,
-    lz4f::Preferences,
-    Error, Result,
+    lz4f::{FrameInfo, Preferences},
+    Error, Report, Result,
 };
 
 use libc::{c_void, size_t};
@@ -136,6 +137,70 @@ impl DecompressionContext {
                 })
             })
         }
+    }
+
+    pub fn get_frame_info(&mut self, src: &[u8]) -> Result<(FrameInfo, usize)> {
+        let mut info = MaybeUninit::<FrameInfo>::uninit();
+        let mut src_len = src.len() as size_t;
+        let code = unsafe {
+            binding::LZ4F_getFrameInfo(
+                self.ctx.as_ptr(),
+                info.as_mut_ptr() as *mut FrameInfo,
+                src.as_ptr() as *const c_void,
+                &mut src_len as *mut size_t,
+            )
+        };
+        common::result_from_code(code).map(|_| (unsafe { info.assume_init() }, src_len as usize))
+    }
+
+    pub fn decompress(&mut self, src: &[u8], dst: &mut [u8], stable_dst: bool) -> Result<Report> {
+        let mut dst_len = dst.len() as size_t;
+        let mut src_len = src.len() as size_t;
+        let opt = LZ4FDecompressionOptions::stable(stable_dst);
+        let code = unsafe {
+            binding::LZ4F_decompress(
+                self.ctx.as_ptr(),
+                dst.as_mut_ptr() as *mut c_void,
+                &mut dst_len as *mut size_t,
+                src.as_ptr() as *const c_void,
+                &mut src_len as *mut size_t,
+                &opt as *const LZ4FDecompressionOptions,
+            )
+        };
+        common::result_from_code(code).map(|_| Report {
+            src_len: Some(src_len as usize),
+            dst_len: dst_len as usize,
+            expected_src_len: Some(code as usize),
+        })
+    }
+
+    pub fn decompress_dict(
+        &mut self,
+        src: &[u8],
+        dst: &mut [u8],
+        dict: &[u8],
+        stable_dst: bool,
+    ) -> Result<Report> {
+        let mut dst_len = dst.len() as size_t;
+        let mut src_len = src.len() as size_t;
+        let opt = LZ4FDecompressionOptions::stable(stable_dst);
+        let code = unsafe {
+            binding::LZ4F_decompress_usingDict(
+                self.ctx.as_ptr(),
+                dst.as_mut_ptr() as *mut c_void,
+                &mut dst_len as *mut size_t,
+                src.as_ptr() as *const c_void,
+                &mut src_len as *mut size_t,
+                dict.as_ptr() as *const c_void,
+                dict.len() as size_t,
+                &opt as *const LZ4FDecompressionOptions,
+            )
+        };
+        common::result_from_code(code).map(|_| Report {
+            src_len: Some(src_len as usize),
+            dst_len: dst_len as usize,
+            expected_src_len: Some(code as usize),
+        })
     }
 
     pub fn reset(&mut self) {

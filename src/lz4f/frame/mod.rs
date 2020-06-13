@@ -57,8 +57,8 @@
 
 mod api;
 
+use super::stream::DecompressionContext;
 use crate::{Error, Report, Result};
-use api::DecompressionContext;
 use libc::{c_int, c_uint, c_ulonglong};
 use std::{cell::RefCell, cmp, cmp::Ordering};
 

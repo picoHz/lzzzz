@@ -6,11 +6,14 @@ use crate::{
     lz4f::{FrameInfo, Preferences},
     Result,
 };
-use api::{CompressionContext, DecompressionContext, DictionaryHandle, LZ4Buffer};
+pub(crate) use api::DecompressionContext;
+use api::{CompressionContext, DictionaryHandle, LZ4Buffer};
 use std::{borrow::Cow, cmp, io, ops, sync::Arc};
 
 #[cfg(feature = "tokio-io")]
 use tokio::io::AsyncRead;
+
+const LZ4F_HEADER_SIZE_MAX: usize = 19;
 
 enum CompressorState<D> {
     Created,
@@ -278,8 +281,10 @@ impl<'a, D> StreamDecompressor<'a, D> {
     pub fn reset(&mut self) {
         self.ctx.reset();
     }
+}
 
-    pub fn frame_info(&mut self) -> Result<FrameInfo> {
+impl<'a, D: io::Read> StreamDecompressor<'a, D> {
+    pub fn read_frame_info(&mut self) -> Result<FrameInfo> {
         todo!();
     }
 }
