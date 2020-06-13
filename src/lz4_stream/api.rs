@@ -41,24 +41,27 @@ impl CompressionContext {
         }
     }
 
-    pub fn set_dict(&mut self, dict: &[u8]) {
-        let stream = match &mut self.stream {
+    fn get_ptr(&mut self) -> *mut LZ4Stream {
+        match &mut self.stream {
             Stream::Stack(stream) => stream as *mut LZ4Stream,
             Stream::Heap(ptr) => ptr.as_ptr(),
-        };
+        }
+    }
+
+    pub fn set_dict(&mut self, dict: &[u8]) {
         unsafe {
-            binding::LZ4_loadDict(stream, dict.as_ptr() as *const c_char, dict.len() as c_int);
+            binding::LZ4_loadDict(
+                self.get_ptr(),
+                dict.as_ptr() as *const c_char,
+                dict.len() as c_int,
+            );
         }
     }
 
     pub fn next(&mut self, src: &[u8], dst: &mut [u8], acceleration: i32) -> usize {
-        let stream = match &mut self.stream {
-            Stream::Stack(stream) => stream as *mut LZ4Stream,
-            Stream::Heap(ptr) => ptr.as_ptr(),
-        };
         unsafe {
             binding::LZ4_compress_fast_continue(
-                stream,
+                self.get_ptr(),
                 src.as_ptr() as *const c_char,
                 dst.as_mut_ptr() as *mut c_char,
                 src.len() as c_int,

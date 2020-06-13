@@ -201,6 +201,15 @@ extern "C" {
     pub fn LZ4_createStreamHC() -> *mut LZ4StreamHC;
     pub fn LZ4_freeStreamHC(ptr: *mut LZ4StreamHC) -> c_int;
     pub fn LZ4_resetStreamHC_fast(ptr: *mut LZ4StreamHC, compression_level: c_int);
+    pub fn LZ4_compress_HC_continue(
+        ptr: *mut LZ4StreamHC,
+        src: *const c_char,
+        dst: *mut c_char,
+        src_size: c_int,
+        dst_capacity: c_int,
+    ) -> c_int;
+    pub fn LZ4_setCompressionLevel(ptr: *mut LZ4StreamHC, compression_level: c_int);
+    pub fn LZ4_favorDecompressionSpeed(ptr: *mut LZ4StreamHC, favor: c_int);
 
     pub fn LZ4F_getVersion() -> c_uint;
     pub fn LZ4F_compressBound(src_size: size_t, prefs: *const Preferences) -> size_t;

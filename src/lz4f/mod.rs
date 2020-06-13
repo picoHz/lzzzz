@@ -227,7 +227,7 @@ impl PartialOrd for CompressionLevel {
 }
 
 impl CompressionLevel {
-    fn as_i32(self) -> i32 {
+    pub(crate) fn as_i32(self) -> i32 {
         match self {
             Self::Custom(level) => level,
             Self::Default => 0,
