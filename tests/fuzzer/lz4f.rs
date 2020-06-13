@@ -9,25 +9,23 @@ use rand::{distributions::Standard, rngs::SmallRng, Rng, SeedableRng};
 
 #[test]
 fn parallel_compression_decompression() {
-    super::run(compression_decompression);
-}
+    super::run(|state| {
+        let data = generate_data(state, 1024);
+        let pref = generate_preference(state).build();
+        let err = |_| (data.clone(), pref);
 
-fn compression_decompression(state: u64) -> Result<(), (Vec<u8>, Preferences)> {
-    let data = generate_data(state, 1024);
-    let pref = generate_preference(state).build();
-    let err = |_| (data.clone(), pref);
+        let mut comp = Vec::new();
+        lz4f::compress_to_vec(&data, &mut comp, &pref).map_err(err)?;
 
-    let mut comp = Vec::new();
-    lz4f::compress_to_vec(&data, &mut comp, &pref).map_err(err)?;
+        let mut decomp = Vec::new();
+        lz4f::decompress_to_vec(&comp, &mut decomp).map_err(err)?;
 
-    let mut decomp = Vec::new();
-    lz4f::decompress_to_vec(&comp, &mut decomp).map_err(err)?;
-
-    if decomp == data {
-        Ok(())
-    } else {
-        Err((data, pref))
-    }
+        if decomp == data {
+            Ok(())
+        } else {
+            Err((data, pref))
+        }
+    });
 }
 
 pub fn generate_data(state: u64, max_len: usize) -> Vec<u8> {
