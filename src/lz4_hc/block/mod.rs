@@ -1,9 +1,3 @@
-//! LZ4_HC Block Compressor
-//!
-//! The `lz4_hc` module doesn't provide decompression functionalities.
-//! Use the [`lz4`] module instead.
-//!
-//! [`lz4`]: ../lz4/index.html
 mod api;
 
 use crate::{Error, Report, Result};

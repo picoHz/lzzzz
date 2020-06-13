@@ -1,3 +1,5 @@
+//! LZ4 Frame Compressor/Decompressor
+
 mod frame;
 mod stream;
 

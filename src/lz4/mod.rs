@@ -1,3 +1,5 @@
+//! LZ4 Compressor/Decompressor
+
 mod block;
 mod stream;
 
