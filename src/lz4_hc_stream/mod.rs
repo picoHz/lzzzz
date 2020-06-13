@@ -46,7 +46,7 @@ pub struct StreamCompressor<'a> {
 
 impl<'a> StreamCompressor<'a> {
     pub fn new() -> Result<Self> {
-        CompressionContext::new().map(|mut ctx| Self {
+        CompressionContext::new().map(|ctx| Self {
             ctx,
             prev: Cow::Borrowed(&[]),
         })
