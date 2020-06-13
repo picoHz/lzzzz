@@ -184,14 +184,6 @@ pub enum DecompressionMode<'a> {
     Dictionary {
         data: Cow<'a, [u8]>,
     },
-    /// Tell the function that first `len` bytes of the dst buffer contains
-    /// the dictionary data.
-    ///
-    /// The decompressor reads the dictionary data from `dst[..len]` and
-    /// writes the decompressed data to `dst[len..]`.
-    DictionaryLeadingDst {
-        len: usize,
-    },
 }
 
 impl<'a> Default for DecompressionMode<'a> {
@@ -257,9 +249,5 @@ pub fn decompress(src: &[u8], dst: &mut [u8], mode: DecompressionMode) -> Result
             api::decompress_safe_partial(src, dst, uncompressed_size)
         }
         DecompressionMode::Dictionary { data } => api::decompress_safe_using_dict(src, dst, &data),
-        DecompressionMode::DictionaryLeadingDst { len } => {
-            let (dict, dst) = dst.split_at_mut(len);
-            api::decompress_safe_using_dict(src, dst, dict)
-        }
     }
 }

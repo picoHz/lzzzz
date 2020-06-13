@@ -26,7 +26,7 @@
 mod api;
 
 use crate::{lz4, lz4::CompressionMode, Error, Report, Result};
-use api::CompressionContext;
+use api::{CompressionContext, DecompressionContext};
 use std::borrow::Cow;
 
 pub struct StreamCompressor<'a> {
@@ -126,6 +126,24 @@ impl<'a> StreamCompressor<'a> {
             Default::default,
         );
         result
+    }
+}
+
+pub struct StreamDecompressor<'a> {
+    ctx: DecompressionContext,
+    prev: Cow<'a, [u8]>,
+}
+
+impl<'a> StreamDecompressor<'a> {
+    pub fn new() -> Result<Self> {
+        DecompressionContext::new().map(|ctx| Self {
+            ctx,
+            prev: Cow::Borrowed(&[]),
+        })
+    }
+
+    pub fn next<S: Into<Cow<'a, [u8]>>>(&mut self, src: S, dst: &mut [u8]) -> Result<Report> {
+        todo!();
     }
 }
 
