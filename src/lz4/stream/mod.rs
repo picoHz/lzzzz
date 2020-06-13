@@ -2,9 +2,9 @@
 //!
 //! # Example
 //! ```
-//! use lzzzz::{lz4, lz4_stream};
+//! use lzzzz::lz4;
 //!
-//! let mut stream = lz4_stream::StreamCompressor::new().unwrap();
+//! let mut stream = lz4::StreamCompressor::new().unwrap();
 //!
 //! let data = &b"aaaaa"[..];
 //! let mut buf = Vec::new();
@@ -55,9 +55,9 @@ impl<'a> StreamCompressor<'a> {
     ///
     /// # Example
     /// ```
-    /// use lzzzz::{lz4, lz4_stream};
+    /// use lzzzz::lz4;
     ///
-    /// let mut stream = lz4_stream::StreamCompressor::new().unwrap();
+    /// let mut stream = lz4::StreamCompressor::new().unwrap();
     ///
     /// let data = &b"As soon as they had strength, they arose, joined hands again, and went on."[..];
     /// let mut buf = [0u8; 2048];
@@ -131,7 +131,10 @@ impl<'a> StreamCompressor<'a> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{lz4::CompressionMode, lz4_stream::StreamCompressor, Error};
+    use crate::{
+        lz4::{CompressionMode, StreamCompressor},
+        Error,
+    };
 
     #[test]
     fn empty_dst() {
