@@ -29,6 +29,7 @@ tokio-io = ["tokio"]
 use-tls = []
 lz4-use-stack = []
 lz4hc-use-stack = []
+liblz4-experimental = []
 
 [package.metadata.docs.rs]
 all-features = true

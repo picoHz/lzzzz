@@ -56,11 +56,15 @@ impl<'a> Compressor<'a> {
         })
     }
 
+    #[cfg(feature = "liblz4-experimental")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "liblz4-experimental")))]
     pub fn set_compression_level(&mut self, level: CompressionLevel) {
         self.compression_level = level;
         self.ctx.set_compression_level(level.as_i32());
     }
 
+    #[cfg(feature = "liblz4-experimental")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "liblz4-experimental")))]
     pub fn set_favor_dec_speed(&mut self, flag: bool) {
         self.ctx.set_favor_dec_speed(flag);
     }
