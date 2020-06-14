@@ -1,6 +1,9 @@
 use lzzzz::{
     lz4f,
-    lz4f::{compressor::WriteCompressor, decompress_to_vec},
+    lz4f::{
+        compressor::{CompressorBuilder, WriteCompressor},
+        decompress_to_vec,
+    },
 };
 use std::io::{Read, Write};
 
@@ -13,7 +16,10 @@ fn parallel_compression_decompression() {
 
         let mut comp = Vec::new();
         {
-            let mut stream = WriteCompressor::new(&mut comp, pref).map_err(err)?;
+            let mut stream = CompressorBuilder::new(&mut comp)
+                .preferences(pref)
+                .build::<WriteCompressor<_>>()
+                .map_err(err)?;
             stream.write_all(&data).map_err(|_| (data.clone(), pref))?;
         }
 

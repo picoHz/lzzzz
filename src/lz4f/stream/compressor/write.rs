@@ -1,5 +1,6 @@
-use super::{Compressor, Dictionary, Preferences, State, LZ4F_HEADER_SIZE_MAX};
+use super::{Compressor, CompressorBuilder, Dictionary, Preferences, State, LZ4F_HEADER_SIZE_MAX};
 use std::{
+    convert::TryInto,
     io::{IoSlice, Result, Write},
     mem::MaybeUninit,
 };
@@ -10,16 +11,9 @@ pub struct WriteCompressor<W: Write> {
 }
 
 impl<W: Write> WriteCompressor<W> {
-    pub fn new(writer: W, pref: Preferences) -> Result<Self> {
+    fn new(writer: W, pref: Preferences, dict: Option<Dictionary>) -> crate::Result<Self> {
         Ok(Self {
             inner: Compressor::new(writer, pref, None)?,
-            buffer: Vec::new(),
-        })
-    }
-
-    pub fn with_dict(writer: W, pref: Preferences, dict: Dictionary) -> Result<Self> {
-        Ok(Self {
-            inner: Compressor::new(writer, pref, Some(dict))?,
             buffer: Vec::new(),
         })
     }
@@ -101,5 +95,12 @@ impl<W: Write> Write for WriteCompressor<W> {
 impl<W: Write> Drop for WriteCompressor<W> {
     fn drop(&mut self) {
         let _ = self.end();
+    }
+}
+
+impl<W: Write> TryInto<WriteCompressor<W>> for CompressorBuilder<W> {
+    type Error = crate::Error;
+    fn try_into(self) -> crate::Result<WriteCompressor<W>> {
+        WriteCompressor::new(self.device, self.pref, self.dict)
     }
 }

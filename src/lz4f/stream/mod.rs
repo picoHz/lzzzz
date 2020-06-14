@@ -10,6 +10,7 @@ use crate::{
 };
 pub(crate) use api::DecompressionContext;
 use api::{CompressionContext, DictionaryHandle, LZ4Buffer};
+pub use compressor::CompressorBuilder;
 use std::{borrow::Cow, cmp, io, ops, sync::Arc};
 
 enum CompressorState<D> {
