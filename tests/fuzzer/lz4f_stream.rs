@@ -1,5 +1,7 @@
-use lzzzz::lz4f::decompress_to_vec;
-use lzzzz::{lz4f, lz4f::compressor::WriteCompressor};
+use lzzzz::{
+    lz4f,
+    lz4f::{compressor::WriteCompressor, decompress_to_vec},
+};
 use std::io::{Read, Write};
 
 #[test]

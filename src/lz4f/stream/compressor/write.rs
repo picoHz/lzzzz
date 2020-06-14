@@ -1,7 +1,8 @@
 use super::{Compressor, Dictionary, Preferences, State, LZ4F_HEADER_SIZE_MAX};
-use std::io::Write;
-use std::io::{IoSlice, Result};
-use std::mem::MaybeUninit;
+use std::{
+    io::{IoSlice, Result, Write},
+    mem::MaybeUninit,
+};
 
 pub struct WriteCompressor<W: Write> {
     inner: Compressor<W>,
@@ -74,16 +75,14 @@ impl<W: Write> Write for WriteCompressor<W> {
         self.write_impl(buf, false)
     }
 
-    /*
-    fn write_vectored(&mut self, bufs: &[IoSlice]) -> Result<usize> {
-        let mut len = 0;
-        for (i, buf) in bufs.iter().enumerate() {
-            let is_last = i + 1 < buf.len();
-            len += self.write_impl(buf, !is_last)?;
-        }
-        Ok(len)
-    }
-    */
+    // fn write_vectored(&mut self, bufs: &[IoSlice]) -> Result<usize> {
+    // let mut len = 0;
+    // for (i, buf) in bufs.iter().enumerate() {
+    // let is_last = i + 1 < buf.len();
+    // len += self.write_impl(buf, !is_last)?;
+    // }
+    // Ok(len)
+    // }
 
     fn flush(&mut self) -> Result<()> {
         self.ensure_stream()?;

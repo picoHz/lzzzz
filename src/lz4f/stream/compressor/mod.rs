@@ -7,11 +7,15 @@ mod read;
 mod write;
 
 use crate::Result;
-pub use {bufread::*, read::*, write::*};
+pub use bufread::*;
+pub use read::*;
+pub use write::*;
 
 pub(crate) use super::api::CompressionContext;
-pub(crate) use crate::lz4f::{Dictionary, Preferences};
-pub(crate) use crate::Error;
+pub(crate) use crate::{
+    lz4f::{Dictionary, Preferences},
+    Error,
+};
 
 #[cfg(feature = "tokio-io")]
 pub use {async_bufread::*, async_read::*, async_write::*};

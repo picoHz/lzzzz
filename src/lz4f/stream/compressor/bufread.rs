@@ -1,6 +1,5 @@
 use super::Compressor;
-use std::io::Result;
-use std::io::{BufRead, Read};
+use std::io::{BufRead, Read, Result};
 
 pub struct BufReadCompressor<B: BufRead> {
     ctx: Compressor<B>,

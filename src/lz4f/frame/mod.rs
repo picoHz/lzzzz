@@ -5,7 +5,7 @@
 //! Write the compressed `"Hello world!"` to `foo.lz4`.
 //!
 //! ```
-//! use lzzzz::lz4f::{Preferences, Compressor};
+//! use lzzzz::lz4f::{Compressor, Preferences};
 //! use std::{fs::File, io::prelude::*};
 //!
 //! fn main() -> std::io::Result<()> {
@@ -19,7 +19,7 @@
 //! Read and compress_to_vec data from a slice.
 //!
 //! ```
-//! use lzzzz::lz4f::{Preferences, Compressor};
+//! use lzzzz::lz4f::{Compressor, Preferences};
 //! use std::io::prelude::*;
 //!
 //! fn main() -> std::io::Result<()> {
@@ -35,7 +35,7 @@
 //! Parallelly count and compress_to_vec sheep with rayon.
 //!
 //! ```
-//! use lzzzz::lz4f::{BlockSize, PreferencesBuilder, Compressor};
+//! use lzzzz::lz4f::{BlockSize, Compressor, PreferencesBuilder};
 //! use rayon::prelude::*;
 //! use std::io::prelude::*;
 //!

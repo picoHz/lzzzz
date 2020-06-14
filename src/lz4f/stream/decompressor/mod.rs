@@ -6,7 +6,9 @@ mod bufread;
 mod read;
 mod write;
 
-pub use {bufread::*, read::*, write::*};
+pub use bufread::*;
+pub use read::*;
+pub use write::*;
 
 pub(crate) use super::api::DecompressionContext;
 
