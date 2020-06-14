@@ -23,12 +23,15 @@ pbr = "1.0.3"
 cc = "1.0.54"
 
 [features]
-default = ["lz4-use-stack", "use-tls"]
+default = ["lz4", "lz4_hc", "lz4f", "lz4-use-stack", "use-tls"]
+
+lz4 = []
+lz4_hc = []
+lz4f = []
 
 tokio-io = ["tokio"]
 use-tls = []
-lz4-use-stack = []
-lz4hc-use-stack = []
+lz4-use-stack = ["lz4"]
 liblz4-experimental = []
 
 [package.metadata.docs.rs]

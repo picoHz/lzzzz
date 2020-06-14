@@ -1,3 +1,4 @@
+#![cfg(feature = "lz4_hc")]
 //! LZ4_HC Compressor
 //!
 //! The `lz4_hc` module doesn't provide decompression functionalities.

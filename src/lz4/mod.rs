@@ -1,3 +1,4 @@
+#![cfg(feature = "lz4")]
 //! LZ4 Compressor/Decompressor
 
 mod block;
