@@ -12,8 +12,6 @@ pub(crate) use api::DecompressionContext;
 use api::{CompressionContext, DictionaryHandle, LZ4Buffer};
 use std::{borrow::Cow, cmp, io, ops, sync::Arc};
 
-const LZ4F_HEADER_SIZE_MAX: usize = 19;
-
 enum CompressorState<D> {
     Created,
     WriteActive {

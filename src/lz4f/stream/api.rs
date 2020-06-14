@@ -36,7 +36,7 @@ impl CompressionContext {
             );
             common::result_from_code(code).and_then(|_| {
                 Ok(Self {
-                    ctx: NonNull::new(ctx.assume_init()).ok_or(Error::NullPointerUnexprected)?,
+                    ctx: NonNull::new(ctx.assume_init()).ok_or(Error::NullPointerUnexpected)?,
                     dict,
                 })
             })
@@ -133,7 +133,7 @@ impl DecompressionContext {
             );
             common::result_from_code(code).and_then(|_| {
                 Ok(Self {
-                    ctx: NonNull::new(ctx.assume_init()).ok_or(Error::NullPointerUnexprected)?,
+                    ctx: NonNull::new(ctx.assume_init()).ok_or(Error::NullPointerUnexpected)?,
                 })
             })
         }
@@ -270,7 +270,7 @@ impl DictionaryHandle {
             binding::LZ4F_createCDict(data.as_ptr() as *const c_void, data.len() as size_t)
         };
         NonNull::new(dict)
-            .ok_or(Error::NullPointerUnexprected)
+            .ok_or(Error::NullPointerUnexpected)
             .map(Self)
     }
 }

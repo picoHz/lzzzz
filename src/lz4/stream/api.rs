@@ -35,7 +35,7 @@ impl CompressionContext {
                 });
             }
             let ptr = NonNull::new(binding::LZ4_createStream());
-            ptr.ok_or(Error::NullPointerUnexprected).map(|stream| Self {
+            ptr.ok_or(Error::NullPointerUnexpected).map(|stream| Self {
                 stream: Stream::Heap(stream),
             })
         }
@@ -96,7 +96,7 @@ impl DecompressionContext {
     pub fn new() -> Result<Self> {
         unsafe {
             let ptr = NonNull::new(binding::LZ4_createStreamDecode());
-            ptr.ok_or(Error::NullPointerUnexprected)
+            ptr.ok_or(Error::NullPointerUnexpected)
                 .map(|stream| Self { stream })
         }
     }

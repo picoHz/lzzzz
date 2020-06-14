@@ -43,7 +43,7 @@ pub enum Error {
     IOError(io::Error),
     CompressionFailed,
     CompressedDataIncomplete,
-    NullPointerUnexprected,
+    NullPointerUnexpected,
     CompressionModeInvalid,
     DecompressionModeInvalid,
 }
