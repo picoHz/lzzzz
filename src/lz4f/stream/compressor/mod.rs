@@ -57,25 +57,68 @@ impl<D> CompressorBuilder<D> {
     }
 }
 
-pub(crate) struct Compressor<D> {
-    device: D,
+pub(crate) struct Compressor {
     ctx: CompressionContext,
-    pref: Preferences,
+    prefs: Preferences,
     state: State,
+    buffer: Vec<u8>,
 }
 
-impl<D> Compressor<D> {
-    pub fn new(device: D, pref: Preferences, dict: Option<Dictionary>) -> Result<Self> {
+impl Compressor {
+    pub fn new(prefs: Preferences, dict: Option<Dictionary>) -> Result<Self> {
         Ok(Self {
-            device,
             ctx: CompressionContext::new(dict)?,
-            pref,
+            prefs,
             state: State::Created,
+            buffer: Vec::new(),
         })
     }
 
-    pub fn compress_bound(&self, src_size: usize) -> usize {
-        CompressionContext::compress_bound(src_size, &self.pref)
+    pub fn begin(&mut self) -> Result<()> {
+        self.buf_resize(LZ4F_HEADER_SIZE_MAX);
+        let len = self.ctx.begin(&mut self.buffer, &self.prefs)?;
+        self.buf_resize(len);
+        Ok(())
+    }
+
+    pub fn update(&mut self, src: &[u8], stable_src: bool) -> Result<()> {
+        self.buf_resize_bound(src.len());
+        let len = self.ctx.update(&mut self.buffer, src, stable_src)?;
+        self.buf_resize(len);
+        Ok(())
+    }
+
+    pub fn flush(&mut self, stable_src: bool) -> Result<()> {
+        self.buf_resize_bound(0);
+        let len = self.ctx.flush(&mut self.buffer, stable_src)?;
+        self.buf_resize(len);
+        Ok(())
+    }
+
+    pub fn end(&mut self, stable_src: bool) -> Result<()> {
+        self.buf_resize_bound(0);
+        let len = self.ctx.end(&mut self.buffer, stable_src)?;
+        self.buf_resize(len);
+        Ok(())
+    }
+
+    pub fn buf(&self) -> &[u8] {
+        &self.buffer
+    }
+
+    fn buf_resize(&mut self, size: usize) {
+        if size > self.buffer.len() {
+            self.buffer.reserve(size - self.buffer.len());
+        }
+        #[allow(unsafe_code)]
+        unsafe {
+            self.buffer.set_len(size);
+        }
+    }
+
+    fn buf_resize_bound(&mut self, src_size: usize) {
+        let len = CompressionContext::compress_bound(src_size, &self.prefs);
+        self.buf_resize(len);
     }
 }
 

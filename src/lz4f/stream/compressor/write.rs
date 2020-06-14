@@ -6,37 +6,22 @@ use std::{
 };
 
 pub struct WriteCompressor<W: Write> {
-    inner: Compressor<W>,
-    buffer: Vec<u8>,
+    device: W,
+    inner: Compressor,
 }
 
 impl<W: Write> WriteCompressor<W> {
     fn new(writer: W, pref: Preferences, dict: Option<Dictionary>) -> crate::Result<Self> {
         Ok(Self {
-            inner: Compressor::new(writer, pref, None)?,
-            buffer: Vec::new(),
+            device: writer,
+            inner: Compressor::new(pref, None)?,
         })
-    }
-
-    fn resize_buf(&mut self, src_size: usize) {
-        let len = self.inner.compress_bound(src_size);
-        if len > self.buffer.len() {
-            self.buffer.reserve(len - self.buffer.len());
-
-            #[allow(unsafe_code)]
-            unsafe {
-                self.buffer.set_len(len)
-            };
-        }
     }
 
     fn ensure_stream(&mut self) -> Result<()> {
         if let State::Created = self.inner.state {
-            #[allow(unsafe_code, clippy::uninit_assumed_init)]
-            let mut header =
-                unsafe { [MaybeUninit::<u8>::uninit().assume_init(); LZ4F_HEADER_SIZE_MAX] };
-            let header_len = self.inner.ctx.begin(&mut header[..], &self.inner.pref)?;
-            self.inner.device.write_all(&header[..header_len])?;
+            self.inner.begin()?;
+            self.device.write_all(self.inner.buf())?;
             self.inner.state = State::WriteActive;
         }
         Ok(())
@@ -44,9 +29,8 @@ impl<W: Write> WriteCompressor<W> {
 
     fn write_impl(&mut self, buf: &[u8], stable_src: bool) -> Result<usize> {
         self.ensure_stream()?;
-        self.resize_buf(buf.len());
-        let len = self.inner.ctx.update(&mut self.buffer, buf, stable_src)?;
-        self.inner.device.write_all(&self.buffer[..len])?;
+        self.inner.update(buf, stable_src)?;
+        self.device.write_all(self.inner.buf())?;
         Ok(buf.len())
     }
 
@@ -54,13 +38,12 @@ impl<W: Write> WriteCompressor<W> {
         self.ensure_stream()?;
         match self.inner.state {
             State::WriteActive => {
-                self.resize_buf(0);
-                let len = self.inner.ctx.end(&mut self.buffer, false)?;
-                self.inner.device.write_all(&self.buffer[..len])?;
+                self.inner.end(false)?;
+                self.device.write_all(self.inner.buf())?;
             }
             _ => unreachable!(),
         }
-        self.inner.device.flush()
+        self.device.flush()
     }
 }
 
@@ -82,13 +65,12 @@ impl<W: Write> Write for WriteCompressor<W> {
         self.ensure_stream()?;
         match self.inner.state {
             State::WriteActive => {
-                self.resize_buf(0);
-                let len = self.inner.ctx.flush(&mut self.buffer, false)?;
-                self.inner.device.write_all(&self.buffer[..len])?;
+                self.inner.flush(false)?;
+                self.device.write_all(self.inner.buf())?;
             }
             _ => unreachable!(),
         }
-        self.inner.device.flush()
+        self.device.flush()
     }
 }
 

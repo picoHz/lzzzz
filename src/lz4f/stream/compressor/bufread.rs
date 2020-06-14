@@ -5,17 +5,21 @@ use std::{
 };
 
 pub struct BufReadCompressor<B: BufRead> {
-    inner: Compressor<B>,
+    device: B,
+    inner: Compressor,
+    consumed: usize,
 }
 
 impl<B: BufRead> BufReadCompressor<B> {
     pub(crate) fn new(
-        bufreader: B,
+        device: B,
         pref: Preferences,
         dict: Option<Dictionary>,
     ) -> crate::Result<Self> {
         Ok(Self {
-            inner: Compressor::new(bufreader, pref, None)?,
+            device,
+            inner: Compressor::new(pref, None)?,
+            consumed: 0,
         })
     }
 }
@@ -32,6 +36,7 @@ impl<B: BufRead> BufRead for BufReadCompressor<B> {
     }
 
     fn consume(&mut self, amt: usize) {
+        self.consumed += amt;
         unimplemented!()
     }
 }
