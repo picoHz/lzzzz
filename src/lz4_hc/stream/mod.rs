@@ -9,7 +9,7 @@
 //! ```
 //! use lzzzz::lz4_hc;
 //!
-//! let mut stream = lz4_hc::StreamCompressor::new().unwrap();
+//! let mut stream = lz4_hc::Compressor::new().unwrap();
 //!
 //! let data = &b"aaaaa"[..];
 //! let mut buf = Vec::new();
@@ -39,14 +39,14 @@ use crate::{
 use api::CompressionContext;
 use std::borrow::Cow;
 
-pub struct StreamCompressor<'a> {
+pub struct Compressor<'a> {
     ctx: CompressionContext,
     compression_level: CompressionLevel,
     dict: Cow<'a, [u8]>,
     prev: Cow<'a, [u8]>,
 }
 
-impl<'a> StreamCompressor<'a> {
+impl<'a> Compressor<'a> {
     pub fn new() -> Result<Self> {
         Ok(Self {
             ctx: CompressionContext::new()?,
@@ -84,7 +84,7 @@ impl<'a> StreamCompressor<'a> {
     /// ```
     /// use lzzzz::{lz4, lz4_hc};
     ///
-    /// let mut stream = lz4_hc::StreamCompressor::new().unwrap();
+    /// let mut stream = lz4_hc::Compressor::new().unwrap();
     ///
     /// let data = &b"As soon as they had strength, they arose, joined hands again, and went on."[..];
     /// let mut buf = [0u8; 2048];
@@ -147,11 +147,11 @@ impl<'a> StreamCompressor<'a> {
 
 #[cfg(test)]
 mod tests {
-    use crate::lz4_hc::{CompressionMode, StreamCompressor};
+    use crate::lz4_hc::{CompressionMode, Compressor};
 
     #[test]
     fn empty_dst() {
-        assert!(StreamCompressor::new()
+        assert!(Compressor::new()
             .unwrap()
             .next(&b"hello"[..], &mut [], CompressionMode::Default)
             .is_err());

@@ -1,4 +1,4 @@
-use lzzzz::{lz4f, lz4f::StreamCompressor};
+use lzzzz::{lz4f, lz4f::Compressor};
 use std::io::Read;
 
 #[test]
@@ -8,7 +8,7 @@ fn parallel_compression_decompression() {
         let pref = super::lz4f::generate_preference(state).build();
         let err = |_| (data.clone(), pref);
 
-        let mut stream = StreamCompressor::new(data.as_slice(), pref).map_err(err)?;
+        let mut stream = Compressor::new(data.as_slice(), pref).map_err(err)?;
 
         let mut comp = Vec::new();
         stream

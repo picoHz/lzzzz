@@ -5,12 +5,12 @@
 //! Write the compressed `"Hello world!"` to `foo.lz4`.
 //!
 //! ```
-//! use lzzzz::lz4f::{Preferences, StreamCompressor};
+//! use lzzzz::lz4f::{Preferences, Compressor};
 //! use std::{fs::File, io::prelude::*};
 //!
 //! fn main() -> std::io::Result<()> {
 //!     let mut output = File::create("foo.lz4")?;
-//!     let mut comp = StreamCompressor::new(&mut output, Preferences::default())?;
+//!     let mut comp = Compressor::new(&mut output, Preferences::default())?;
 //!
 //!     writeln!(comp, "Hello world!")
 //! }
@@ -19,12 +19,12 @@
 //! Read and compress_to_vec data from a slice.
 //!
 //! ```
-//! use lzzzz::lz4f::{Preferences, StreamCompressor};
+//! use lzzzz::lz4f::{Preferences, Compressor};
 //! use std::io::prelude::*;
 //!
 //! fn main() -> std::io::Result<()> {
 //!     let input = b"Goodnight world!";
-//!     let mut comp = StreamCompressor::new(&input[..], Preferences::default())?;
+//!     let mut comp = Compressor::new(&input[..], Preferences::default())?;
 //!
 //!     let mut buffer = Vec::new();
 //!     comp.read_to_end(&mut buffer)?;
@@ -35,7 +35,7 @@
 //! Parallelly count and compress_to_vec sheep with rayon.
 //!
 //! ```
-//! use lzzzz::lz4f::{BlockSize, PreferencesBuilder, StreamCompressor};
+//! use lzzzz::lz4f::{BlockSize, PreferencesBuilder, Compressor};
 //! use rayon::prelude::*;
 //! use std::io::prelude::*;
 //!
@@ -47,7 +47,7 @@
 //!     .map(|n| format!("{} 🐑...", n))
 //!     .map_with(pref, |pref, data| -> std::io::Result<_> {
 //!         let mut buffer = Vec::new();
-//!         StreamCompressor::new(data.as_bytes(), pref.clone())?.read_to_end(&mut buffer)?;
+//!         Compressor::new(data.as_bytes(), pref.clone())?.read_to_end(&mut buffer)?;
 //!         Ok(buffer)
 //!     })
 //!     .all(|r| r.is_ok());
@@ -337,9 +337,9 @@ impl PreferencesBuilder {
         self
     }
 
-    /// Create a new `StreamCompressor<D>` instance with this configuration.
+    /// Create a new `Compressor<D>` instance with this configuration.
     ///
-    /// To make I/O operations to the returned `StreamCompressor<D>`,
+    /// To make I/O operations to the returned `Compressor<D>`,
     /// the `device` should implement `Read`, `BufRead` or `Write`.
     pub fn build(&self) -> Preferences {
         self.pref

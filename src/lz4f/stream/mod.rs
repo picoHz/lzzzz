@@ -18,7 +18,7 @@ const LZ4F_HEADER_SIZE_MAX: usize = 19;
 enum CompressorState<D> {
     Created,
     WriteActive {
-        finalizer: fn(&mut StreamCompressor<D>) -> Result<()>,
+        finalizer: fn(&mut Compressor<D>) -> Result<()>,
     },
     WriteFinalized,
     ReadActive {
@@ -29,15 +29,15 @@ enum CompressorState<D> {
     },
 }
 
-/// The `StreamCompressor<D>` provides a transparent compression to any reader
+/// The `Compressor<D>` provides a transparent compression to any reader
 /// and writer.
 ///
 /// If the underlying I/O device `D` implements `Read`, `BufRead` or `Write`,
-/// the `StreamCompressor<D>` also implements `Read`, `BufRead` or `Write`.
+/// the `Compressor<D>` also implements `Read`, `BufRead` or `Write`.
 ///
 /// Note that this doesn't mean "Bidirectional stream".
 /// Making read and write operations on a same instance causes a panic!
-pub struct StreamCompressor<D> {
+pub struct Compressor<D> {
     pref: Preferences,
     ctx: CompressionContext,
     device: D,
@@ -45,8 +45,8 @@ pub struct StreamCompressor<D> {
     buffer: LZ4Buffer,
 }
 
-impl<D> StreamCompressor<D> {
-    /// Create a new `StreamCompressor<D>` instance with the default
+impl<D> Compressor<D> {
+    /// Create a new `Compressor<D>` instance with the default
     /// configuration.
     pub fn new(device: D, pref: Preferences) -> Result<Self> {
         Ok(Self {
@@ -84,10 +84,10 @@ impl<D> StreamCompressor<D> {
     }
 }
 
-impl<D: io::Write> StreamCompressor<D> {
+impl<D: io::Write> Compressor<D> {
     /// Finalize this LZ4 frame explicitly.
     ///
-    /// Dropping a `StreamCompressor` automatically finalize a frame
+    /// Dropping a `Compressor` automatically finalize a frame
     /// so you don't have to call this unless you need a `Result`.
     pub fn end(&mut self) -> Result<()> {
         self.finalize_write()
@@ -105,13 +105,13 @@ impl<D: io::Write> StreamCompressor<D> {
     }
 }
 
-impl<D: io::Write> io::Write for StreamCompressor<D> {
+impl<D: io::Write> io::Write for Compressor<D> {
     fn write(&mut self, src: &[u8]) -> io::Result<usize> {
         self.ensure_write();
         self.buffer.grow(src.len(), &self.pref);
         if let CompressorState::Created = self.state {
             self.state = CompressorState::WriteActive {
-                finalizer: StreamCompressor::<D>::finalize_write,
+                finalizer: Compressor::<D>::finalize_write,
             };
             let len = self.ctx.begin(&mut self.buffer, &self.pref)?;
             self.device.write_all(&self.buffer[..len])?;
@@ -131,13 +131,13 @@ impl<D: io::Write> io::Write for StreamCompressor<D> {
 
 #[cfg(feature = "tokio-io")]
 #[cfg_attr(docsrs, doc(cfg(feature = "tokio-io")))]
-impl<D: AsyncRead> AsRef<[u8]> for StreamCompressor<D> {
+impl<D: AsyncRead> AsRef<[u8]> for Compressor<D> {
     fn as_ref(&self) -> &[u8] {
         todo!();
     }
 }
 
-impl<D: io::Read> io::Read for StreamCompressor<D> {
+impl<D: io::Read> io::Read for Compressor<D> {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         self.ensure_read();
 
@@ -214,7 +214,7 @@ impl<D: io::Read> io::Read for StreamCompressor<D> {
     }
 }
 
-impl<D: io::BufRead> io::BufRead for StreamCompressor<D> {
+impl<D: io::BufRead> io::BufRead for Compressor<D> {
     fn fill_buf(&mut self) -> io::Result<&[u8]> {
         use std::io::Read;
         self.read(&mut [])?;
@@ -240,7 +240,7 @@ impl<D: io::BufRead> io::BufRead for StreamCompressor<D> {
     }
 }
 
-impl<D> Drop for StreamCompressor<D> {
+impl<D> Drop for Compressor<D> {
     fn drop(&mut self) {
         let finalizer = if let CompressorState::WriteActive { finalizer } = &self.state {
             finalizer
@@ -257,14 +257,14 @@ enum DecompressorState {
 
 /// The `FrameDeompressor<D>` provides a transparent decompression to any reader
 /// and writer.
-pub struct StreamDecompressor<'a, D> {
+pub struct Decompressor<'a, D> {
     device: D,
     ctx: DecompressionContext,
     state: DecompressorState,
     dict: Cow<'a, [u8]>,
 }
 
-impl<'a, D> StreamDecompressor<'a, D> {
+impl<'a, D> Decompressor<'a, D> {
     pub fn new(device: D) -> Result<Self> {
         Ok(Self {
             device,
@@ -283,7 +283,7 @@ impl<'a, D> StreamDecompressor<'a, D> {
     }
 }
 
-impl<'a, D: io::Read> StreamDecompressor<'a, D> {
+impl<'a, D: io::Read> Decompressor<'a, D> {
     pub fn read_frame_info(&mut self) -> Result<FrameInfo> {
         todo!();
     }
