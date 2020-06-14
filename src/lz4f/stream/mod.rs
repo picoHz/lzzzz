@@ -1,6 +1,8 @@
 //! LZ4 Frame Streaming Compressor/Decompressor
 
 mod api;
+pub mod compressor;
+pub mod decompressor;
 
 use crate::{
     lz4f::{FrameInfo, Preferences},
@@ -9,9 +11,6 @@ use crate::{
 pub(crate) use api::DecompressionContext;
 use api::{CompressionContext, DictionaryHandle, LZ4Buffer};
 use std::{borrow::Cow, cmp, io, ops, sync::Arc};
-
-#[cfg(feature = "tokio-io")]
-use tokio::io::AsyncRead;
 
 const LZ4F_HEADER_SIZE_MAX: usize = 19;
 
@@ -126,14 +125,6 @@ impl<D: io::Write> io::Write for Compressor<D> {
         let len = self.ctx.flush(&mut self.buffer, false)?;
         self.device.write_all(&self.buffer[..len])?;
         self.device.flush()
-    }
-}
-
-#[cfg(feature = "tokio-io")]
-#[cfg_attr(docsrs, doc(cfg(feature = "tokio-io")))]
-impl<D: AsyncRead> AsRef<[u8]> for Compressor<D> {
-    fn as_ref(&self) -> &[u8] {
-        todo!();
     }
 }
 
