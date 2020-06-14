@@ -1,6 +1,6 @@
 use super::{Compressor, Dictionary, Preferences, State, LZ4F_HEADER_SIZE_MAX};
-use std::io::Result;
 use std::io::Write;
+use std::io::{IoSlice, Result};
 use std::mem::MaybeUninit;
 
 pub struct WriteCompressor<W: Write> {
@@ -47,6 +47,14 @@ impl<W: Write> WriteCompressor<W> {
         Ok(())
     }
 
+    fn write_impl(&mut self, buf: &[u8], stable_src: bool) -> Result<usize> {
+        self.ensure_stream()?;
+        self.resize_buf(buf.len());
+        let len = self.inner.ctx.update(&mut self.buffer, buf, stable_src)?;
+        self.inner.device.write_all(&self.buffer[..len])?;
+        Ok(buf.len())
+    }
+
     fn end(&mut self) -> Result<()> {
         self.ensure_stream()?;
         match self.inner.state {
@@ -63,12 +71,19 @@ impl<W: Write> WriteCompressor<W> {
 
 impl<W: Write> Write for WriteCompressor<W> {
     fn write(&mut self, buf: &[u8]) -> Result<usize> {
-        self.ensure_stream()?;
-        self.resize_buf(buf.len());
-        let len = self.inner.ctx.update(&mut self.buffer, buf, false)?;
-        self.inner.device.write_all(&self.buffer[..len])?;
-        Ok(buf.len())
+        self.write_impl(buf, false)
     }
+
+    /*
+    fn write_vectored(&mut self, bufs: &[IoSlice]) -> Result<usize> {
+        let mut len = 0;
+        for (i, buf) in bufs.iter().enumerate() {
+            let is_last = i + 1 < buf.len();
+            len += self.write_impl(buf, !is_last)?;
+        }
+        Ok(len)
+    }
+    */
 
     fn flush(&mut self) -> Result<()> {
         self.ensure_stream()?;
