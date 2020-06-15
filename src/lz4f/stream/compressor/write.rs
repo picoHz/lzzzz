@@ -18,13 +18,6 @@ impl<W: Write> WriteCompressor<W> {
         })
     }
 
-    fn write_impl(&mut self, buf: &[u8], stable_src: bool) -> Result<usize> {
-        self.inner.update(buf, stable_src)?;
-        self.device.write_all(self.inner.buf())?;
-        self.inner.clear_buf();
-        Ok(buf.len())
-    }
-
     fn end(&mut self) -> Result<()> {
         self.inner.end(false)?;
         self.device.write_all(self.inner.buf())?;
@@ -35,17 +28,11 @@ impl<W: Write> WriteCompressor<W> {
 
 impl<W: Write> Write for WriteCompressor<W> {
     fn write(&mut self, buf: &[u8]) -> Result<usize> {
-        self.write_impl(buf, false)
+        self.inner.update(buf, false)?;
+        self.device.write_all(self.inner.buf())?;
+        self.inner.clear_buf();
+        Ok(buf.len())
     }
-
-    // fn write_vectored(&mut self, bufs: &[IoSlice]) -> Result<usize> {
-    // let mut len = 0;
-    // for (i, buf) in bufs.iter().enumerate() {
-    // let is_last = i + 1 < buf.len();
-    // len += self.write_impl(buf, !is_last)?;
-    // }
-    // Ok(len)
-    // }
 
     fn flush(&mut self) -> Result<()> {
         self.inner.flush(false)?;

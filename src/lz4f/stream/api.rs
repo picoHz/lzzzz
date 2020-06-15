@@ -13,7 +13,7 @@ use crate::{
 };
 
 use libc::{c_void, size_t};
-use std::{mem::MaybeUninit, ops::DerefMut, ptr::NonNull};
+use std::{mem::MaybeUninit, ptr::NonNull};
 
 pub struct CompressionContext {
     ctx: NonNull<LZ4FCompressionCtx>,
