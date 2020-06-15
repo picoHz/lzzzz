@@ -1,9 +1,8 @@
 #![cfg(feature = "tokio-io")]
 
 use super::{Compressor, CompressorBuilder, Dictionary, Preferences, LZ4F_HEADER_SIZE_MAX};
-use futures::{future::FutureExt, ready};
+use futures::ready;
 use pin_project::{pin_project, project};
-use pin_utils::pin_mut;
 use std::{
     convert::TryInto,
     marker::Unpin,
@@ -108,13 +107,10 @@ mod tests {
     use crate::lz4f::{compressor::AsyncWriteCompressor, CompressorBuilder};
     use tokio::{fs::File, prelude::*, runtime::Runtime};
 
-    #[test]
-    fn empty_dst() {
-        let mut rt = Runtime::new().unwrap();
-        rt.block_on(async {
-            let mut file = File::create("foo.txt").await?;
-            let mut file = CompressorBuilder::new(&mut file).build::<AsyncWriteCompressor<_>>()?;
-            file.write_all(b"hello, world!").await
-        });
+    #[tokio::test]
+    async fn async_write() -> std::io::Result<()> {
+        let mut file = File::create("foo").await?;
+        let mut file = CompressorBuilder::new(&mut file).build::<AsyncWriteCompressor<_>>()?;
+        file.write_all(b"hello, world!").await
     }
 }
