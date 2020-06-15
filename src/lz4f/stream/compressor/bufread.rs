@@ -1,7 +1,7 @@
 use super::{Compressor, CompressorBuilder, Dictionary, Preferences, State};
 use std::{
     convert::TryInto,
-    io::{BufRead, Read, Result},
+    io::{BufRead, BufReader, Read, Result},
 };
 
 pub struct BufReadCompressor<B: BufRead> {
@@ -35,20 +35,26 @@ impl<B: BufRead> BufReadCompressor<B> {
 impl<B: BufRead> Read for BufReadCompressor<B> {
     fn read(&mut self, buf: &mut [u8]) -> Result<usize> {
         self.ensure_stream()?;
-        if self.inner.buf().is_empty() {
-            if let State::Finished = self.inner.state {
-                return Ok(0);
-            }
-            let buf = self.device.fill_buf()?;
-            if buf.is_empty() {
-                self.inner.end(false)?;
-                self.inner.state = State::Finished;
+
+        let consumed = {
+            let inner_buf = self.device.fill_buf()?;
+            if inner_buf.is_empty() {
+                if let State::Finished = self.inner.state {
+                    if self.inner.buf().is_empty() {
+                        return Ok(0);
+                    }
+                } else {
+                    self.inner.state = State::Finished;
+                    self.inner.end(false)?;
+                }
+                0
             } else {
-                self.inner.update(buf, false)?;
-                let len = buf.len();
-                self.device.consume(len);
+                self.inner.update(inner_buf, false)?;
+                inner_buf.len()
             }
-        }
+        };
+        self.device.consume(consumed);
+
         let len = std::cmp::min(buf.len(), self.inner.buf().len() - self.consumed);
         buf[..len].copy_from_slice(&self.inner.buf()[self.consumed..][..len]);
         self.consumed += len;
