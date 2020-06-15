@@ -1,7 +1,7 @@
 #![cfg(feature = "tokio-io")]
 
 use super::{Compressor, CompressorBuilder, Dictionary, Preferences, State, LZ4F_HEADER_SIZE_MAX};
-use futures::future::FutureExt;
+use futures::{future::FutureExt, ready};
 use pin_project::{pin_project, project};
 use std::{
     convert::TryInto,
@@ -14,22 +14,15 @@ use tokio::io::{AsyncWrite, AsyncWriteExt, Result};
 
 #[cfg_attr(docsrs, doc(cfg(feature = "tokio-io")))]
 #[pin_project]
-pub struct AsyncWriteCompressor<W: AsyncWrite> {
+pub struct AsyncWriteCompressor<W: AsyncWrite + Unpin> {
     #[pin]
     device: W,
-    buffer: Vec<u8>,
+    inner: Compressor,
 }
 
-impl<W: AsyncWrite> AsyncWriteCompressor<W> {
-    fn aaaa(self: Pin<&mut Self>, buf: &[u8]) -> Poll<Result<usize>> {
-        Poll::Ready(Ok(0))
-    }
-}
-
-impl<W: AsyncWrite> AsyncWrite for AsyncWriteCompressor<W> {
+impl<W: AsyncWrite + Unpin> AsyncWrite for AsyncWriteCompressor<W> {
     fn poll_write(mut self: Pin<&mut Self>, cx: &mut Context, buf: &[u8]) -> Poll<Result<usize>> {
-        self.as_mut().project().buffer.reserve(1);
-        self.project().device.write_all(&[]);
+        self.project().device.write_all(&[]).poll_unpin(cx);
         Poll::Ready(Ok(0))
     }
 
@@ -38,6 +31,13 @@ impl<W: AsyncWrite> AsyncWrite for AsyncWriteCompressor<W> {
     }
 
     fn poll_shutdown(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Result<()>> {
+        let mut me = self.project();
+        if !me.inner.buf().is_empty() {
+            ready!(me.device.as_mut().write_all(me.inner.buf()).poll_unpin(cx))?;
+            me.inner.clear_buf();
+            return Poll::Pending;
+        }
+        me.inner.end(false)?;
         Poll::Ready(Ok(()))
     }
 }
