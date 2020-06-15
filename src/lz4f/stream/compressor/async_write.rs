@@ -42,18 +42,22 @@ impl<W: AsyncWrite + Unpin> AsyncWrite for AsyncWriteCompressor<W> {
     fn poll_write(self: Pin<&mut Self>, cx: &mut Context, buf: &[u8]) -> Poll<Result<usize>> {
         let me = self.project();
         if let State::None = me.state {
-            *me.state = State::Write;
+            me.inner.clear_buf();
             *me.len = 0;
             me.inner.update(buf, false)?;
+            *me.state = State::Write;
         }
         if let State::Write = me.state {
             *me.len += match me.device.poll_write(cx, &me.inner.buf()[*me.len..]) {
                 Poll::Pending => return Poll::Pending,
-                Poll::Ready(r) => r,
-            }?;
+                Poll::Ready(Ok(len)) => len,
+                Poll::Ready(Err(err)) => {
+                    *me.state = State::None;
+                    return Poll::Ready(Err(err));
+                }
+            };
             if *me.len >= me.inner.buf().len() {
                 *me.state = State::None;
-                me.inner.clear_buf();
                 return Poll::Ready(Ok(buf.len()));
             }
         }
@@ -63,18 +67,22 @@ impl<W: AsyncWrite + Unpin> AsyncWrite for AsyncWriteCompressor<W> {
     fn poll_flush(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Result<()>> {
         let me = self.project();
         if let State::None = me.state {
-            *me.state = State::Flush;
+            me.inner.clear_buf();
             *me.len = 0;
             me.inner.flush(false)?;
+            *me.state = State::Flush;
         }
         if let State::Flush = me.state {
             *me.len += match me.device.poll_write(cx, &me.inner.buf()[*me.len..]) {
                 Poll::Pending => return Poll::Pending,
-                Poll::Ready(r) => r,
-            }?;
+                Poll::Ready(Ok(len)) => len,
+                Poll::Ready(Err(err)) => {
+                    *me.state = State::None;
+                    return Poll::Ready(Err(err));
+                }
+            };
             if *me.len >= me.inner.buf().len() {
                 *me.state = State::None;
-                me.inner.clear_buf();
                 return Poll::Ready(Ok(()));
             }
         }
@@ -84,18 +92,22 @@ impl<W: AsyncWrite + Unpin> AsyncWrite for AsyncWriteCompressor<W> {
     fn poll_shutdown(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Result<()>> {
         let me = self.project();
         if let State::None = me.state {
-            *me.state = State::Shutdown;
+            me.inner.clear_buf();
             *me.len = 0;
             me.inner.end(false)?;
+            *me.state = State::Shutdown;
         }
         if let State::Shutdown = me.state {
             *me.len += match me.device.poll_write(cx, &me.inner.buf()[*me.len..]) {
                 Poll::Pending => return Poll::Pending,
-                Poll::Ready(r) => r,
-            }?;
+                Poll::Ready(Ok(len)) => len,
+                Poll::Ready(Err(err)) => {
+                    *me.state = State::None;
+                    return Poll::Ready(Err(err));
+                }
+            };
             if *me.len >= me.inner.buf().len() {
                 *me.state = State::None;
-                me.inner.clear_buf();
                 return Poll::Ready(Ok(()));
             }
         }

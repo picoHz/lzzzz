@@ -9,6 +9,13 @@ use std::{
 };
 use tokio::io::{AsyncBufRead, AsyncRead, Result};
 
+#[derive(PartialEq)]
+enum State {
+    None,
+    Read,
+    FillBuf,
+}
+
 #[cfg_attr(docsrs, doc(cfg(feature = "tokio-io")))]
 #[pin_project]
 pub struct AsyncBufReadCompressor<B: AsyncBufRead + Unpin> {
@@ -16,21 +23,40 @@ pub struct AsyncBufReadCompressor<B: AsyncBufRead + Unpin> {
     device: B,
     inner: Compressor,
     consumed: usize,
+    state: State,
 }
 
 impl<B: AsyncBufRead + Unpin> AsyncBufReadCompressor<B> {
-    pub(crate) fn new(bufreader: B, pref: Preferences, dict: Option<Dictionary>) -> crate::Result<Self> {
+    pub(crate) fn new(
+        bufreader: B,
+        pref: Preferences,
+        dict: Option<Dictionary>,
+    ) -> crate::Result<Self> {
         Ok(Self {
             device: bufreader,
             inner: Compressor::new(pref, dict)?,
             consumed: 0,
+            state: State::None,
         })
     }
-}
 
-impl<B: AsyncBufRead + Unpin> AsyncRead for AsyncBufReadCompressor<B> {
-    fn poll_read(self: Pin<&mut Self>, cx: &mut Context, buf: &mut [u8]) -> Poll<Result<usize>> {
+    fn poll_read_impl(
+        self: Pin<&mut Self>,
+        cx: &mut Context,
+        buf: &mut [u8],
+        state: State,
+    ) -> Poll<Result<usize>> {
         let mut me = self.project();
+        match *me.state {
+            State::None => {
+                *me.state = state;
+            }
+            _ => {
+                if *me.state != state {
+                    return Poll::Pending;
+                }
+            }
+        }
         let inner_buf = match me.device.as_mut().poll_fill_buf(cx) {
             Poll::Pending => return Poll::Pending,
             Poll::Ready(r) => r,
@@ -38,6 +64,7 @@ impl<B: AsyncBufRead + Unpin> AsyncRead for AsyncBufReadCompressor<B> {
         let consumed = if inner_buf.is_empty() {
             me.inner.end(false)?;
             if me.inner.buf().is_empty() {
+                println!("*****");
                 return Poll::Ready(Ok(0));
             }
             0
@@ -57,13 +84,31 @@ impl<B: AsyncBufRead + Unpin> AsyncRead for AsyncBufReadCompressor<B> {
     }
 }
 
-impl<B: AsyncBufRead + Unpin> AsyncBufRead for AsyncBufReadCompressor<B> {
-    fn poll_fill_buf(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<Result<&[u8]>> {
-        match Pin::new(&mut *self).poll_read(cx, &mut []) {
+impl<B: AsyncBufRead + Unpin> AsyncRead for AsyncBufReadCompressor<B> {
+    fn poll_read(
+        mut self: Pin<&mut Self>,
+        cx: &mut Context,
+        buf: &mut [u8],
+    ) -> Poll<Result<usize>> {
+        let result = match Pin::new(&mut *self).poll_read_impl(cx, buf, State::Read) {
             Poll::Pending => return Poll::Pending,
-            Poll::Ready(r) => r?,
+            Poll::Ready(r) => r,
         };
         let me = self.project();
+        *me.state = State::None;
+        Poll::Ready(result)
+    }
+}
+
+impl<B: AsyncBufRead + Unpin> AsyncBufRead for AsyncBufReadCompressor<B> {
+    fn poll_fill_buf(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<Result<&[u8]>> {
+        let result = match Pin::new(&mut *self).poll_read_impl(cx, &mut [], State::FillBuf) {
+            Poll::Pending => return Poll::Pending,
+            Poll::Ready(r) => r,
+        };
+        let me = self.project();
+        *me.state = State::None;
+        result?;
         Poll::Ready(Ok(&me.inner.buf()[*me.consumed..]))
     }
 
@@ -91,7 +136,7 @@ mod tests {
 
     #[tokio::test]
     async fn async_read() -> std::io::Result<()> {
-        let mut file = BufReader::new(File::open("foo").await?);
+        let mut file = BufReader::new(File::open("README.md").await?);
         let mut file = CompressorBuilder::new(&mut file).build::<AsyncBufReadCompressor<_>>()?;
         let mut contents = vec![];
         file.read_to_end(&mut contents).await?;
