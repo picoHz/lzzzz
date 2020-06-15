@@ -1,10 +1,8 @@
 #![allow(unsafe_code)]
 
-use super::{FrameInfo, Preferences};
-use crate::{binding, common, Error, Report, Result};
-use binding::{LZ4FDecompressionCtx, LZ4FDecompressionOptions};
+use super::Preferences;
+use crate::{binding, common, Report, Result};
 use libc::{c_void, size_t};
-use std::{mem::MaybeUninit, ptr::NonNull};
 
 pub fn compress_bound(input_size: usize, prefs: &Preferences) -> usize {
     unsafe {

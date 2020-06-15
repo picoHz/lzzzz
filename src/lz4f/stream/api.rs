@@ -13,13 +13,7 @@ use crate::{
 };
 
 use libc::{c_void, size_t};
-use std::{
-    mem::MaybeUninit,
-    ops::{Deref, DerefMut},
-    ptr::NonNull,
-};
-
-pub const HEADER_SIZE_MAX: usize = 19;
+use std::{mem::MaybeUninit, ops::DerefMut, ptr::NonNull};
 
 pub struct CompressionContext {
     ctx: NonNull<LZ4FCompressionCtx>,
@@ -215,47 +209,6 @@ impl Drop for DecompressionContext {
         unsafe {
             binding::LZ4F_freeDecompressionContext(self.ctx.as_ptr());
         }
-    }
-}
-
-#[derive(Debug, Default, Clone)]
-pub struct LZ4Buffer {
-    data: Vec<u8>,
-    prev_size: usize,
-}
-
-impl LZ4Buffer {
-    pub fn new() -> Self {
-        Default::default()
-    }
-
-    pub fn grow(&mut self, size: usize, prefs: &Preferences) {
-        if self.prev_size == 0 || size + 1 > self.prev_size {
-            let len = CompressionContext::compress_bound(size, prefs) + HEADER_SIZE_MAX;
-            if len > self.data.len() {
-                self.data.reserve(len - self.data.len());
-
-                #[allow(unsafe_code)]
-                unsafe {
-                    self.data.set_len(len)
-                };
-            }
-            self.prev_size = size + 1;
-        }
-    }
-}
-
-impl Deref for LZ4Buffer {
-    type Target = [u8];
-
-    fn deref(&self) -> &Self::Target {
-        &self.data
-    }
-}
-
-impl DerefMut for LZ4Buffer {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.data
     }
 }
 

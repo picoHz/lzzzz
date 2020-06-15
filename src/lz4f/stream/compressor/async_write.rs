@@ -1,15 +1,15 @@
 #![cfg(feature = "tokio-io")]
 
-use super::{Compressor, CompressorBuilder, Dictionary, Preferences, LZ4F_HEADER_SIZE_MAX};
+use super::{Compressor, CompressorBuilder, Dictionary, Preferences};
 use futures::ready;
-use pin_project::{pin_project, project};
+use pin_project::pin_project;
 use std::{
     convert::TryInto,
     marker::Unpin,
     pin::Pin,
     task::{Context, Poll},
 };
-use tokio::io::{AsyncWrite, AsyncWriteExt, Result};
+use tokio::io::{AsyncWrite, Result};
 
 enum State {
     None,
@@ -40,7 +40,7 @@ impl<W: AsyncWrite + Unpin> AsyncWriteCompressor<W> {
 }
 
 impl<W: AsyncWrite + Unpin> AsyncWrite for AsyncWriteCompressor<W> {
-    fn poll_write(mut self: Pin<&mut Self>, cx: &mut Context, buf: &[u8]) -> Poll<Result<usize>> {
+    fn poll_write(self: Pin<&mut Self>, cx: &mut Context, buf: &[u8]) -> Poll<Result<usize>> {
         let me = self.project();
         if let State::None = me.state {
             *me.state = State::Write;
@@ -58,7 +58,7 @@ impl<W: AsyncWrite + Unpin> AsyncWrite for AsyncWriteCompressor<W> {
         Poll::Pending
     }
 
-    fn poll_flush(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<Result<()>> {
+    fn poll_flush(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Result<()>> {
         let me = self.project();
         if let State::None = me.state {
             *me.state = State::Flush;
@@ -76,7 +76,7 @@ impl<W: AsyncWrite + Unpin> AsyncWrite for AsyncWriteCompressor<W> {
         Poll::Pending
     }
 
-    fn poll_shutdown(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<Result<()>> {
+    fn poll_shutdown(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Result<()>> {
         let me = self.project();
         if let State::None = me.state {
             *me.state = State::Shutdown;

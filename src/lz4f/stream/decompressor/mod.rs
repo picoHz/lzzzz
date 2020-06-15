@@ -10,7 +10,5 @@ pub use bufread::*;
 pub use read::*;
 pub use write::*;
 
-pub(crate) use super::api::DecompressionContext;
-
 #[cfg(feature = "tokio-io")]
 pub use {async_bufread::*, async_read::*, async_write::*};

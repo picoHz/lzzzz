@@ -14,10 +14,7 @@ pub use read::*;
 pub use write::*;
 
 pub(crate) use super::api::CompressionContext;
-pub(crate) use crate::{
-    lz4f::{Dictionary, Preferences},
-    Error,
-};
+pub(crate) use crate::lz4f::{Dictionary, Preferences};
 
 #[cfg(feature = "tokio-io")]
 pub use {async_bufread::*, async_read::*, async_write::*};

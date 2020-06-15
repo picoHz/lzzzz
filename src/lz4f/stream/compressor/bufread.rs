@@ -1,7 +1,7 @@
 use super::{Compressor, CompressorBuilder, Dictionary, Preferences};
 use std::{
     convert::TryInto,
-    io::{BufRead, BufReader, Read, Result},
+    io::{BufRead, Read, Result},
 };
 
 pub struct BufReadCompressor<B: BufRead> {

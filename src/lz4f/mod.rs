@@ -6,3 +6,5 @@ mod stream;
 
 pub use frame::*;
 pub use stream::*;
+
+pub use stream::compressor::CompressorBuilder;

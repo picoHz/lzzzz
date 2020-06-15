@@ -1,7 +1,7 @@
-use super::{Compressor, CompressorBuilder, Dictionary, Preferences, LZ4F_HEADER_SIZE_MAX};
+use super::{Compressor, CompressorBuilder, Dictionary, Preferences};
 use std::{
     convert::TryInto,
-    io::{IoSlice, Result, Write},
+    io::{Result, Write},
     mem::MaybeUninit,
 };
 
