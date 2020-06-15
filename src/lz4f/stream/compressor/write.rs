@@ -1,4 +1,4 @@
-use super::{Compressor, CompressorBuilder, Dictionary, Preferences, State, LZ4F_HEADER_SIZE_MAX};
+use super::{Compressor, CompressorBuilder, Dictionary, Preferences, LZ4F_HEADER_SIZE_MAX};
 use std::{
     convert::TryInto,
     io::{IoSlice, Result, Write},
@@ -18,18 +18,7 @@ impl<W: Write> WriteCompressor<W> {
         })
     }
 
-    fn ensure_stream(&mut self) -> Result<()> {
-        if let State::Created = self.inner.state {
-            self.inner.state = State::Active;
-            self.inner.begin()?;
-            self.device.write_all(self.inner.buf())?;
-            self.inner.clear_buf();
-        }
-        Ok(())
-    }
-
     fn write_impl(&mut self, buf: &[u8], stable_src: bool) -> Result<usize> {
-        self.ensure_stream()?;
         self.inner.update(buf, stable_src)?;
         self.device.write_all(self.inner.buf())?;
         self.inner.clear_buf();
@@ -37,16 +26,9 @@ impl<W: Write> WriteCompressor<W> {
     }
 
     fn end(&mut self) -> Result<()> {
-        self.ensure_stream()?;
-        match self.inner.state {
-            State::Active => {
-                self.inner.state = State::Finished;
-                self.inner.end(false)?;
-                self.device.write_all(self.inner.buf())?;
-                self.inner.clear_buf();
-            }
-            _ => unreachable!(),
-        }
+        self.inner.end(false)?;
+        self.device.write_all(self.inner.buf())?;
+        self.inner.clear_buf();
         self.device.flush()
     }
 }
@@ -66,7 +48,6 @@ impl<W: Write> Write for WriteCompressor<W> {
     // }
 
     fn flush(&mut self) -> Result<()> {
-        self.ensure_stream()?;
         self.inner.flush(false)?;
         self.device.write_all(self.inner.buf())?;
         self.device.flush()

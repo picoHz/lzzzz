@@ -75,14 +75,18 @@ impl Compressor {
     }
 
     pub fn begin(&mut self) -> Result<()> {
-        assert!(self.buffer.is_empty());
-        self.buf_resize(LZ4F_HEADER_SIZE_MAX);
-        let len = self.ctx.begin(&mut self.buffer, &self.prefs)?;
-        self.buf_resize(len);
+        if let State::Created = self.state {
+            assert!(self.buffer.is_empty());
+            self.state = State::Active;
+            self.buf_resize(LZ4F_HEADER_SIZE_MAX);
+            let len = self.ctx.begin(&mut self.buffer, &self.prefs)?;
+            self.buf_resize(len);
+        }
         Ok(())
     }
 
     pub fn update(&mut self, src: &[u8], stable_src: bool) -> Result<()> {
+        self.begin()?;
         let offset = self.buf_extend_bound(src.len());
         let len = self
             .ctx
@@ -96,6 +100,7 @@ impl Compressor {
     }
 
     pub fn flush(&mut self, stable_src: bool) -> Result<()> {
+        self.begin()?;
         let offset = self.buf_extend_bound(0);
         let len = self.ctx.flush(&mut self.buffer[offset..], stable_src)?;
         self.buf_resize(offset + len);
@@ -103,9 +108,13 @@ impl Compressor {
     }
 
     pub fn end(&mut self, stable_src: bool) -> Result<()> {
-        let offset = self.buf_extend_bound(0);
-        let len = self.ctx.end(&mut self.buffer[offset..], stable_src)?;
-        self.buf_resize(offset + len);
+        self.begin()?;
+        if let State::Active = self.state {
+            self.state = State::Finished;
+            let offset = self.buf_extend_bound(0);
+            let len = self.ctx.end(&mut self.buffer[offset..], stable_src)?;
+            self.buf_resize(offset + len);
+        }
         Ok(())
     }
 

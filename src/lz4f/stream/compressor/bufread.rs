@@ -1,4 +1,4 @@
-use super::{Compressor, CompressorBuilder, Dictionary, Preferences, State};
+use super::{Compressor, CompressorBuilder, Dictionary, Preferences};
 use std::{
     convert::TryInto,
     io::{BufRead, BufReader, Read, Result},
@@ -22,30 +22,16 @@ impl<B: BufRead> BufReadCompressor<B> {
             consumed: 0,
         })
     }
-
-    fn ensure_stream(&mut self) -> Result<()> {
-        if let State::Created = self.inner.state {
-            self.inner.begin()?;
-            self.inner.state = State::Active;
-        }
-        Ok(())
-    }
 }
 
 impl<B: BufRead> Read for BufReadCompressor<B> {
     fn read(&mut self, buf: &mut [u8]) -> Result<usize> {
-        self.ensure_stream()?;
-
         let consumed = {
             let inner_buf = self.device.fill_buf()?;
             if inner_buf.is_empty() {
-                if let State::Finished = self.inner.state {
-                    if self.inner.buf().is_empty() {
-                        return Ok(0);
-                    }
-                } else {
-                    self.inner.state = State::Finished;
-                    self.inner.end(false)?;
+                self.inner.end(false)?;
+                if self.inner.buf().is_empty() {
+                    return Ok(0);
                 }
                 0
             } else {
