@@ -15,6 +15,7 @@ libc = "0.2.71"
 tokio = { version = "0.2.21", optional = true }
 futures = { version = "0.3.5", optional = true }
 pin-project = { version = "0.4.22", optional = true }
+pin-utils  = { version = "0.1.0", optional = true }
 
 [dev-dependencies]
 rayon = "1.3.0"
@@ -31,7 +32,7 @@ lz4 = []
 lz4_hc = []
 lz4f = []
 
-tokio-io = ["tokio/io-util", "futures", "pin-project"]
+tokio-io = ["tokio/io-util", "futures", "pin-project", "pin-utils"]
 use-tls = []
 lz4-use-stack = ["lz4"]
 liblz4-experimental = []
