@@ -64,7 +64,6 @@ impl<B: AsyncBufRead + Unpin> AsyncBufReadCompressor<B> {
         let consumed = if inner_buf.is_empty() {
             me.inner.end(false)?;
             if me.inner.buf().is_empty() {
-                println!("*****");
                 return Poll::Ready(Ok(0));
             }
             0
