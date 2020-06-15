@@ -7,7 +7,6 @@ use pin_utils::pin_mut;
 use std::{
     convert::TryInto,
     marker::Unpin,
-    mem::MaybeUninit,
     pin::Pin,
     task::{Context, Poll},
 };
@@ -22,35 +21,60 @@ pub struct AsyncWriteCompressor<W: AsyncWrite + Unpin> {
 }
 
 impl<W: AsyncWrite + Unpin> AsyncWriteCompressor<W> {
-    async fn aa(&mut self) -> Result<()> {
+    fn new(writer: W, pref: Preferences, dict: Option<Dictionary>) -> crate::Result<Self> {
+        Ok(Self {
+            device: writer,
+            inner: Compressor::new(pref, dict)?,
+        })
+    }
+
+    async fn write(&mut self, buf: &[u8]) -> Result<usize> {
+        self.inner.update(buf, false)?;
         self.device.write_all(self.inner.buf()).await?;
-        Ok(())
+        self.inner.clear_buf();
+        Ok(buf.len())
+    }
+
+    async fn flush(&mut self) -> Result<()> {
+        self.inner.flush(false)?;
+        self.device.write_all(self.inner.buf()).await?;
+        self.device.flush().await
+    }
+
+    async fn shutdown(&mut self) -> Result<()> {
+        self.inner.end(false)?;
+        self.device.write_all(self.inner.buf()).await?;
+        self.inner.clear_buf();
+        self.device.flush().await
     }
 }
 
 impl<W: AsyncWrite + Unpin> AsyncWrite for AsyncWriteCompressor<W> {
     fn poll_write(mut self: Pin<&mut Self>, cx: &mut Context, buf: &[u8]) -> Poll<Result<usize>> {
-        self.project().device.write_all(&[]).poll_unpin(cx);
-        Poll::Ready(Ok(0))
+        let mut me = Pin::new(&mut *self);
+        let future = me.write(buf);
+        pin_mut!(future);
+        future.poll_unpin(cx)
     }
 
     fn poll_flush(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<Result<()>> {
         let mut me = Pin::new(&mut *self);
-        let future = me.aa();
+        let future = me.flush();
         pin_mut!(future);
         future.poll_unpin(cx)
     }
 
     fn poll_shutdown(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<Result<()>> {
-        let mut me = &mut *self;
-        let mut me = self.project();
-        if !me.inner.buf().is_empty() {
-            ready!(me.device.as_mut().write_all(me.inner.buf()).poll_unpin(cx))?;
-            me.inner.clear_buf();
-            return Poll::Pending;
-        }
-        me.inner.end(false)?;
-        // Poll::Ready(Ok(()));
-        Box::pin(async { Ok(()) }).poll_unpin(cx)
+        let mut me = Pin::new(&mut *self);
+        let future = me.shutdown();
+        pin_mut!(future);
+        future.poll_unpin(cx)
+    }
+}
+
+impl<W: AsyncWrite + Unpin> TryInto<AsyncWriteCompressor<W>> for CompressorBuilder<W> {
+    type Error = crate::Error;
+    fn try_into(self) -> crate::Result<AsyncWriteCompressor<W>> {
+        AsyncWriteCompressor::new(self.device, self.pref, self.dict)
     }
 }
