@@ -9,28 +9,20 @@ use std::{
 };
 use tokio::io::{AsyncBufRead, AsyncRead, Result};
 
-enum State {
-    None,
-    Read,
-    FillBuf,
-}
-
 #[cfg_attr(docsrs, doc(cfg(feature = "tokio-io")))]
 #[pin_project]
 pub struct AsyncBufReadCompressor<B: AsyncBufRead + Unpin> {
     #[pin]
     device: B,
     inner: Compressor,
-    state: State,
     consumed: usize,
 }
 
 impl<B: AsyncBufRead + Unpin> AsyncBufReadCompressor<B> {
-    pub fn new(bufreader: B, pref: Preferences, dict: Option<Dictionary>) -> crate::Result<Self> {
+    pub(crate) fn new(bufreader: B, pref: Preferences, dict: Option<Dictionary>) -> crate::Result<Self> {
         Ok(Self {
             device: bufreader,
             inner: Compressor::new(pref, dict)?,
-            state: State::None,
             consumed: 0,
         })
     }
