@@ -29,19 +29,23 @@ impl<W: AsyncWrite + Unpin> AsyncWriteCompressor<W> {
     }
 
     async fn write(&mut self, buf: &[u8]) -> Result<usize> {
+        println!(">>>> w");
         self.inner.update(buf, false)?;
         self.device.write_all(self.inner.buf()).await?;
         self.inner.clear_buf();
+        self.device.flush().await?;
         Ok(buf.len())
     }
 
     async fn flush(&mut self) -> Result<()> {
+        println!(">>>> f");
         self.inner.flush(false)?;
         self.device.write_all(self.inner.buf()).await?;
         self.device.flush().await
     }
 
     async fn shutdown(&mut self) -> Result<()> {
+        println!(">>>> s");
         self.inner.end(false)?;
         self.device.write_all(self.inner.buf()).await?;
         self.inner.clear_buf();
@@ -54,7 +58,8 @@ impl<W: AsyncWrite + Unpin> AsyncWrite for AsyncWriteCompressor<W> {
         let mut me = Pin::new(&mut *self);
         let future = me.write(buf);
         pin_mut!(future);
-        future.poll_unpin(cx)
+        println!("AAAA {}", buf.len());
+        me.write(buf).poll_unpin(cx)
     }
 
     fn poll_flush(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<Result<()>> {
@@ -70,11 +75,41 @@ impl<W: AsyncWrite + Unpin> AsyncWrite for AsyncWriteCompressor<W> {
         pin_mut!(future);
         future.poll_unpin(cx)
     }
+    /*
+    fn poll_write_buf<B: Buf>(
+        self: Pin<&mut Self>,
+        cx: &mut Context,
+        buf: &mut B,
+    ) -> Poll<Result<usize>>
+    where
+        Self: Sized,
+    {
+        Poll::Pending
+    }
+    */
 }
 
 impl<W: AsyncWrite + Unpin> TryInto<AsyncWriteCompressor<W>> for CompressorBuilder<W> {
     type Error = crate::Error;
     fn try_into(self) -> crate::Result<AsyncWriteCompressor<W>> {
         AsyncWriteCompressor::new(self.device, self.pref, self.dict)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::lz4f::{compressor::AsyncWriteCompressor, CompressorBuilder};
+    use tokio::fs::File;
+    use tokio::prelude::*;
+    use tokio::runtime::Runtime;
+
+    #[test]
+    fn empty_dst() {
+        let mut rt = Runtime::new().unwrap();
+        rt.block_on(async {
+            let mut file = File::create("foo.txt").await?;
+            let mut file2 = CompressorBuilder::new(&mut file).build::<AsyncWriteCompressor<_>>()?;
+            file2.write_all(b"hello, world!").await
+        });
     }
 }
