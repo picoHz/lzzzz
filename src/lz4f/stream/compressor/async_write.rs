@@ -1,7 +1,6 @@
 #![cfg(feature = "tokio-io")]
 
 use super::{Compressor, CompressorBuilder, Dictionary, Preferences};
-use futures::ready;
 use pin_project::pin_project;
 use std::{
     convert::TryInto,
@@ -48,7 +47,10 @@ impl<W: AsyncWrite + Unpin> AsyncWrite for AsyncWriteCompressor<W> {
             me.inner.update(buf, false)?;
         }
         if let State::Write = me.state {
-            *me.len += ready!(me.device.poll_write(cx, &me.inner.buf()[*me.len..])?);
+            *me.len += match me.device.poll_write(cx, &me.inner.buf()[*me.len..]) {
+                Poll::Pending => return Poll::Pending,
+                Poll::Ready(r) => r,
+            }?;
             if *me.len >= me.inner.buf().len() {
                 *me.state = State::None;
                 me.inner.clear_buf();
@@ -66,7 +68,10 @@ impl<W: AsyncWrite + Unpin> AsyncWrite for AsyncWriteCompressor<W> {
             me.inner.flush(false)?;
         }
         if let State::Flush = me.state {
-            *me.len += ready!(me.device.poll_write(cx, &me.inner.buf()[*me.len..])?);
+            *me.len += match me.device.poll_write(cx, &me.inner.buf()[*me.len..]) {
+                Poll::Pending => return Poll::Pending,
+                Poll::Ready(r) => r,
+            }?;
             if *me.len >= me.inner.buf().len() {
                 *me.state = State::None;
                 me.inner.clear_buf();
@@ -84,7 +89,10 @@ impl<W: AsyncWrite + Unpin> AsyncWrite for AsyncWriteCompressor<W> {
             me.inner.end(false)?;
         }
         if let State::Shutdown = me.state {
-            *me.len += ready!(me.device.poll_write(cx, &me.inner.buf()[*me.len..])?);
+            *me.len += match me.device.poll_write(cx, &me.inner.buf()[*me.len..]) {
+                Poll::Pending => return Poll::Pending,
+                Poll::Ready(r) => r,
+            }?;
             if *me.len >= me.inner.buf().len() {
                 *me.state = State::None;
                 me.inner.clear_buf();

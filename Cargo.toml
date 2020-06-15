@@ -13,7 +13,6 @@ include = ["src/**/*", "build.rs", "vendor/liblz4/lib/*", "Cargo.toml"]
 [dependencies]
 libc = "0.2.71"
 tokio = { version = "0.2.21", optional = true }
-futures = { version = "0.3.5", optional = true }
 pin-project = { version = "0.4.22", optional = true }
 
 [dev-dependencies]
@@ -32,7 +31,7 @@ lz4 = []
 lz4_hc = []
 lz4f = []
 
-tokio-io = ["tokio", "futures", "pin-project"]
+tokio-io = ["tokio", "pin-project"]
 use-tls = []
 lz4-use-stack = ["lz4"]
 liblz4-experimental = []
