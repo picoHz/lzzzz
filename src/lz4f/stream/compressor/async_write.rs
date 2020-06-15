@@ -1,6 +1,6 @@
 #![cfg(feature = "tokio-io")]
 
-use super::{Compressor, CompressorBuilder, Dictionary, Preferences, State, LZ4F_HEADER_SIZE_MAX};
+use super::{Compressor, CompressorBuilder, Dictionary, Preferences, LZ4F_HEADER_SIZE_MAX};
 use futures::{future::FutureExt, ready};
 use pin_project::{pin_project, project};
 use pin_utils::pin_mut;
@@ -12,12 +12,21 @@ use std::{
 };
 use tokio::io::{AsyncWrite, AsyncWriteExt, Result};
 
+enum State {
+    None,
+    Write,
+    Flush,
+    Shutdown,
+}
+
 #[cfg_attr(docsrs, doc(cfg(feature = "tokio-io")))]
 #[pin_project]
 pub struct AsyncWriteCompressor<W: AsyncWrite + Unpin> {
     #[pin]
     device: W,
     inner: Compressor,
+    state: State,
+    len: usize,
 }
 
 impl<W: AsyncWrite + Unpin> AsyncWriteCompressor<W> {
@@ -25,68 +34,66 @@ impl<W: AsyncWrite + Unpin> AsyncWriteCompressor<W> {
         Ok(Self {
             device: writer,
             inner: Compressor::new(pref, dict)?,
+            state: State::None,
+            len: 0,
         })
-    }
-
-    async fn write(&mut self, buf: &[u8]) -> Result<usize> {
-        println!(">>>> w");
-        self.inner.update(buf, false)?;
-        self.device.write_all(self.inner.buf()).await?;
-        self.inner.clear_buf();
-        self.device.flush().await?;
-        Ok(buf.len())
-    }
-
-    async fn flush(&mut self) -> Result<()> {
-        println!(">>>> f");
-        self.inner.flush(false)?;
-        self.device.write_all(self.inner.buf()).await?;
-        self.device.flush().await
-    }
-
-    async fn shutdown(&mut self) -> Result<()> {
-        println!(">>>> s");
-        self.inner.end(false)?;
-        self.device.write_all(self.inner.buf()).await?;
-        self.inner.clear_buf();
-        self.device.flush().await
     }
 }
 
 impl<W: AsyncWrite + Unpin> AsyncWrite for AsyncWriteCompressor<W> {
     fn poll_write(mut self: Pin<&mut Self>, cx: &mut Context, buf: &[u8]) -> Poll<Result<usize>> {
-        let mut me = Pin::new(&mut *self);
-        let future = me.write(buf);
-        pin_mut!(future);
-        println!("AAAA {}", buf.len());
-        me.write(buf).poll_unpin(cx)
+        let me = self.project();
+        if let State::None = me.state {
+            *me.state = State::Write;
+            *me.len = 0;
+            me.inner.update(buf, false)?;
+        }
+        if let State::Write = me.state {
+            *me.len += ready!(me.device.poll_write(cx, &me.inner.buf()[*me.len..])?);
+            if *me.len >= me.inner.buf().len() {
+                *me.state = State::None;
+                me.inner.clear_buf();
+                return Poll::Ready(Ok(buf.len()));
+            }
+        }
+        Poll::Pending
     }
 
     fn poll_flush(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<Result<()>> {
-        let mut me = Pin::new(&mut *self);
-        let future = me.flush();
-        pin_mut!(future);
-        future.poll_unpin(cx)
+        let me = self.project();
+        if let State::None = me.state {
+            *me.state = State::Flush;
+            *me.len = 0;
+            me.inner.flush(false)?;
+        }
+        if let State::Flush = me.state {
+            *me.len += ready!(me.device.poll_write(cx, &me.inner.buf()[*me.len..])?);
+            if *me.len >= me.inner.buf().len() {
+                *me.state = State::None;
+                me.inner.clear_buf();
+                return Poll::Ready(Ok(()));
+            }
+        }
+        Poll::Pending
     }
 
     fn poll_shutdown(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<Result<()>> {
-        let mut me = Pin::new(&mut *self);
-        let future = me.shutdown();
-        pin_mut!(future);
-        future.poll_unpin(cx)
-    }
-    /*
-    fn poll_write_buf<B: Buf>(
-        self: Pin<&mut Self>,
-        cx: &mut Context,
-        buf: &mut B,
-    ) -> Poll<Result<usize>>
-    where
-        Self: Sized,
-    {
+        let me = self.project();
+        if let State::None = me.state {
+            *me.state = State::Shutdown;
+            *me.len = 0;
+            me.inner.end(false)?;
+        }
+        if let State::Shutdown = me.state {
+            *me.len += ready!(me.device.poll_write(cx, &me.inner.buf()[*me.len..])?);
+            if *me.len >= me.inner.buf().len() {
+                *me.state = State::None;
+                me.inner.clear_buf();
+                return Poll::Ready(Ok(()));
+            }
+        }
         Poll::Pending
     }
-    */
 }
 
 impl<W: AsyncWrite + Unpin> TryInto<AsyncWriteCompressor<W>> for CompressorBuilder<W> {
@@ -99,17 +106,15 @@ impl<W: AsyncWrite + Unpin> TryInto<AsyncWriteCompressor<W>> for CompressorBuild
 #[cfg(test)]
 mod tests {
     use crate::lz4f::{compressor::AsyncWriteCompressor, CompressorBuilder};
-    use tokio::fs::File;
-    use tokio::prelude::*;
-    use tokio::runtime::Runtime;
+    use tokio::{fs::File, prelude::*, runtime::Runtime};
 
     #[test]
     fn empty_dst() {
         let mut rt = Runtime::new().unwrap();
         rt.block_on(async {
             let mut file = File::create("foo.txt").await?;
-            let mut file2 = CompressorBuilder::new(&mut file).build::<AsyncWriteCompressor<_>>()?;
-            file2.write_all(b"hello, world!").await
+            let mut file = CompressorBuilder::new(&mut file).build::<AsyncWriteCompressor<_>>()?;
+            file.write_all(b"hello, world!").await
         });
     }
 }
