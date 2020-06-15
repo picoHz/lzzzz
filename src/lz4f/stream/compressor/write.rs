@@ -14,7 +14,7 @@ impl<W: Write> WriteCompressor<W> {
     fn new(writer: W, pref: Preferences, dict: Option<Dictionary>) -> crate::Result<Self> {
         Ok(Self {
             device: writer,
-            inner: Compressor::new(pref, None)?,
+            inner: Compressor::new(pref, dict)?,
         })
     }
 
@@ -22,7 +22,7 @@ impl<W: Write> WriteCompressor<W> {
         if let State::Created = self.inner.state {
             self.inner.begin()?;
             self.device.write_all(self.inner.buf())?;
-            self.inner.state = State::WriteActive;
+            self.inner.state = State::Active;
         }
         Ok(())
     }
@@ -37,7 +37,7 @@ impl<W: Write> WriteCompressor<W> {
     fn end(&mut self) -> Result<()> {
         self.ensure_stream()?;
         match self.inner.state {
-            State::WriteActive => {
+            State::Active => {
                 self.inner.end(false)?;
                 self.device.write_all(self.inner.buf())?;
             }
@@ -64,7 +64,7 @@ impl<W: Write> Write for WriteCompressor<W> {
     fn flush(&mut self) -> Result<()> {
         self.ensure_stream()?;
         match self.inner.state {
-            State::WriteActive => {
+            State::Active => {
                 self.inner.flush(false)?;
                 self.device.write_all(self.inner.buf())?;
             }

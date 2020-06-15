@@ -84,8 +84,12 @@ impl Compressor {
     pub fn update(&mut self, src: &[u8], stable_src: bool) -> Result<()> {
         self.buf_resize_bound(src.len());
         let len = self.ctx.update(&mut self.buffer, src, stable_src)?;
-        self.buf_resize(len);
-        Ok(())
+        if len == 0 {
+            self.flush(stable_src)
+        } else {
+            self.buf_resize(len);
+            Ok(())
+        }
     }
 
     pub fn flush(&mut self, stable_src: bool) -> Result<()> {
@@ -106,6 +110,10 @@ impl Compressor {
         &self.buffer
     }
 
+    pub fn clear_buf(&mut self) {
+        self.buffer.clear();
+    }
+
     fn buf_resize(&mut self, size: usize) {
         if size > self.buffer.len() {
             self.buffer.reserve(size - self.buffer.len());
@@ -124,5 +132,6 @@ impl Compressor {
 
 pub(crate) enum State {
     Created,
-    WriteActive,
+    Active,
+    Finished,
 }
