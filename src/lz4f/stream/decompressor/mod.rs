@@ -14,7 +14,7 @@ pub use write::*;
 pub use {async_bufread::*, async_read::*, async_write::*};
 
 pub(crate) use super::api::DecompressionContext;
-use crate::Result;
+use crate::{lz4f::FrameInfo, Result};
 use std::convert::TryInto;
 
 pub struct DecompressorBuilder<D> {
@@ -36,12 +36,27 @@ impl<D> DecompressorBuilder<D> {
 
 pub(crate) struct Decompressor {
     ctx: DecompressionContext,
+    buffer: Vec<u8>,
 }
 
 impl Decompressor {
     pub fn new() -> Result<Self> {
         Ok(Self {
             ctx: DecompressionContext::new()?,
+            buffer: Vec::new(),
         })
+    }
+
+    pub fn get_frame_info(&mut self) -> Result<FrameInfo> {
+        let (frame, _) = self.ctx.get_frame_info(&[])?;
+        Ok(frame)
+    }
+
+    pub fn buf(&self) -> &[u8] {
+        &self.buffer
+    }
+
+    pub fn clear_buf(&mut self) {
+        self.buffer.clear();
     }
 }
