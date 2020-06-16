@@ -3,6 +3,7 @@ use crate::{common::LZ4Error, lz4f::FrameInfo};
 use std::{
     convert::TryInto,
     io::{BufRead, Read, Result},
+    mem::MaybeUninit,
 };
 
 pub struct BufReadDecompressor<B: BufRead> {
@@ -37,7 +38,26 @@ impl<B: BufRead> BufReadDecompressor<B> {
 
 impl<B: BufRead> Read for BufReadDecompressor<B> {
     fn read(&mut self, buf: &mut [u8]) -> Result<usize> {
-        todo!();
+        loop {
+            let inner_buf = self.device.fill_buf()?;
+            if inner_buf.is_empty() {
+                break;
+            }
+            let report = self.inner.decompress(inner_buf)?;
+            self.device.consume(report.src_len().unwrap());
+            if report.dst_len() > 0 {
+                break;
+            }
+        }
+
+        let len = std::cmp::min(buf.len(), self.inner.buf().len() - self.consumed);
+        buf[..len].copy_from_slice(&self.inner.buf()[self.consumed..][..len]);
+        self.consumed += len;
+        if self.consumed >= self.inner.buf().len() {
+            self.inner.clear_buf();
+            self.consumed = 0;
+        }
+        Ok(len)
     }
 }
 
@@ -65,17 +85,32 @@ impl<B: BufRead> TryInto<BufReadDecompressor<B>> for DecompressorBuilder<B> {
 
 #[cfg(test)]
 mod tests {
-    use crate::lz4f::{decompressor::BufReadDecompressor, DecompressorBuilder};
+    use crate::lz4f::{
+        compressor::WriteCompressor, decompressor::BufReadDecompressor, CompressorBuilder,
+        DecompressorBuilder,
+    };
     use std::{
         fs::File,
-        io::{BufReader, Read},
+        io::{BufReader, Read, Write},
     };
 
     #[test]
     fn read() -> std::io::Result<()> {
-        let mut file = BufReader::new(File::open("README.md")?);
-        let mut file = DecompressorBuilder::new(&mut file).build::<BufReadDecompressor<_>>()?;
-        panic!("{:?}", file.read_frame_info());
+        {
+            let mut file = File::create("foo.lz4")?;
+            let mut file = CompressorBuilder::new(&mut file).build::<WriteCompressor<_>>()?;
+            file.write_all(b"hello")?;
+        }
+        {
+            let mut file = BufReader::new(File::open("foo.lz4")?);
+            let mut file = DecompressorBuilder::new(&mut file).build::<BufReadDecompressor<_>>()?;
+
+            let mut comp = Vec::new();
+            file.read_to_end(&mut comp)?;
+
+            println!("{:?}", comp);
+            println!("{:?}", file.read_frame_info());
+        }
         Ok(())
     }
 }
