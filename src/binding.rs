@@ -232,14 +232,6 @@ extern "C" {
         src_size: size_t,
         prefs: *const Preferences,
     ) -> size_t;
-    pub fn LZ4F_decompress(
-        ctx: *mut LZ4FDecompressionCtx,
-        dst_buffer: *mut c_void,
-        dst_size_ptr: *mut size_t,
-        src_buffer: *const c_void,
-        src_size_ptr: *mut size_t,
-        opt: *const LZ4FDecompressionOptions,
-    ) -> size_t;
     pub fn LZ4F_decompress_usingDict(
         ctx: *mut LZ4FDecompressionCtx,
         dst_buffer: *mut c_void,

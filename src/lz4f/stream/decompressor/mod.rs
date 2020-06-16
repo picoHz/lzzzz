@@ -57,7 +57,7 @@ impl Decompressor {
         Ok(frame)
     }
 
-    pub fn decompress(&mut self, src: &[u8]) -> Result<Report> {
+    pub fn decompress(&mut self, src: &[u8], dict: &[u8]) -> Result<Report> {
         let header_len = self.header[0] as usize;
         if header_len < LZ4F_HEADER_SIZE_MAX {
             let len = std::cmp::min(LZ4F_HEADER_SIZE_MAX - header_len, src.len());
@@ -71,7 +71,9 @@ impl Decompressor {
         unsafe {
             self.buffer.set_len(self.buffer.capacity());
         }
-        let report = self.ctx.decompress(src, &mut self.buffer[len..], false)?;
+        let report = self
+            .ctx
+            .decompress_dict(src, &mut self.buffer[len..], dict, false)?;
         self.buffer
             .resize_with(len + report.dst_len(), Default::default);
         Ok(report)

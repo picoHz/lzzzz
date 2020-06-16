@@ -2,7 +2,6 @@ use super::{Compressor, CompressorBuilder, Dictionary, Preferences};
 use std::{
     convert::TryInto,
     io::{Result, Write},
-    mem::MaybeUninit,
 };
 
 pub struct WriteCompressor<W: Write> {
