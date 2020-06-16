@@ -1,4 +1,5 @@
-use super::{Compressor, CompressorBuilder, Dictionary, Preferences};
+use super::{Compressor, Dictionary, Preferences};
+use crate::lz4f::CompressorBuilder;
 use std::{
     convert::TryInto,
     io::{Result, Write},

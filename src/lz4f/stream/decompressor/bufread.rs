@@ -1,5 +1,8 @@
-use super::{Decompressor, DecompressorBuilder};
-use crate::{common::LZ4Error, lz4f::FrameInfo};
+use super::Decompressor;
+use crate::{
+    common::LZ4Error,
+    lz4f::{DecompressorBuilder, FrameInfo},
+};
 use std::{
     borrow::Cow,
     convert::TryInto,

@@ -1,7 +1,7 @@
 #![cfg(feature = "tokio-io")]
 
-use super::{Decompressor, DecompressorBuilder};
-use crate::lz4f::FrameInfo;
+use super::Decompressor;
+use crate::lz4f::{DecompressorBuilder, FrameInfo};
 use pin_project::pin_project;
 use std::{
     borrow::Cow,

@@ -1,4 +1,5 @@
-use super::{BufReadCompressor, CompressorBuilder};
+use super::BufReadCompressor;
+use crate::lz4f::CompressorBuilder;
 use std::{
     convert::TryInto,
     io::{BufReader, Read, Result},

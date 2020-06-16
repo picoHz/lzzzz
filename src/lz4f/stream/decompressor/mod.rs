@@ -13,28 +13,9 @@ pub use write::*;
 #[cfg(feature = "tokio-io")]
 pub use {async_bufread::*, async_read::*, async_write::*};
 
-pub(crate) use super::api::DecompressionContext;
+pub(crate) use super::api::{DecompressionContext, LZ4F_HEADER_SIZE_MAX};
 use crate::{lz4f::FrameInfo, Error, Report, Result};
 use std::{borrow::Cow, convert::TryInto};
-
-const LZ4F_HEADER_SIZE_MAX: usize = 19;
-
-pub struct DecompressorBuilder<D> {
-    device: D,
-}
-
-impl<D> DecompressorBuilder<D> {
-    pub fn new(device: D) -> Self {
-        Self { device }
-    }
-
-    pub fn build<T>(self) -> Result<T>
-    where
-        Self: TryInto<T, Error = crate::Error>,
-    {
-        self.try_into()
-    }
-}
 
 pub(crate) struct Decompressor<'a> {
     ctx: DecompressionContext,

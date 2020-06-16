@@ -1,5 +1,5 @@
-use super::{BufReadDecompressor, DecompressorBuilder};
-use crate::lz4f::FrameInfo;
+use super::BufReadDecompressor;
+use crate::lz4f::{DecompressorBuilder, FrameInfo};
 use std::{
     borrow::Cow,
     convert::TryInto,

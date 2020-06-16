@@ -1,6 +1,7 @@
 #![cfg(feature = "tokio-io")]
 
-use super::{Compressor, CompressorBuilder, Dictionary, Preferences};
+use super::{Compressor, Dictionary, Preferences};
+use crate::lz4f::CompressorBuilder;
 use pin_project::pin_project;
 use std::{
     convert::TryInto,

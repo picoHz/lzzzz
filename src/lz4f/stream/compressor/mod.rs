@@ -13,46 +13,11 @@ pub use bufread::*;
 pub use read::*;
 pub use write::*;
 
-pub(crate) use super::api::CompressionContext;
+pub(crate) use super::api::{CompressionContext, LZ4F_HEADER_SIZE_MAX};
 pub(crate) use crate::lz4f::{Dictionary, Preferences};
 
 #[cfg(feature = "tokio-io")]
 pub use {async_bufread::*, async_read::*, async_write::*};
-
-const LZ4F_HEADER_SIZE_MAX: usize = 19;
-
-pub struct CompressorBuilder<D> {
-    device: D,
-    pref: Preferences,
-    dict: Option<Dictionary>,
-}
-
-impl<D> CompressorBuilder<D> {
-    pub fn new(device: D) -> Self {
-        Self {
-            device,
-            pref: Default::default(),
-            dict: None,
-        }
-    }
-
-    pub fn preferences(mut self, pref: Preferences) -> Self {
-        self.pref = pref;
-        self
-    }
-
-    pub fn dict(mut self, dict: Dictionary) -> Self {
-        self.dict = Some(dict);
-        self
-    }
-
-    pub fn build<T>(self) -> Result<T>
-    where
-        Self: TryInto<T, Error = crate::Error>,
-    {
-        self.try_into()
-    }
-}
 
 pub(crate) struct Compressor {
     ctx: CompressionContext,

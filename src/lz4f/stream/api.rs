@@ -15,6 +15,8 @@ use crate::{
 use libc::{c_void, size_t};
 use std::{mem::MaybeUninit, ptr::NonNull};
 
+pub const LZ4F_HEADER_SIZE_MAX: usize = 19;
+
 pub struct CompressionContext {
     ctx: NonNull<LZ4FCompressionCtx>,
     dict: Option<Dictionary>,
