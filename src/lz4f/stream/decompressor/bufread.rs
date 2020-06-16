@@ -22,16 +22,15 @@ impl<B: BufRead> BufReadDecompressor<B> {
 
     pub fn read_frame_info(&mut self) -> Result<FrameInfo> {
         loop {
-            match self.inner.get_frame_info() {
-                r @ Err(crate::Error::LZ4Error(LZ4Error::FrameHeaderIncomplete)) => {
-                    let len = self.inner.buf().len();
-                    let _ = self.read(&mut [])?;
-                    if self.inner.buf().len() <= len {
-                        return Ok(r?);
-                    }
+            let info = self.inner.get_frame_info();
+            if let Err(crate::Error::LZ4Error(LZ4Error::FrameHeaderIncomplete)) = info {
+                let len = self.inner.buf().len();
+                let _ = self.read(&mut [])?;
+                if self.inner.buf().len() > len {
+                    continue;
                 }
-                r => return Ok(r?),
             }
+            return Ok(info?);
         }
     }
 }
