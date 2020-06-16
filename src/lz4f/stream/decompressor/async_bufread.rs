@@ -47,6 +47,16 @@ impl<'a, B: AsyncBufRead + Unpin> AsyncRead for AsyncBufReadCompressor<'a, B> {
     }
 }
 
+impl<'a, B: AsyncBufRead + Unpin> AsyncBufRead for AsyncBufReadCompressor<'a, B> {
+    fn poll_fill_buf(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<Result<&[u8]>> {
+        todo!();
+    }
+
+    fn consume(self: Pin<&mut Self>, amt: usize) {
+        todo!();
+    }
+}
+
 impl<'a, B: AsyncBufRead + Unpin> TryInto<AsyncBufReadCompressor<'a, B>>
     for DecompressorBuilder<B>
 {
