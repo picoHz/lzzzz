@@ -3,9 +3,8 @@
 use super::{Decompressor, DecompressorBuilder};
 use crate::lz4f::FrameInfo;
 use pin_project::pin_project;
-use std::borrow::Cow;
-use std::io::Error;
 use std::{
+    borrow::Cow,
     convert::TryInto,
     marker::Unpin,
     pin::Pin,

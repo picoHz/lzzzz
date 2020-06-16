@@ -15,8 +15,7 @@ pub use {async_bufread::*, async_read::*, async_write::*};
 
 pub(crate) use super::api::DecompressionContext;
 use crate::{lz4f::FrameInfo, Error, Report, Result};
-use std::borrow::Cow;
-use std::convert::TryInto;
+use std::{borrow::Cow, convert::TryInto};
 
 const LZ4F_HEADER_SIZE_MAX: usize = 19;
 

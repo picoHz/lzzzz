@@ -1,8 +1,9 @@
-use crate::lz4f::decompressor::Decompressor;
-use crate::lz4f::{DecompressorBuilder, FrameInfo};
-use std::borrow::Cow;
-use std::convert::TryInto;
-use std::io::{Read, Result, Write};
+use crate::lz4f::{decompressor::Decompressor, DecompressorBuilder, FrameInfo};
+use std::{
+    borrow::Cow,
+    convert::TryInto,
+    io::{Read, Result, Write},
+};
 
 pub struct WriteDecompressor<'a, W: Write> {
     device: W,
