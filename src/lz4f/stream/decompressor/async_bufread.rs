@@ -60,7 +60,11 @@ impl<'a, B: AsyncBufRead + Unpin> AsyncBufReadCompressor<'a, B> {
 }
 
 impl<'a, B: AsyncBufRead + Unpin> AsyncRead for AsyncBufReadCompressor<'a, B> {
-    fn poll_read(mut self: Pin<&mut Self>, cx: &mut Context, buf: &mut [u8]) -> Poll<Result<usize>> {
+    fn poll_read(
+        mut self: Pin<&mut Self>,
+        cx: &mut Context,
+        buf: &mut [u8],
+    ) -> Poll<Result<usize>> {
         let result = match Pin::new(&mut *self).poll_read_impl(cx, buf, State::Read) {
             Poll::Pending => return Poll::Pending,
             Poll::Ready(r) => r,

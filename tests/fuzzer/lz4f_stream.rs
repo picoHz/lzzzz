@@ -1,9 +1,8 @@
 use lzzzz::{
     lz4f,
     lz4f::{
-        CompressorBuilder,
         compressor::{BufReadCompressor, ReadCompressor, WriteCompressor},
-        decompress_to_vec,
+        decompress_to_vec, CompressorBuilder,
     },
 };
 use std::io::{BufReader, Read, Write};
