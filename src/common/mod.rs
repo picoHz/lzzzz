@@ -46,6 +46,7 @@ pub enum Error {
     NullPointerUnexpected,
     CompressionModeInvalid,
     DecompressionModeInvalid,
+    DictionaryChangedDuringDecompression,
 }
 
 #[derive(Debug)]

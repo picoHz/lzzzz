@@ -1,5 +1,5 @@
 use super::{Decompressor, DecompressorBuilder};
-use crate::{common::LZ4Error, lz4f::FrameInfo};
+use crate::{common::LZ4Error, lz4f::FrameInfo, Error};
 use std::{
     borrow::Cow,
     convert::TryInto,
@@ -11,6 +11,7 @@ pub struct BufReadDecompressor<'a, B: BufRead> {
     inner: Decompressor,
     consumed: usize,
     dict: Cow<'a, [u8]>,
+    comp_dict: Option<*const u8>,
 }
 
 impl<'a, B: BufRead> BufReadDecompressor<'a, B> {
@@ -20,6 +21,7 @@ impl<'a, B: BufRead> BufReadDecompressor<'a, B> {
             inner: Decompressor::new()?,
             consumed: 0,
             dict: Cow::Borrowed(&[]),
+            comp_dict: None,
         })
     }
 
@@ -48,6 +50,14 @@ impl<B: BufRead> Read for BufReadDecompressor<'_, B> {
             let inner_buf = self.device.fill_buf()?;
             if inner_buf.is_empty() {
                 break;
+            }
+            let dict_ptr = if self.dict.is_empty() {
+                self.dict.as_ptr()
+            } else {
+                std::ptr::null()
+            };
+            if self.dict.as_ptr() != *self.comp_dict.get_or_insert(dict_ptr) {
+                return Err(Error::DictionaryChangedDuringDecompression.into());
             }
             let report = self.inner.decompress(inner_buf, &self.dict)?;
             self.device.consume(report.src_len().unwrap());
@@ -111,11 +121,17 @@ mod tests {
             let mut file = BufReader::new(File::open("foo.lz4")?);
             let mut file = DecompressorBuilder::new(&mut file).build::<BufReadDecompressor<_>>()?;
 
-            let mut comp = Vec::new();
-            file.read_to_end(&mut comp)?;
-
-            println!("{:?}", comp);
+            let mut comp = vec![1];
             println!("{:?}", file.read_frame_info());
+
+            file.set_dict(std::borrow::Cow::Borrowed(&b"aaaaaaaaaaaaa"[..]));
+            file.read_exact(&mut comp)?;
+            file.set_dict(std::borrow::Cow::Borrowed(&b"aaaaaaaaa"[..]));
+            file.read_exact(&mut comp)?;
+            file.set_dict(std::borrow::Cow::Borrowed(&b"aa"[..]));
+            file.read_exact(&mut comp)?;
+
+            println!("{:?} {:?}", comp, b"hello");
         }
         Ok(())
     }
