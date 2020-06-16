@@ -8,10 +8,8 @@ use std::{
 
 pub struct BufReadDecompressor<'a, B: BufRead> {
     device: B,
-    inner: Decompressor,
+    inner: Decompressor<'a>,
     consumed: usize,
-    dict: Cow<'a, [u8]>,
-    comp_dict: Option<*const u8>,
 }
 
 impl<'a, B: BufRead> BufReadDecompressor<'a, B> {
@@ -20,13 +18,11 @@ impl<'a, B: BufRead> BufReadDecompressor<'a, B> {
             device,
             inner: Decompressor::new()?,
             consumed: 0,
-            dict: Cow::Borrowed(&[]),
-            comp_dict: None,
         })
     }
 
     pub fn set_dict(&mut self, dict: Cow<'a, [u8]>) {
-        self.dict = dict;
+        self.inner.set_dict(dict);
     }
 
     pub fn read_frame_info(&mut self) -> Result<FrameInfo> {
@@ -51,15 +47,7 @@ impl<B: BufRead> Read for BufReadDecompressor<'_, B> {
             if inner_buf.is_empty() {
                 break;
             }
-            let dict_ptr = if self.dict.is_empty() {
-                self.dict.as_ptr()
-            } else {
-                std::ptr::null()
-            };
-            if self.dict.as_ptr() != *self.comp_dict.get_or_insert(dict_ptr) {
-                return Err(Error::DictionaryChangedDuringDecompression.into());
-            }
-            let report = self.inner.decompress(inner_buf, &self.dict)?;
+            let report = self.inner.decompress(inner_buf)?;
             self.device.consume(report.src_len().unwrap());
             if report.dst_len() > 0 {
                 break;
@@ -101,6 +89,7 @@ impl<'a, B: BufRead> TryInto<BufReadDecompressor<'a, B>> for DecompressorBuilder
 
 #[cfg(test)]
 mod tests {
+    use crate::lz4f::decompressor::WriteDecompressor;
     use crate::lz4f::{
         compressor::WriteCompressor, decompressor::BufReadDecompressor, CompressorBuilder,
         DecompressorBuilder,
@@ -117,21 +106,17 @@ mod tests {
             let mut file = CompressorBuilder::new(&mut file).build::<WriteCompressor<_>>()?;
             file.write_all(b"hello")?;
         }
+        let mut comp = vec![];
         {
             let mut file = BufReader::new(File::open("foo.lz4")?);
-            let mut file = DecompressorBuilder::new(&mut file).build::<BufReadDecompressor<_>>()?;
-
-            let mut comp = vec![1];
-            println!("{:?}", file.read_frame_info());
-
-            file.set_dict(std::borrow::Cow::Borrowed(&b"aaaaaaaaaaaaa"[..]));
-            file.read_exact(&mut comp)?;
-            file.set_dict(std::borrow::Cow::Borrowed(&b"aaaaaaaaa"[..]));
-            file.read_exact(&mut comp)?;
-            file.set_dict(std::borrow::Cow::Borrowed(&b"aa"[..]));
-            file.read_exact(&mut comp)?;
-
-            println!("{:?} {:?}", comp, b"hello");
+            file.read_to_end(&mut comp)?;
+        }
+        {
+            let mut file = File::create("foo.lz4.dec")?;
+            let mut file = DecompressorBuilder::new(&mut file).build::<WriteDecompressor<_>>()?;
+            println!("{:?}", file.frame_info());
+            file.write_all(&comp)?;
+            println!("{:?}", file.frame_info());
         }
         Ok(())
     }

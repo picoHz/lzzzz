@@ -133,7 +133,7 @@ impl DecompressionContext {
         }
     }
 
-    pub fn get_frame_info(&mut self, src: &[u8]) -> Result<(FrameInfo, usize)> {
+    pub fn get_frame_info(&self, src: &[u8]) -> Result<(FrameInfo, usize)> {
         let mut info = MaybeUninit::<FrameInfo>::uninit();
         let mut src_len = src.len() as size_t;
         let code = unsafe {

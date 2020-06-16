@@ -14,7 +14,8 @@ pub use write::*;
 pub use {async_bufread::*, async_read::*, async_write::*};
 
 pub(crate) use super::api::DecompressionContext;
-use crate::{lz4f::FrameInfo, Report, Result};
+use crate::{lz4f::FrameInfo, Error, Report, Result};
+use std::borrow::Cow;
 use std::convert::TryInto;
 
 const LZ4F_HEADER_SIZE_MAX: usize = 19;
@@ -36,33 +37,50 @@ impl<D> DecompressorBuilder<D> {
     }
 }
 
-pub(crate) struct Decompressor {
+pub(crate) struct Decompressor<'a> {
     ctx: DecompressionContext,
     header: [u8; LZ4F_HEADER_SIZE_MAX + 1],
     buffer: Vec<u8>,
+    dict: Cow<'a, [u8]>,
+    comp_dict: Option<*const u8>,
 }
 
-impl Decompressor {
+impl<'a> Decompressor<'a> {
     pub fn new() -> Result<Self> {
         Ok(Self {
             ctx: DecompressionContext::new()?,
             header: [0; LZ4F_HEADER_SIZE_MAX + 1],
             buffer: Vec::new(),
+            dict: Cow::Borrowed(&[]),
+            comp_dict: None,
         })
     }
 
-    pub fn get_frame_info(&mut self) -> Result<FrameInfo> {
+    pub fn set_dict(&mut self, dict: Cow<'a, [u8]>) {
+        self.dict = dict;
+    }
+
+    pub fn get_frame_info(&self) -> Result<FrameInfo> {
         let header_len = self.header[0] as usize;
         let (frame, _) = self.ctx.get_frame_info(&self.header[1..][..header_len])?;
         Ok(frame)
     }
 
-    pub fn decompress(&mut self, src: &[u8], dict: &[u8]) -> Result<Report> {
+    pub fn decompress(&mut self, src: &[u8]) -> Result<Report> {
         let header_len = self.header[0] as usize;
         if header_len < LZ4F_HEADER_SIZE_MAX {
             let len = std::cmp::min(LZ4F_HEADER_SIZE_MAX - header_len, src.len());
             (&mut self.header[1..][..len]).copy_from_slice(&src[..len]);
             self.header[0] += len as u8;
+        }
+
+        let dict_ptr = if self.dict.is_empty() {
+            self.dict.as_ptr()
+        } else {
+            std::ptr::null()
+        };
+        if self.dict.as_ptr() != *self.comp_dict.get_or_insert(dict_ptr) {
+            return Err(Error::DictionaryChangedDuringDecompression.into());
         }
 
         let len = self.buffer.len();
@@ -73,7 +91,7 @@ impl Decompressor {
         }
         let report = self
             .ctx
-            .decompress_dict(src, &mut self.buffer[len..], dict, false)?;
+            .decompress_dict(src, &mut self.buffer[len..], &self.dict, false)?;
         self.buffer
             .resize_with(len + report.dst_len(), Default::default);
         Ok(report)
