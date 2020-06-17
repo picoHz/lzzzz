@@ -11,8 +11,8 @@ steps:
     installNightly: false
 - task: Cargo@1
   inputs:
-    cargoCommand: 'test --release'
-    verbose: false
+    cargoCommand: 'test --release --all-features'
+    verbose: true
   displayName: Cargo
   env:
     LZZZZ_FUZZER_ITERATION: 100000
