@@ -17,7 +17,7 @@ pin-project = { version = "0.4.22", optional = true }
 
 [dev-dependencies]
 rand = { version = "0.7.3", features = ["small_rng"] }
-tokio = { version = "0.2.21", features = ["fs", "rt-threaded", "macros"] }
+tokio = { version = "0.2.21", features = ["fs", "macros"] }
 rayon = "1.3.0"
 pbr = "1.0.3"
 
