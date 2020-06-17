@@ -26,7 +26,10 @@ impl CompressionContext {
     #[cfg(feature = "liblz4-experimental")]
     pub fn set_favor_dec_speed(&mut self, flag: bool) {
         unsafe {
-            binding::LZ4_favorDecompressionSpeed(self.get_ptr(), if flag { 1 } else { 0 } as c_int)
+            binding::LZ4_favorDecompressionSpeed(
+                self.stream.as_ptr(),
+                if flag { 1 } else { 0 } as c_int,
+            )
         }
     }
 

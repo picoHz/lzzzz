@@ -20,8 +20,7 @@ pub struct AsyncReadCompressor<R: AsyncRead + Unpin> {
 
 impl<R: AsyncRead + Unpin> AsyncRead for AsyncReadCompressor<R> {
     fn poll_read(self: Pin<&mut Self>, cx: &mut Context, buf: &mut [u8]) -> Poll<Result<usize>> {
-        let mut me = self.project();
-        me.inner.poll_read(cx, buf)
+        self.project().inner.poll_read(cx, buf)
     }
 }
 

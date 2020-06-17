@@ -2,7 +2,7 @@ use crate::lz4f::{decompressor::Decompressor, DecompressorBuilder, FrameInfo};
 use std::{
     borrow::Cow,
     convert::TryInto,
-    io::{Read, Result, Write},
+    io::{Result, Write},
 };
 
 /// Write-based streaming decompressor

@@ -34,8 +34,7 @@ impl<'a, R: AsyncBufRead + Unpin> AsyncReadCompressor<'a, R> {
 
 impl<'a, R: AsyncBufRead + Unpin> AsyncRead for AsyncReadCompressor<'a, R> {
     fn poll_read(self: Pin<&mut Self>, cx: &mut Context, buf: &mut [u8]) -> Poll<Result<usize>> {
-        let mut me = self.project();
-        me.inner.poll_read(cx, buf)
+        self.project().inner.poll_read(cx, buf)
     }
 }
 
