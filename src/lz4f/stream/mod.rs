@@ -1,7 +1,7 @@
 //! LZ4 Frame Streaming Compressor/Decompressor
 
-pub mod compressor;
-pub mod decompressor;
+pub mod co;
+pub mod de;
 
 use crate::{
     lz4f::{Dictionary, Preferences},

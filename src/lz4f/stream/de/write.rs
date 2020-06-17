@@ -1,4 +1,4 @@
-use crate::lz4f::{decompressor::Decompressor, DecompressorBuilder, FrameInfo};
+use crate::lz4f::{de::Decompressor, DecompressorBuilder, FrameInfo};
 use std::{
     borrow::Cow,
     convert::TryInto,

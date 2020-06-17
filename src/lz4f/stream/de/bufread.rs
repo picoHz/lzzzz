@@ -94,8 +94,8 @@ impl<'a, B: BufRead> TryInto<BufReadDecompressor<'a, B>> for DecompressorBuilder
 #[cfg(test)]
 mod tests {
     use crate::lz4f::{
-        compressor::WriteCompressor,
-        decompressor::{BufReadDecompressor, WriteDecompressor},
+        co::WriteCompressor,
+        de::{BufReadDecompressor, WriteDecompressor},
         CompressorBuilder, DecompressorBuilder,
     };
     use std::{
