@@ -13,8 +13,13 @@ pub use write::*;
 #[cfg(feature = "tokio-io")]
 pub use {async_bufread::*, async_read::*, async_write::*};
 
-use crate::lz4f::api::{DecompressionContext, LZ4F_HEADER_SIZE_MAX};
-use crate::{lz4f::FrameInfo, Error, Report, Result};
+use crate::{
+    lz4f::{
+        api::{DecompressionContext, LZ4F_HEADER_SIZE_MAX},
+        FrameInfo,
+    },
+    Error, Report, Result,
+};
 use std::borrow::Cow;
 
 pub(crate) struct Decompressor<'a> {

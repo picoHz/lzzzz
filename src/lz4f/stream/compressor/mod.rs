@@ -13,8 +13,10 @@ pub use bufread::*;
 pub use read::*;
 pub use write::*;
 
-use crate::lz4f::api::{CompressionContext, LZ4F_HEADER_SIZE_MAX};
-use crate::lz4f::{Dictionary, Preferences};
+use crate::lz4f::{
+    api::{CompressionContext, LZ4F_HEADER_SIZE_MAX},
+    Dictionary, Preferences,
+};
 
 #[cfg(feature = "tokio-io")]
 pub use {async_bufread::*, async_read::*, async_write::*};

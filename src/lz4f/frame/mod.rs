@@ -1,8 +1,7 @@
 //! LZ4 Frame Compressor/Decompressor
 
 use super::api;
-use crate::lz4f::Preferences;
-use crate::{Error, Report, Result};
+use crate::{lz4f::Preferences, Error, Report, Result};
 use std::cell::RefCell;
 
 /// Calculate the maximum size of the compressed data from the original size.
@@ -81,7 +80,7 @@ pub fn decompress_to_vec(src: &[u8], dst: &mut Vec<u8>) -> Result<Report> {
     let header_len = dst.len();
     let mut src_offset = 0;
     let mut dst_offset = header_len;
-    DECOMPRESSION_CTX.with(|ctx| {
+    DecompressionCtx::with(|ctx| {
         let mut ctx = ctx.borrow_mut();
         ctx.reset();
         loop {
@@ -108,4 +107,26 @@ pub fn decompress_to_vec(src: &[u8], dst: &mut Vec<u8>) -> Result<Report> {
     })
 }
 
-thread_local!(static DECOMPRESSION_CTX: RefCell<api::DecompressionContext> = RefCell::new(api::DecompressionContext::new().unwrap()));
+struct DecompressionCtx;
+
+impl DecompressionCtx {
+    fn with<F, R>(f: F) -> R
+    where
+        F: FnOnce(&RefCell<api::DecompressionContext>) -> R,
+    {
+        #[cfg(feature = "use-tls")]
+        {
+            DECOMPRESSION_CTX.with(|state| (f)(state))
+        }
+
+        #[cfg(not(feature = "use-tls"))]
+        {
+            let ctx = RefCell::new(api::DecompressionContext::new().unwrap());
+            (f)(&ctx)
+        }
+    }
+}
+
+#[cfg(feature = "use-tls")]
+thread_local!(static DECOMPRESSION_CTX: RefCell<api::DecompressionContext> = 
+    RefCell::new(api::DecompressionContext::new().unwrap()));
