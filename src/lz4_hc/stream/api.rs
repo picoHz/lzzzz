@@ -2,51 +2,25 @@
 
 use crate::{binding, binding::LZ4StreamHC, Error, Report, Result};
 
-use libc::{c_char, c_int, c_void, size_t};
-use std::{
-    mem::{size_of, MaybeUninit},
-    ptr::NonNull,
-};
-
-enum Stream {
-    Stack(LZ4StreamHC),
-    Heap(NonNull<LZ4StreamHC>),
-}
+use libc::{c_char, c_int};
+use std::ptr::NonNull;
 
 pub struct CompressionContext {
-    stream: Stream,
+    stream: NonNull<LZ4StreamHC>,
 }
 
 impl CompressionContext {
     pub fn new() -> Result<Self> {
-        let mut stream = MaybeUninit::<LZ4StreamHC>::zeroed();
-        unsafe {
-            let ptr = binding::LZ4_initStreamHC(
-                stream.as_mut_ptr() as *mut c_void,
-                size_of::<LZ4StreamHC>() as size_t,
-            );
-            if !ptr.is_null() {
-                return Ok(Self {
-                    stream: Stream::Stack(stream.assume_init()),
-                });
-            }
-            let ptr = NonNull::new(binding::LZ4_createStreamHC());
-            ptr.ok_or(Error::NullPointerUnexpected).map(|stream| Self {
-                stream: Stream::Heap(stream),
-            })
-        }
-    }
-
-    fn get_ptr(&mut self) -> *mut LZ4StreamHC {
-        match &mut self.stream {
-            Stream::Stack(stream) => stream as *mut LZ4StreamHC,
-            Stream::Heap(ptr) => ptr.as_ptr(),
-        }
+        let ptr = unsafe { NonNull::new(binding::LZ4_createStreamHC()) };
+        ptr.ok_or(Error::NullPointerUnexpected)
+            .map(|stream| Self { stream })
     }
 
     #[cfg(feature = "liblz4-experimental")]
     pub fn set_compression_level(&mut self, compression_level: i32) {
-        unsafe { binding::LZ4_setCompressionLevel(self.get_ptr(), compression_level as c_int) }
+        unsafe {
+            binding::LZ4_setCompressionLevel(self.stream.as_ptr(), compression_level as c_int)
+        }
     }
 
     #[cfg(feature = "liblz4-experimental")]
@@ -58,14 +32,14 @@ impl CompressionContext {
 
     pub fn reset(&mut self, compression_level: i32) {
         unsafe {
-            binding::LZ4_resetStreamHC_fast(self.get_ptr(), compression_level);
+            binding::LZ4_resetStreamHC_fast(self.stream.as_ptr(), compression_level);
         }
     }
 
     pub fn load_dict(&mut self, dict: &[u8]) {
         unsafe {
             binding::LZ4_loadDictHC(
-                self.get_ptr(),
+                self.stream.as_ptr(),
                 dict.as_ptr() as *const c_char,
                 dict.len() as c_int,
             );
@@ -75,7 +49,7 @@ impl CompressionContext {
     pub fn next(&mut self, src: &[u8], dst: &mut [u8]) -> Result<Report> {
         let dst_len = unsafe {
             binding::LZ4_compress_HC_continue(
-                self.get_ptr(),
+                self.stream.as_ptr(),
                 src.as_ptr() as *const c_char,
                 dst.as_mut_ptr() as *mut c_char,
                 src.len() as c_int,
@@ -98,7 +72,7 @@ impl CompressionContext {
         let mut src_len = src.len() as c_int;
         let dst_len = unsafe {
             binding::LZ4_compress_HC_continue_destSize(
-                self.get_ptr(),
+                self.stream.as_ptr(),
                 src.as_ptr() as *const c_char,
                 dst.as_mut_ptr() as *mut c_char,
                 &mut src_len as *mut c_int,
@@ -121,10 +95,8 @@ impl CompressionContext {
 
 impl Drop for CompressionContext {
     fn drop(&mut self) {
-        if let Stream::Heap(mut ptr) = self.stream {
-            unsafe {
-                binding::LZ4_freeStreamHC(ptr.as_mut());
-            }
+        unsafe {
+            binding::LZ4_freeStreamHC(self.stream.as_mut());
         }
     }
 }
