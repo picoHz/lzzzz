@@ -1,8 +1,6 @@
 //! LZ4 Frame Compressor/Decompressor
 
-mod api;
-
-use super::stream::DecompressionContext;
+use super::api;
 use crate::lz4f::Preferences;
 use crate::{Error, Report, Result};
 use std::cell::RefCell;
@@ -110,4 +108,4 @@ pub fn decompress_to_vec(src: &[u8], dst: &mut Vec<u8>) -> Result<Report> {
     })
 }
 
-thread_local!(static DECOMPRESSION_CTX: RefCell<DecompressionContext> = RefCell::new(DecompressionContext::new().unwrap()));
+thread_local!(static DECOMPRESSION_CTX: RefCell<api::DecompressionContext> = RefCell::new(api::DecompressionContext::new().unwrap()));

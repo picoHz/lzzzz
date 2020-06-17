@@ -132,7 +132,7 @@ impl<B: AsyncBufRead + Unpin> TryInto<AsyncBufReadCompressor<B>> for CompressorB
 #[cfg(test)]
 mod tests {
     use crate::lz4f::{compressor::AsyncBufReadCompressor, CompressorBuilder};
-    use tokio::{fs::File, io::BufReader, prelude::*, runtime::Runtime};
+    use tokio::{fs::File, io::BufReader, prelude::*};
 
     #[tokio::test]
     async fn async_read() -> std::io::Result<()> {

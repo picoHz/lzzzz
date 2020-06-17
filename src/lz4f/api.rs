@@ -24,7 +24,7 @@ pub struct CompressionContext {
 
 impl CompressionContext {
     pub fn new(dict: Option<Dictionary>) -> Result<Self> {
-        let mut ctx = MaybeUninit::<*mut LZ4FCompressionCtx>::uninit();
+        let ctx = MaybeUninit::<*mut LZ4FCompressionCtx>::uninit();
         unsafe {
             let code = binding::LZ4F_createCompressionContext(
                 ctx.as_ptr() as *mut *mut binding::LZ4FCompressionCtx,
@@ -46,7 +46,7 @@ impl CompressionContext {
                     self.ctx.as_ptr(),
                     dst.as_mut_ptr() as *mut c_void,
                     dst.len() as size_t,
-                    (*dict.0).0.as_ptr(),
+                    (*dict.handle()).0.as_ptr(),
                     prefs as *const Preferences,
                 )
             } else {
@@ -121,7 +121,7 @@ pub struct DecompressionContext {
 
 impl DecompressionContext {
     pub fn new() -> Result<Self> {
-        let mut ctx = MaybeUninit::<*mut LZ4FDecompressionCtx>::uninit();
+        let ctx = MaybeUninit::<*mut LZ4FDecompressionCtx>::uninit();
         unsafe {
             let code = binding::LZ4F_createDecompressionContext(
                 ctx.as_ptr() as *mut *mut binding::LZ4FDecompressionCtx,
@@ -191,6 +191,28 @@ impl Drop for DecompressionContext {
             binding::LZ4F_freeDecompressionContext(self.ctx.as_ptr());
         }
     }
+}
+
+pub fn compress_bound(input_size: usize, prefs: &Preferences) -> usize {
+    unsafe {
+        binding::LZ4F_compressBound(input_size as size_t, prefs as *const Preferences) as usize
+    }
+}
+
+pub fn compress(src: &[u8], dst: &mut [u8], prefs: &Preferences) -> Result<Report> {
+    let code = unsafe {
+        binding::LZ4F_compressFrame(
+            dst.as_mut_ptr() as *mut c_void,
+            dst.len() as size_t,
+            src.as_ptr() as *const c_void,
+            src.len() as size_t,
+            prefs as *const Preferences,
+        ) as usize
+    };
+    common::result_from_code(code).map(|_| Report {
+        dst_len: code,
+        ..Default::default()
+    })
 }
 
 pub struct DictionaryHandle(NonNull<LZ4FCompressionDict>);
