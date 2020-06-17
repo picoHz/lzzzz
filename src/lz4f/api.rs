@@ -44,7 +44,7 @@ impl CompressionContext {
                 binding::LZ4F_compressBegin_usingCDict(
                     self.ctx.as_ptr(),
                     dst.as_mut_ptr() as *mut c_void,
-                    dst.len() as usize,
+                    dst.len(),
                     (*dict.handle()).0.as_ptr(),
                     prefs as *const Preferences,
                 )
@@ -52,7 +52,7 @@ impl CompressionContext {
                 binding::LZ4F_compressBegin(
                     self.ctx.as_ptr(),
                     dst.as_mut_ptr() as *mut c_void,
-                    dst.len() as usize,
+                    dst.len(),
                     prefs,
                 )
             }
@@ -66,9 +66,9 @@ impl CompressionContext {
             binding::LZ4F_compressUpdate(
                 self.ctx.as_ptr(),
                 dst.as_mut_ptr() as *mut c_void,
-                dst.len() as usize,
+                dst.len(),
                 src.as_ptr() as *const c_void,
-                src.len() as usize,
+                src.len(),
                 &opt as *const LZ4FCompressionOptions,
             )
         } as usize;
@@ -81,7 +81,7 @@ impl CompressionContext {
             binding::LZ4F_flush(
                 self.ctx.as_ptr(),
                 dst.as_mut_ptr() as *mut c_void,
-                dst.len() as usize,
+                dst.len(),
                 &opt as *const LZ4FCompressionOptions,
             )
         } as usize;
@@ -94,7 +94,7 @@ impl CompressionContext {
             binding::LZ4F_compressEnd(
                 self.ctx.as_ptr(),
                 dst.as_mut_ptr() as *mut c_void,
-                dst.len() as usize,
+                dst.len(),
                 &opt as *const LZ4FCompressionOptions,
             )
         } as usize;
@@ -136,7 +136,7 @@ impl DecompressionContext {
 
     pub fn get_frame_info(&self, src: &[u8]) -> Result<(FrameInfo, usize)> {
         let mut info = MaybeUninit::<FrameInfo>::uninit();
-        let mut src_len = src.len() as usize;
+        let mut src_len = src.len();
         let code = unsafe {
             binding::LZ4F_getFrameInfo(
                 self.ctx.as_ptr(),
@@ -155,8 +155,8 @@ impl DecompressionContext {
         dict: &[u8],
         stable_dst: bool,
     ) -> Result<Report> {
-        let mut dst_len = dst.len() as usize;
-        let mut src_len = src.len() as usize;
+        let mut dst_len = dst.len();
+        let mut src_len = src.len();
         let opt = LZ4FDecompressionOptions::stable(stable_dst);
         let code = unsafe {
             binding::LZ4F_decompress_usingDict(
@@ -166,7 +166,7 @@ impl DecompressionContext {
                 src.as_ptr() as *const c_void,
                 &mut src_len as *mut usize,
                 dict.as_ptr() as *const c_void,
-                dict.len() as usize,
+                dict.len(),
                 &opt as *const LZ4FDecompressionOptions,
             )
         };
@@ -202,9 +202,9 @@ pub fn compress(src: &[u8], dst: &mut [u8], prefs: &Preferences) -> Result<Repor
     let code = unsafe {
         binding::LZ4F_compressFrame(
             dst.as_mut_ptr() as *mut c_void,
-            dst.len() as usize,
+            dst.len(),
             src.as_ptr() as *const c_void,
-            src.len() as usize,
+            src.len(),
             prefs as *const Preferences,
         ) as usize
     };
