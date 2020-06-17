@@ -76,6 +76,28 @@ pub struct Preferences {
     _reserved: [c_uint; 3],
 }
 
+impl Preferences {
+    /// Return the frame info.
+    pub const fn frame_info(&self) -> FrameInfo {
+        self.frame_info
+    }
+
+    /// Return the compression level.
+    pub const fn compression_level(&self) -> i32 {
+        self.compression_level as i32 // TODO
+    }
+
+    /// Return the auto flush mode flag.
+    pub const fn auto_flush(&self) -> AutoFlush {
+        self.auto_flush
+    }
+
+    /// Return the decompression speed mode flag.
+    pub const fn favor_dec_speed(&self) -> FavorDecSpeed {
+        self.favor_dec_speed
+    }
+}
+
 impl Default for Preferences {
     fn default() -> Self {
         Self {
