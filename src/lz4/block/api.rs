@@ -2,8 +2,11 @@
 
 use crate::{binding, common, Report, Result};
 
-use libc::{c_char, c_int, c_void};
-use std::{cell::RefCell, ops::Deref};
+use std::{
+    cell::RefCell,
+    ops::Deref,
+    os::raw::{c_char, c_int, c_void},
+};
 
 pub fn compress_bound(input_size: usize) -> usize {
     unsafe { binding::LZ4_compressBound(input_size as c_int) as usize }

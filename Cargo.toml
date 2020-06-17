@@ -12,7 +12,6 @@ documentation = "https://docs.rs/lzzzz"
 include = ["src/**/*", "build.rs", "vendor/liblz4/lib/*", "Cargo.toml"]
 
 [dependencies]
-libc = "0.2.71"
 tokio = { version = "0.2.21", optional = true }
 pin-project = { version = "0.4.22", optional = true }
 
@@ -27,7 +26,7 @@ pbr = "1.0.3"
 cc = { version = "1.0.54", features = ["parallel"] }
 
 [features]
-default = ["lz4", "lz4-hc", "lz4f", "lz4-use-stack", "use-tls", "tokio-io"]
+default = ["lz4", "lz4-hc", "lz4f", "use-tls", "tokio-io"]
 
 lz4 = []
 lz4-hc = ["lz4"]
@@ -35,7 +34,6 @@ lz4f = []
 
 tokio-io = ["tokio", "pin-project"]
 use-tls = []
-lz4-use-stack = ["lz4"]
 liblz4-experimental = []
 
 [package.metadata.docs.rs]

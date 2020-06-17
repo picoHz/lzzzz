@@ -6,9 +6,9 @@ use crate::{
     Error, Result,
 };
 
-use libc::{c_char, c_int, c_void, size_t};
 use std::{
     mem::{size_of, MaybeUninit},
+    os::raw::{c_char, c_int, c_void},
     ptr::NonNull,
 };
 
@@ -27,7 +27,7 @@ impl CompressionContext {
         unsafe {
             let ptr = binding::LZ4_initStream(
                 stream.as_mut_ptr() as *mut c_void,
-                size_of::<LZ4Stream>() as size_t,
+                size_of::<LZ4Stream>() as usize,
             );
             if !ptr.is_null() {
                 return Ok(Self {

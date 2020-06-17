@@ -1,4 +1,4 @@
-use libc::{c_uint, c_ulonglong};
+use std::os::raw::{c_uint, c_ulonglong};
 
 /// Compression block size flag
 ///

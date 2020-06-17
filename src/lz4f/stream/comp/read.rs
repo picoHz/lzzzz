@@ -1,5 +1,4 @@
-use super::BufReadCompressor;
-use super::{Dictionary, Preferences};
+use super::{BufReadCompressor, Dictionary, Preferences};
 use crate::lz4f::CompressorBuilder;
 use std::{
     convert::TryInto,
@@ -21,8 +20,7 @@ use std::{
 /// # tmp_dir.child("foo.txt").write_str("Hello").unwrap();
 /// #
 /// use lzzzz::lz4f::comp::ReadCompressor;
-/// use std::fs::File;
-/// use std::io::prelude::*;
+/// use std::{fs::File, io::prelude::*};
 ///
 /// let mut f = File::open("foo.txt")?;
 /// let mut r = ReadCompressor::new(&mut f)?;

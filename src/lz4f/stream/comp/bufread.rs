@@ -20,8 +20,10 @@ use std::{
 /// # tmp_dir.child("foo.txt").write_str("Hello").unwrap();
 /// #
 /// use lzzzz::lz4f::comp::BufReadCompressor;
-/// use std::fs::File;
-/// use std::io::{BufReader, prelude::*};
+/// use std::{
+///     fs::File,
+///     io::{prelude::*, BufReader},
+/// };
 ///
 /// let mut f = File::open("foo.txt")?;
 /// let mut b = BufReader::new(f);

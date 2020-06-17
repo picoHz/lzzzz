@@ -24,8 +24,10 @@ use std::{
 /// # tmp_dir.child("foo.lz4").write_str("Hello").unwrap();
 /// #
 /// use lzzzz::lz4f::decomp::BufReadDecompressor;
-/// use std::fs::File;
-/// use std::io::{BufReader, prelude::*};
+/// use std::{
+///     fs::File,
+///     io::{prelude::*, BufReader},
+/// };
 ///
 /// let mut f = File::open("foo.lz4")?;
 /// let mut b = BufReader::new(f);

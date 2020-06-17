@@ -16,9 +16,8 @@ use std::{
 /// # use assert_fs::prelude::*;
 /// # let tmp_dir = assert_fs::TempDir::new().unwrap().into_persistent();
 /// # env::set_current_dir(tmp_dir.path()).unwrap();
-/// use lzzzz::lz4f::{decomp::WriteDecompressor, compress_to_vec};
-/// use std::fs::File;
-/// use std::io::prelude::*;
+/// use lzzzz::lz4f::{compress_to_vec, decomp::WriteDecompressor};
+/// use std::{fs::File, io::prelude::*};
 ///
 /// let mut f = File::create("foo.txt")?;
 /// let mut w = WriteDecompressor::new(&mut f)?;

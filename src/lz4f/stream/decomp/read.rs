@@ -20,8 +20,7 @@ use std::{
 /// # tmp_dir.child("foo.lz4").write_str("Hello").unwrap();
 /// #
 /// use lzzzz::lz4f::decomp::ReadDecompressor;
-/// use std::fs::File;
-/// use std::io::prelude::*;
+/// use std::{fs::File, io::prelude::*};
 ///
 /// let mut f = File::open("foo.lz4")?;
 /// let mut r = ReadDecompressor::new(&mut f)?;

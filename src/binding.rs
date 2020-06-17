@@ -1,48 +1,18 @@
 use crate::lz4f::{FrameInfo, Preferences};
-use libc::{c_char, c_int, c_uint, c_void, size_t};
+use std::os::raw::{c_char, c_int, c_uint, c_void};
 
-#[cfg(feature = "lz4-use-stack")]
-mod lz4 {
-    const LZ4_MEMORY_USAGE: usize = 14;
-    const LZ4_STREAMSIZE_U64: usize = (1 << (LZ4_MEMORY_USAGE - 3)) + 4;
+const LZ4_MEMORY_USAGE: usize = 14;
+const LZ4_STREAMSIZE_U64: usize = (1 << (LZ4_MEMORY_USAGE - 3)) + 4;
 
-    #[repr(C)]
-    pub struct LZ4Stream {
-        _private: [u64; LZ4_STREAMSIZE_U64],
-    }
-
-    impl LZ4Stream {
-        pub fn new() -> Self {
-            Self {
-                _private: [0u64; LZ4_STREAMSIZE_U64],
-            }
-        }
-    }
+#[repr(C)]
+pub struct LZ4Stream {
+    _private: [u64; LZ4_STREAMSIZE_U64],
 }
 
-#[cfg(not(feature = "lz4-use-stack"))]
-mod lz4 {
-    #[repr(C)]
-    pub struct LZ4Stream {
-        _private: [u8; 0],
-    }
-
-    impl LZ4Stream {
-        pub fn new() -> Self {
-            Self { _private: [0u8; 0] }
-        }
-    }
+#[repr(C)]
+pub struct LZ4StreamHC {
+    _private: [u8; 0],
 }
-
-mod lz4_hc {
-    #[repr(C)]
-    pub struct LZ4StreamHC {
-        _private: [u8; 0],
-    }
-}
-
-pub use lz4::LZ4Stream;
-pub use lz4_hc::LZ4StreamHC;
 
 #[repr(C)]
 pub struct LZ4DecStream {
@@ -197,28 +167,28 @@ extern "C" {
     pub fn LZ4_favorDecompressionSpeed(ptr: *mut LZ4StreamHC, favor: c_int);
 
     pub fn LZ4F_getVersion() -> c_uint;
-    pub fn LZ4F_compressBound(src_size: size_t, prefs: *const Preferences) -> size_t;
+    pub fn LZ4F_compressBound(src_size: usize, prefs: *const Preferences) -> usize;
     pub fn LZ4F_compressFrame(
         dst_buffer: *mut c_void,
-        dst_capacity: size_t,
+        dst_capacity: usize,
         src_buffer: *const c_void,
-        src_size: size_t,
+        src_size: usize,
         prefs: *const Preferences,
-    ) -> size_t;
+    ) -> usize;
     pub fn LZ4F_decompress_usingDict(
         ctx: *mut LZ4FDecompressionCtx,
         dst_buffer: *mut c_void,
-        dst_size_ptr: *mut size_t,
+        dst_size_ptr: *mut usize,
         src_buffer: *const c_void,
-        src_size_ptr: *mut size_t,
+        src_size_ptr: *mut usize,
         dict: *const c_void,
-        dict_size: size_t,
+        dict_size: usize,
         opt: *const LZ4FDecompressionOptions,
-    ) -> size_t;
+    ) -> usize;
     pub fn LZ4_createStream() -> *mut LZ4Stream;
     pub fn LZ4_freeStream(ptr: *mut LZ4Stream) -> c_int;
     pub fn LZ4_resetStream_fast(ptr: *mut LZ4Stream);
-    pub fn LZ4_initStream(buffer: *mut c_void, size: size_t) -> *mut LZ4Stream;
+    pub fn LZ4_initStream(buffer: *mut c_void, size: usize) -> *mut LZ4Stream;
     pub fn LZ4_loadDict(ptr: *mut LZ4Stream, dictionary: *const c_char, dict_size: c_int) -> c_int;
     pub fn LZ4_compress_fast_continue(
         ptr: *mut LZ4Stream,
@@ -233,60 +203,60 @@ extern "C" {
 
     pub fn LZ4F_createCDict(
         dict_buffer: *const c_void,
-        dict_size: size_t,
+        dict_size: usize,
     ) -> *mut LZ4FCompressionDict;
     pub fn LZ4F_freeCDict(dict: *mut LZ4FCompressionDict);
 
-    pub fn LZ4F_isError(code: size_t) -> c_uint;
+    pub fn LZ4F_isError(code: usize) -> c_uint;
 
     pub fn LZ4F_createCompressionContext(
         ctx: *mut *mut LZ4FCompressionCtx,
         version: c_uint,
-    ) -> size_t;
+    ) -> usize;
     pub fn LZ4F_freeCompressionContext(ctx: *mut LZ4FCompressionCtx);
     pub fn LZ4F_compressBegin(
         ctx: *mut LZ4FCompressionCtx,
         dst_buffer: *mut c_void,
-        dst_capacity: size_t,
+        dst_capacity: usize,
         prefs: *const Preferences,
-    ) -> size_t;
+    ) -> usize;
     pub fn LZ4F_compressBegin_usingCDict(
         ctx: *mut LZ4FCompressionCtx,
         dst_buffer: *mut c_void,
-        dst_capacity: size_t,
+        dst_capacity: usize,
         dist: *const LZ4FCompressionDict,
         prefs: *const Preferences,
-    ) -> size_t;
+    ) -> usize;
     pub fn LZ4F_compressUpdate(
         ctx: *mut LZ4FCompressionCtx,
         dst_buffer: *mut c_void,
-        dst_capacity: size_t,
+        dst_capacity: usize,
         src_buffer: *const c_void,
-        src_size: size_t,
+        src_size: usize,
         opt: *const LZ4FCompressionOptions,
-    ) -> size_t;
+    ) -> usize;
     pub fn LZ4F_flush(
         ctx: *mut LZ4FCompressionCtx,
         dst_buffer: *mut c_void,
-        dst_capacity: size_t,
+        dst_capacity: usize,
         opt: *const LZ4FCompressionOptions,
-    ) -> size_t;
+    ) -> usize;
     pub fn LZ4F_compressEnd(
         ctx: *mut LZ4FCompressionCtx,
         dst_buffer: *mut c_void,
-        dst_capacity: size_t,
+        dst_capacity: usize,
         opt: *const LZ4FCompressionOptions,
-    ) -> size_t;
+    ) -> usize;
     pub fn LZ4F_createDecompressionContext(
         ctx: *mut *mut LZ4FDecompressionCtx,
         version: c_uint,
-    ) -> size_t;
-    pub fn LZ4F_freeDecompressionContext(ctx: *mut LZ4FDecompressionCtx) -> size_t;
+    ) -> usize;
+    pub fn LZ4F_freeDecompressionContext(ctx: *mut LZ4FDecompressionCtx) -> usize;
     pub fn LZ4F_resetDecompressionContext(ctx: *mut LZ4FDecompressionCtx);
     pub fn LZ4F_getFrameInfo(
         ctx: *mut LZ4FDecompressionCtx,
         frame_info_ptr: *mut FrameInfo,
         src_buffer: *const c_void,
-        src_size_ptr: *mut size_t,
-    ) -> size_t;
+        src_size_ptr: *mut usize,
+    ) -> usize;
 }

@@ -1,6 +1,8 @@
 use super::frame_info::{BlockChecksum, BlockMode, BlockSize, ContentChecksum, FrameInfo};
-use libc::{c_int, c_uint};
-use std::cmp;
+use std::{
+    cmp,
+    os::raw::{c_int, c_uint},
+};
 
 /// Auto flush flag
 ///

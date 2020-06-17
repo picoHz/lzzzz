@@ -17,8 +17,7 @@ use std::{
 /// # let tmp_dir = assert_fs::TempDir::new().unwrap().into_persistent();
 /// # env::set_current_dir(tmp_dir.path()).unwrap();
 /// use lzzzz::lz4f::comp::WriteCompressor;
-/// use std::fs::File;
-/// use std::io::prelude::*;
+/// use std::{fs::File, io::prelude::*};
 ///
 /// let mut f = File::create("foo.lz4")?;
 /// let mut w = WriteCompressor::new(&mut f)?;

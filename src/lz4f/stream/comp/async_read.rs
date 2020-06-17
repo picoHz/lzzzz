@@ -1,7 +1,6 @@
 #![cfg(feature = "tokio-io")]
 
-use super::AsyncBufReadCompressor;
-use super::{Dictionary, Preferences};
+use super::{AsyncBufReadCompressor, Dictionary, Preferences};
 use crate::lz4f::CompressorBuilder;
 use pin_project::pin_project;
 use std::{

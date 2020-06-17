@@ -2,8 +2,11 @@
 
 use crate::{binding, Report};
 
-use libc::{c_char, c_int, c_void};
-use std::{cell::RefCell, ops::Deref};
+use std::{
+    cell::RefCell,
+    ops::Deref,
+    os::raw::{c_char, c_int, c_void},
+};
 
 pub fn size_of_state() -> usize {
     unsafe { binding::LZ4_sizeofStateHC() as usize }

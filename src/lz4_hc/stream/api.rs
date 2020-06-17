@@ -2,8 +2,10 @@
 
 use crate::{binding, binding::LZ4StreamHC, Error, Report, Result};
 
-use libc::{c_char, c_int};
-use std::ptr::NonNull;
+use std::{
+    os::raw::{c_char, c_int},
+    ptr::NonNull,
+};
 
 pub struct CompressionContext {
     stream: NonNull<LZ4StreamHC>,
