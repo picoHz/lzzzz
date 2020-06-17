@@ -19,6 +19,28 @@ enum State {
 }
 
 /// AsyncWrite-based streaming compressor
+/// 
+/// # Examples
+/// 
+/// ```
+/// # use std::env;
+/// # use std::path::Path;
+/// # use lzzzz::{Error, Result};
+/// # let tmp_dir = assert_fs::TempDir::new().unwrap().into_persistent();
+/// # env::set_current_dir(tmp_dir.path()).unwrap();
+/// # let mut rt = tokio::runtime::Runtime::new().unwrap();
+/// # rt.block_on(async {
+/// use lzzzz::lz4f::{CompressorBuilder, compressor::AsyncWriteCompressor};
+/// use tokio::fs::File;
+/// use tokio::prelude::*;
+/// 
+/// let mut f = File::create("foo.lz4").await?;
+/// let mut w : AsyncWriteCompressor<_> = CompressorBuilder::new(&mut f).build()?;
+/// w.write_all(b"hello, world!").await?;
+/// # Ok::<(), tokio::io::Error>(())
+/// # }).unwrap();
+/// # tmp_dir.close().unwrap();
+/// ```
 #[cfg_attr(docsrs, doc(cfg(feature = "tokio-io")))]
 #[pin_project]
 pub struct AsyncWriteCompressor<W: AsyncWrite + Unpin> {

@@ -1,5 +1,5 @@
-mod lz4f;
-mod lz4f_stream;
+// mod lz4f;
+// mod lz4f_stream;
 
 use pbr::ProgressBar;
 use rayon::prelude::*;
