@@ -1,6 +1,6 @@
 #![allow(unsafe_code)]
 
-use super::Preferences;
+use crate::lz4f::Preferences;
 use crate::{binding, common, Report, Result};
 use libc::{c_void, size_t};
 
