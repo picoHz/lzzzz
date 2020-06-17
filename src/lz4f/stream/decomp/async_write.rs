@@ -13,6 +13,31 @@ use std::{
 use tokio::io::{AsyncWrite, Result};
 
 /// AsyncWrite-based streaming decompressor
+///
+/// # Examples
+///
+/// ```
+/// # use std::env;
+/// # use std::path::Path;
+/// # use lzzzz::{Error, Result};
+/// # let tmp_dir = assert_fs::TempDir::new().unwrap().into_persistent();
+/// # env::set_current_dir(tmp_dir.path()).unwrap();
+/// # let mut rt = tokio::runtime::Runtime::new().unwrap();
+/// # rt.block_on(async {
+/// use lzzzz::lz4f::{decomp::AsyncWriteDecompressor, compress_to_vec};
+/// use tokio::{fs::File, prelude::*};
+///
+/// let mut f = File::create("foo.txt").await?;
+/// let mut w = AsyncWriteDecompressor::new(&mut f)?;
+///
+/// let mut buf = Vec::new();
+/// compress_to_vec(b"Hello world!", &mut buf, &Default::default())?;
+///
+/// w.write_all(&buf).await?;
+/// # Ok::<(), tokio::io::Error>(())
+/// # }).unwrap();
+/// # tmp_dir.close().unwrap();
+/// ```
 #[cfg_attr(docsrs, doc(cfg(feature = "tokio-io")))]
 #[pin_project]
 pub struct AsyncWriteDecompressor<'a, W: AsyncWrite + Unpin> {
@@ -23,7 +48,11 @@ pub struct AsyncWriteDecompressor<'a, W: AsyncWrite + Unpin> {
 }
 
 impl<'a, W: AsyncWrite + Unpin> AsyncWriteDecompressor<'a, W> {
-    fn new(writer: W) -> crate::Result<Self> {
+    pub fn new(writer: W) -> crate::Result<Self> {
+        Self::from_builder(writer)
+    }
+
+    fn from_builder(writer: W) -> crate::Result<Self> {
         Ok(Self {
             device: writer,
             inner: Decompressor::new()?,
@@ -76,6 +105,6 @@ impl<W: AsyncWrite + Unpin> AsyncWrite for AsyncWriteDecompressor<'_, W> {
 impl<'a, W: AsyncWrite + Unpin> TryInto<AsyncWriteDecompressor<'a, W>> for DecompressorBuilder<W> {
     type Error = crate::Error;
     fn try_into(self) -> crate::Result<AsyncWriteDecompressor<'a, W>> {
-        AsyncWriteDecompressor::new(self.device)
+        AsyncWriteDecompressor::from_builder(self.device)
     }
 }

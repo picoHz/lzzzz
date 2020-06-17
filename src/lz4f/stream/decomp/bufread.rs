@@ -10,14 +10,43 @@ use std::{
 };
 
 /// BufRead-based streaming decompressor
-pub struct BufReadDecompressor<'a, B: BufRead> {
-    device: B,
+///
+/// # Examples
+///
+/// ```
+/// # use std::env;
+/// # use std::path::Path;
+/// # use lzzzz::{Error, Result};
+/// # use assert_fs::prelude::*;
+/// # let tmp_dir = assert_fs::TempDir::new().unwrap().into_persistent();
+/// # env::set_current_dir(tmp_dir.path()).unwrap();
+/// #
+/// # tmp_dir.child("foo.lz4").write_str("Hello").unwrap();
+/// #
+/// use lzzzz::lz4f::decomp::BufReadDecompressor;
+/// use std::fs::File;
+/// use std::io::{BufReader, prelude::*};
+///
+/// let mut f = File::open("foo.lz4")?;
+/// let mut b = BufReader::new(f);
+/// let mut r = BufReadDecompressor::new(&mut b)?;
+///
+/// let mut buf = Vec::new();
+/// r.read_to_end(&mut buf)?;
+/// # Ok::<(), std::io::Error>(())
+/// ```
+pub struct BufReadDecompressor<'a, R: BufRead> {
+    device: R,
     inner: Decompressor<'a>,
     consumed: usize,
 }
 
-impl<'a, B: BufRead> BufReadDecompressor<'a, B> {
-    pub(crate) fn new(device: B) -> crate::Result<Self> {
+impl<'a, R: BufRead> BufReadDecompressor<'a, R> {
+    pub fn new(reader: R) -> crate::Result<Self> {
+        Self::from_builder(reader)
+    }
+
+    pub(super) fn from_builder(device: R) -> crate::Result<Self> {
         Ok(Self {
             device,
             inner: Decompressor::new()?,
@@ -44,7 +73,7 @@ impl<'a, B: BufRead> BufReadDecompressor<'a, B> {
     }
 }
 
-impl<B: BufRead> Read for BufReadDecompressor<'_, B> {
+impl<R: BufRead> Read for BufReadDecompressor<'_, R> {
     fn read(&mut self, buf: &mut [u8]) -> Result<usize> {
         loop {
             let inner_buf = self.device.fill_buf()?;
@@ -69,7 +98,7 @@ impl<B: BufRead> Read for BufReadDecompressor<'_, B> {
     }
 }
 
-impl<B: BufRead> BufRead for BufReadDecompressor<'_, B> {
+impl<R: BufRead> BufRead for BufReadDecompressor<'_, R> {
     fn fill_buf(&mut self) -> Result<&[u8]> {
         let _ = self.read(&mut [])?;
         Ok(&self.inner.buf()[self.consumed..])
@@ -84,10 +113,10 @@ impl<B: BufRead> BufRead for BufReadDecompressor<'_, B> {
     }
 }
 
-impl<'a, B: BufRead> TryInto<BufReadDecompressor<'a, B>> for DecompressorBuilder<B> {
+impl<'a, R: BufRead> TryInto<BufReadDecompressor<'a, R>> for DecompressorBuilder<R> {
     type Error = crate::Error;
-    fn try_into(self) -> crate::Result<BufReadDecompressor<'a, B>> {
-        BufReadDecompressor::new(self.device)
+    fn try_into(self) -> crate::Result<BufReadDecompressor<'a, R>> {
+        BufReadDecompressor::from_builder(self.device)
     }
 }
 

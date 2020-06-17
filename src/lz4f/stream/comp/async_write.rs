@@ -30,12 +30,12 @@ enum State {
 /// # env::set_current_dir(tmp_dir.path()).unwrap();
 /// # let mut rt = tokio::runtime::Runtime::new().unwrap();
 /// # rt.block_on(async {
-/// use lzzzz::lz4f::{comp::AsyncWriteCompressor, CompressorBuilder};
+/// use lzzzz::lz4f::comp::AsyncWriteCompressor;
 /// use tokio::{fs::File, prelude::*};
 ///
 /// let mut f = File::create("foo.lz4").await?;
-/// let mut w: AsyncWriteCompressor<_> = CompressorBuilder::new(&mut f).build()?;
-/// 
+/// let mut w = AsyncWriteCompressor::new(&mut f)?;
+///
 /// w.write_all(b"hello, world!").await?;
 /// # Ok::<(), tokio::io::Error>(())
 /// # }).unwrap();
@@ -52,7 +52,11 @@ pub struct AsyncWriteCompressor<W: AsyncWrite + Unpin> {
 }
 
 impl<W: AsyncWrite + Unpin> AsyncWriteCompressor<W> {
-    fn new(writer: W, pref: Preferences, dict: Option<Dictionary>) -> crate::Result<Self> {
+    pub fn new(writer: W) -> crate::Result<Self> {
+        Self::from_builder(writer, Default::default(), None)
+    }
+
+    fn from_builder(writer: W, pref: Preferences, dict: Option<Dictionary>) -> crate::Result<Self> {
         Ok(Self {
             device: writer,
             inner: Compressor::new(pref, dict)?,
@@ -142,7 +146,7 @@ impl<W: AsyncWrite + Unpin> AsyncWrite for AsyncWriteCompressor<W> {
 impl<W: AsyncWrite + Unpin> TryInto<AsyncWriteCompressor<W>> for CompressorBuilder<W> {
     type Error = crate::Error;
     fn try_into(self) -> crate::Result<AsyncWriteCompressor<W>> {
-        AsyncWriteCompressor::new(self.device, self.pref, self.dict)
+        AsyncWriteCompressor::from_builder(self.device, self.pref, self.dict)
     }
 }
 

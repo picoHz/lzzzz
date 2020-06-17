@@ -6,13 +6,40 @@ use std::{
 };
 
 /// Write-based streaming decompressor
+///
+/// # Examples
+///
+/// ```
+/// # use std::env;
+/// # use std::path::Path;
+/// # use lzzzz::{Error, Result};
+/// # use assert_fs::prelude::*;
+/// # let tmp_dir = assert_fs::TempDir::new().unwrap().into_persistent();
+/// # env::set_current_dir(tmp_dir.path()).unwrap();
+/// use lzzzz::lz4f::{decomp::WriteDecompressor, compress_to_vec};
+/// use std::fs::File;
+/// use std::io::prelude::*;
+///
+/// let mut f = File::create("foo.txt")?;
+/// let mut w = WriteDecompressor::new(&mut f)?;
+///
+/// let mut buf = Vec::new();
+/// compress_to_vec(b"Hello world!", &mut buf, &Default::default())?;
+///
+/// w.write_all(&buf)?;
+/// # Ok::<(), std::io::Error>(())
+/// ```
 pub struct WriteDecompressor<'a, W: Write> {
     device: W,
     inner: Decompressor<'a>,
 }
 
 impl<'a, W: Write> WriteDecompressor<'a, W> {
-    pub(crate) fn new(device: W) -> crate::Result<Self> {
+    pub fn new(writer: W) -> crate::Result<Self> {
+        Self::from_builder(writer)
+    }
+
+    fn from_builder(device: W) -> crate::Result<Self> {
         Ok(Self {
             device,
             inner: Decompressor::new()?,
@@ -44,6 +71,6 @@ impl<W: Write> Write for WriteDecompressor<'_, W> {
 impl<'a, W: Write> TryInto<WriteDecompressor<'a, W>> for DecompressorBuilder<W> {
     type Error = crate::Error;
     fn try_into(self) -> crate::Result<WriteDecompressor<'a, W>> {
-        WriteDecompressor::new(self.device)
+        WriteDecompressor::from_builder(self.device)
     }
 }

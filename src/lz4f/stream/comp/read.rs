@@ -1,4 +1,5 @@
 use super::BufReadCompressor;
+use super::{Dictionary, Preferences};
 use crate::lz4f::CompressorBuilder;
 use std::{
     convert::TryInto,
@@ -6,8 +7,44 @@ use std::{
 };
 
 /// Read-based streaming compressor
+///
+/// # Examples
+///
+/// ```
+/// # use std::env;
+/// # use std::path::Path;
+/// # use lzzzz::{Error, Result};
+/// # use assert_fs::prelude::*;
+/// # let tmp_dir = assert_fs::TempDir::new().unwrap().into_persistent();
+/// # env::set_current_dir(tmp_dir.path()).unwrap();
+/// #
+/// # tmp_dir.child("foo.txt").write_str("Hello").unwrap();
+/// #
+/// use lzzzz::lz4f::comp::ReadCompressor;
+/// use std::fs::File;
+/// use std::io::prelude::*;
+///
+/// let mut f = File::open("foo.txt")?;
+/// let mut r = ReadCompressor::new(&mut f)?;
+///
+/// let mut buf = Vec::new();
+/// r.read_to_end(&mut buf)?;
+/// # Ok::<(), std::io::Error>(())
+/// ```
 pub struct ReadCompressor<R: Read> {
     inner: BufReadCompressor<BufReader<R>>,
+}
+
+impl<R: Read> ReadCompressor<R> {
+    pub fn new(reader: R) -> crate::Result<Self> {
+        Self::from_builder(reader, Default::default(), None)
+    }
+
+    fn from_builder(device: R, pref: Preferences, dict: Option<Dictionary>) -> crate::Result<Self> {
+        Ok(Self {
+            inner: BufReadCompressor::from_builder(BufReader::new(device), pref, dict)?,
+        })
+    }
 }
 
 impl<R: Read> Read for ReadCompressor<R> {
@@ -19,8 +56,6 @@ impl<R: Read> Read for ReadCompressor<R> {
 impl<R: Read> TryInto<ReadCompressor<R>> for CompressorBuilder<R> {
     type Error = crate::Error;
     fn try_into(self) -> crate::Result<ReadCompressor<R>> {
-        Ok(ReadCompressor {
-            inner: BufReadCompressor::new(BufReader::new(self.device), self.pref, self.dict)?,
-        })
+        ReadCompressor::from_builder(self.device, self.pref, self.dict)
     }
 }

@@ -24,16 +24,20 @@ enum State {
 /// AsyncBufRead-based streaming decompressor
 #[cfg_attr(docsrs, doc(cfg(feature = "tokio-io")))]
 #[pin_project]
-pub struct AsyncBufReadCompressor<'a, B: AsyncBufRead + Unpin> {
+pub struct AsyncBufReadCompressor<'a, R: AsyncBufRead + Unpin> {
     #[pin]
-    device: B,
+    device: R,
     inner: Decompressor<'a>,
     state: State,
     consumed: usize,
 }
 
-impl<'a, B: AsyncBufRead + Unpin> AsyncBufReadCompressor<'a, B> {
-    pub(crate) fn new(device: B) -> crate::Result<Self> {
+impl<'a, R: AsyncBufRead + Unpin> AsyncBufReadCompressor<'a, R> {
+    pub fn new(reader: R) -> crate::Result<Self> {
+        Self::from_builder(reader)
+    }
+
+    pub(super) fn from_builder(device: R) -> crate::Result<Self> {
         Ok(Self {
             device,
             inner: Decompressor::new()?,
@@ -60,7 +64,7 @@ impl<'a, B: AsyncBufRead + Unpin> AsyncBufReadCompressor<'a, B> {
     }
 }
 
-impl<'a, B: AsyncBufRead + Unpin> AsyncRead for AsyncBufReadCompressor<'a, B> {
+impl<'a, R: AsyncBufRead + Unpin> AsyncRead for AsyncBufReadCompressor<'a, R> {
     fn poll_read(
         mut self: Pin<&mut Self>,
         cx: &mut Context,
@@ -76,7 +80,7 @@ impl<'a, B: AsyncBufRead + Unpin> AsyncRead for AsyncBufReadCompressor<'a, B> {
     }
 }
 
-impl<'a, B: AsyncBufRead + Unpin> AsyncBufRead for AsyncBufReadCompressor<'a, B> {
+impl<'a, R: AsyncBufRead + Unpin> AsyncBufRead for AsyncBufReadCompressor<'a, R> {
     fn poll_fill_buf(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<Result<&[u8]>> {
         let result = match Pin::new(&mut *self).poll_read_impl(cx, &mut [], State::FillBuf) {
             Poll::Pending => return Poll::Pending,
@@ -98,11 +102,11 @@ impl<'a, B: AsyncBufRead + Unpin> AsyncBufRead for AsyncBufReadCompressor<'a, B>
     }
 }
 
-impl<'a, B: AsyncBufRead + Unpin> TryInto<AsyncBufReadCompressor<'a, B>>
-    for DecompressorBuilder<B>
+impl<'a, R: AsyncBufRead + Unpin> TryInto<AsyncBufReadCompressor<'a, R>>
+    for DecompressorBuilder<R>
 {
     type Error = crate::Error;
-    fn try_into(self) -> crate::Result<AsyncBufReadCompressor<'a, B>> {
+    fn try_into(self) -> crate::Result<AsyncBufReadCompressor<'a, R>> {
         AsyncBufReadCompressor::new(self.device)
     }
 }

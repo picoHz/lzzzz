@@ -6,15 +6,44 @@ use std::{
 };
 
 /// BufRead-based streaming compressor
-pub struct BufReadCompressor<B: BufRead> {
-    device: B,
+///
+/// # Examples
+///
+/// ```
+/// # use std::env;
+/// # use std::path::Path;
+/// # use lzzzz::{Error, Result};
+/// # use assert_fs::prelude::*;
+/// # let tmp_dir = assert_fs::TempDir::new().unwrap().into_persistent();
+/// # env::set_current_dir(tmp_dir.path()).unwrap();
+/// #
+/// # tmp_dir.child("foo.txt").write_str("Hello").unwrap();
+/// #
+/// use lzzzz::lz4f::comp::BufReadCompressor;
+/// use std::fs::File;
+/// use std::io::{BufReader, prelude::*};
+///
+/// let mut f = File::open("foo.txt")?;
+/// let mut b = BufReader::new(f);
+/// let mut r = BufReadCompressor::new(&mut b)?;
+///
+/// let mut buf = Vec::new();
+/// r.read_to_end(&mut buf)?;
+/// # Ok::<(), std::io::Error>(())
+/// ```
+pub struct BufReadCompressor<R: BufRead> {
+    device: R,
     inner: Compressor,
     consumed: usize,
 }
 
-impl<B: BufRead> BufReadCompressor<B> {
-    pub(crate) fn new(
-        device: B,
+impl<R: BufRead> BufReadCompressor<R> {
+    pub fn new(reader: R) -> crate::Result<Self> {
+        Self::from_builder(reader, Default::default(), None)
+    }
+
+    pub(super) fn from_builder(
+        device: R,
         pref: Preferences,
         dict: Option<Dictionary>,
     ) -> crate::Result<Self> {
@@ -26,7 +55,7 @@ impl<B: BufRead> BufReadCompressor<B> {
     }
 }
 
-impl<B: BufRead> Read for BufReadCompressor<B> {
+impl<R: BufRead> Read for BufReadCompressor<R> {
     fn read(&mut self, buf: &mut [u8]) -> Result<usize> {
         let consumed = {
             let inner_buf = self.device.fill_buf()?;
@@ -54,7 +83,7 @@ impl<B: BufRead> Read for BufReadCompressor<B> {
     }
 }
 
-impl<B: BufRead> BufRead for BufReadCompressor<B> {
+impl<R: BufRead> BufRead for BufReadCompressor<R> {
     fn fill_buf(&mut self) -> Result<&[u8]> {
         let _ = self.read(&mut [])?;
         Ok(&self.inner.buf()[self.consumed..])
@@ -69,9 +98,9 @@ impl<B: BufRead> BufRead for BufReadCompressor<B> {
     }
 }
 
-impl<B: BufRead> TryInto<BufReadCompressor<B>> for CompressorBuilder<B> {
+impl<R: BufRead> TryInto<BufReadCompressor<R>> for CompressorBuilder<R> {
     type Error = crate::Error;
-    fn try_into(self) -> crate::Result<BufReadCompressor<B>> {
-        BufReadCompressor::new(self.device, self.pref, self.dict)
+    fn try_into(self) -> crate::Result<BufReadCompressor<R>> {
+        BufReadCompressor::from_builder(self.device, self.pref, self.dict)
     }
 }

@@ -18,24 +18,56 @@ enum State {
 }
 
 /// AsyncBufRead-based streaming compressor
+///
+/// # Examples
+///
+/// ```
+/// # use std::env;
+/// # use std::path::Path;
+/// # use lzzzz::{Error, Result};
+/// # use assert_fs::prelude::*;
+/// # let tmp_dir = assert_fs::TempDir::new().unwrap().into_persistent();
+/// # env::set_current_dir(tmp_dir.path()).unwrap();
+/// #
+/// # tmp_dir.child("foo.txt").write_str("Hello").unwrap();
+/// #
+/// # let mut rt = tokio::runtime::Runtime::new().unwrap();
+/// # rt.block_on(async {
+/// use lzzzz::lz4f::comp::AsyncBufReadCompressor;
+/// use tokio::{fs::File, io::BufReader, prelude::*};
+///
+/// let mut f = File::open("foo.txt").await?;
+/// let mut b = BufReader::new(f);
+/// let mut r = AsyncBufReadCompressor::new(&mut b)?;
+///
+/// let mut buf = Vec::new();
+/// r.read_to_end(&mut buf).await?;
+/// # Ok::<(), tokio::io::Error>(())
+/// # }).unwrap();
+/// # tmp_dir.close().unwrap();
+/// ```
 #[cfg_attr(docsrs, doc(cfg(feature = "tokio-io")))]
 #[pin_project]
-pub struct AsyncBufReadCompressor<B: AsyncBufRead + Unpin> {
+pub struct AsyncBufReadCompressor<R: AsyncBufRead + Unpin> {
     #[pin]
-    device: B,
+    device: R,
     inner: Compressor,
     consumed: usize,
     state: State,
 }
 
-impl<B: AsyncBufRead + Unpin> AsyncBufReadCompressor<B> {
-    pub(crate) fn new(
-        bufreader: B,
+impl<R: AsyncBufRead + Unpin> AsyncBufReadCompressor<R> {
+    pub fn new(reader: R) -> crate::Result<Self> {
+        Self::from_builder(reader, Default::default(), None)
+    }
+
+    pub(crate) fn from_builder(
+        reader: R,
         pref: Preferences,
         dict: Option<Dictionary>,
     ) -> crate::Result<Self> {
         Ok(Self {
-            device: bufreader,
+            device: reader,
             inner: Compressor::new(pref, dict)?,
             consumed: 0,
             state: State::None,
@@ -85,7 +117,7 @@ impl<B: AsyncBufRead + Unpin> AsyncBufReadCompressor<B> {
     }
 }
 
-impl<B: AsyncBufRead + Unpin> AsyncRead for AsyncBufReadCompressor<B> {
+impl<R: AsyncBufRead + Unpin> AsyncRead for AsyncBufReadCompressor<R> {
     fn poll_read(
         mut self: Pin<&mut Self>,
         cx: &mut Context,
@@ -101,7 +133,7 @@ impl<B: AsyncBufRead + Unpin> AsyncRead for AsyncBufReadCompressor<B> {
     }
 }
 
-impl<B: AsyncBufRead + Unpin> AsyncBufRead for AsyncBufReadCompressor<B> {
+impl<R: AsyncBufRead + Unpin> AsyncBufRead for AsyncBufReadCompressor<R> {
     fn poll_fill_buf(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<Result<&[u8]>> {
         let result = match Pin::new(&mut *self).poll_read_impl(cx, &mut [], State::FillBuf) {
             Poll::Pending => return Poll::Pending,
@@ -123,10 +155,10 @@ impl<B: AsyncBufRead + Unpin> AsyncBufRead for AsyncBufReadCompressor<B> {
     }
 }
 
-impl<B: AsyncBufRead + Unpin> TryInto<AsyncBufReadCompressor<B>> for CompressorBuilder<B> {
+impl<R: AsyncBufRead + Unpin> TryInto<AsyncBufReadCompressor<R>> for CompressorBuilder<R> {
     type Error = crate::Error;
-    fn try_into(self) -> crate::Result<AsyncBufReadCompressor<B>> {
-        AsyncBufReadCompressor::new(self.device, self.pref, self.dict)
+    fn try_into(self) -> crate::Result<AsyncBufReadCompressor<R>> {
+        AsyncBufReadCompressor::from_builder(self.device, self.pref, self.dict)
     }
 }
 
