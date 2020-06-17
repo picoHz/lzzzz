@@ -1,7 +1,7 @@
 use lzzzz::{
     lz4f,
     lz4f::{
-        co::{BufReadCompressor, ReadCompressor, WriteCompressor},
+        comp::{BufReadCompressor, ReadCompressor, WriteCompressor},
         decompress_to_vec, CompressorBuilder,
     },
 };
