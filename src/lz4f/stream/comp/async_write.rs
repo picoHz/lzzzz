@@ -35,6 +35,7 @@ enum State {
 ///
 /// let mut f = File::create("foo.lz4").await?;
 /// let mut w: AsyncWriteCompressor<_> = CompressorBuilder::new(&mut f).build()?;
+/// 
 /// w.write_all(b"hello, world!").await?;
 /// # Ok::<(), tokio::io::Error>(())
 /// # }).unwrap();
