@@ -33,6 +33,7 @@ use crate::{
 use api::{CompressionContext, DecompressionContext};
 use std::borrow::Cow;
 
+/// Streaming compressor
 pub struct Compressor<'a> {
     ctx: CompressionContext,
     dict: Cow<'a, [u8]>,
@@ -139,6 +140,7 @@ impl<'a> Compressor<'a> {
     }
 }
 
+/// Streaming decompressor
 pub struct Decompressor<'a> {
     ctx: DecompressionContext,
     prev: Cow<'a, [u8]>,

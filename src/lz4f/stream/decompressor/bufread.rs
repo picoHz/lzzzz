@@ -9,6 +9,7 @@ use std::{
     io::{BufRead, Read, Result},
 };
 
+/// BufRead-based streaming decompressor
 pub struct BufReadDecompressor<'a, B: BufRead> {
     device: B,
     inner: Decompressor<'a>,

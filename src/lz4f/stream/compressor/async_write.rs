@@ -18,6 +18,7 @@ enum State {
     Shutdown,
 }
 
+/// AsyncWrite-based streaming compressor
 #[cfg_attr(docsrs, doc(cfg(feature = "tokio-io")))]
 #[pin_project]
 pub struct AsyncWriteCompressor<W: AsyncWrite + Unpin> {

@@ -34,6 +34,7 @@ impl Report {
     }
 }
 
+/// A specialized Result type for compression/decompression operations.
 pub type Result<T> = std::result::Result<T, Error>;
 
 /// Compression/Decompression error
@@ -49,6 +50,7 @@ pub enum Error {
     DictionaryChangedDuringDecompression,
 }
 
+/// Errors from liblz4
 #[derive(Debug)]
 pub enum LZ4Error {
     Generic,

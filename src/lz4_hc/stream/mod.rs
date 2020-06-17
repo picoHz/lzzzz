@@ -39,6 +39,7 @@ use crate::{
 use api::CompressionContext;
 use std::borrow::Cow;
 
+/// Streaming compressor
 pub struct Compressor<'a> {
     ctx: CompressionContext,
     compression_level: CompressionLevel,

@@ -5,6 +5,7 @@ use std::{
     io::{Read, Result, Write},
 };
 
+/// Write-based streaming decompressor
 pub struct WriteDecompressor<'a, W: Write> {
     device: W,
     inner: Decompressor<'a>,

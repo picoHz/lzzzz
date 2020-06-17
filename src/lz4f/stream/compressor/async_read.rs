@@ -10,6 +10,7 @@ use std::{
 };
 use tokio::io::{AsyncRead, BufReader, Result};
 
+/// AsyncRead-based streaming compressor
 #[cfg_attr(docsrs, doc(cfg(feature = "tokio-io")))]
 #[pin_project]
 pub struct AsyncReadCompressor<R: AsyncRead + Unpin> {

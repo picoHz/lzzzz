@@ -5,6 +5,7 @@ use std::{
     io::{BufRead, Read, Result},
 };
 
+/// BufRead-based streaming compressor
 pub struct BufReadCompressor<B: BufRead> {
     device: B,
     inner: Compressor,

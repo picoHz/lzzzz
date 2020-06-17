@@ -9,6 +9,7 @@ use crate::{
 };
 use std::convert::TryInto;
 
+/// A builder struct to create a streaming compressor
 pub struct CompressorBuilder<D> {
     device: D,
     pref: Preferences,
@@ -42,6 +43,7 @@ impl<D> CompressorBuilder<D> {
     }
 }
 
+/// A builder struct to create a streaming decompressor
 pub struct DecompressorBuilder<D> {
     device: D,
 }

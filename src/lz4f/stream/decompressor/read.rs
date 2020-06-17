@@ -6,6 +6,7 @@ use std::{
     io::{BufReader, Read, Result},
 };
 
+/// Read-based streaming decompressor
 pub struct ReadDecompressor<'a, R: Read> {
     inner: BufReadDecompressor<'a, BufReader<R>>,
 }

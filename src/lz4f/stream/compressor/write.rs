@@ -5,6 +5,7 @@ use std::{
     io::{Result, Write},
 };
 
+/// Write-based streaming compressor
 pub struct WriteCompressor<W: Write> {
     device: W,
     inner: Compressor,

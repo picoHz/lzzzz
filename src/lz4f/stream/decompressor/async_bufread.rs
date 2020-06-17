@@ -21,6 +21,7 @@ enum State {
     FillBuf,
 }
 
+/// AsyncBufRead-based streaming decompressor
 #[cfg_attr(docsrs, doc(cfg(feature = "tokio-io")))]
 #[pin_project]
 pub struct AsyncBufReadCompressor<'a, B: AsyncBufRead + Unpin> {

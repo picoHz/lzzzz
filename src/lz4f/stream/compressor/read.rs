@@ -5,6 +5,7 @@ use std::{
     io::{BufReader, Read, Result},
 };
 
+/// Read-based streaming compressor
 pub struct ReadCompressor<R: Read> {
     inner: BufReadCompressor<BufReader<R>>,
 }

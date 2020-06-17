@@ -12,6 +12,7 @@ use std::{
 };
 use tokio::io::{AsyncWrite, Result};
 
+/// AsyncWrite-based streaming decompressor
 #[cfg_attr(docsrs, doc(cfg(feature = "tokio-io")))]
 #[pin_project]
 pub struct AsyncWriteDecompressor<'a, W: AsyncWrite + Unpin> {

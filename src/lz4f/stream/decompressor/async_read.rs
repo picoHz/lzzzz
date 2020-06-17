@@ -14,6 +14,7 @@ use std::{
 };
 use tokio::io::{AsyncBufRead, AsyncRead, BufReader, Result};
 
+/// AsyncRead-based streaming decompressor
 #[cfg_attr(docsrs, doc(cfg(feature = "tokio-io")))]
 #[pin_project]
 pub struct AsyncReadCompressor<'a, R: AsyncBufRead + Unpin> {

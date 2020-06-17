@@ -2,7 +2,7 @@ use super::api::DictionaryHandle;
 use crate::Result;
 use std::sync::Arc;
 
-/// A pre-compiled dictionary for the efficient compression.
+/// A pre-compiled dictionary for the efficient compression
 ///
 /// **Cited from lz4frame.h:**
 ///
