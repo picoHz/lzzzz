@@ -25,10 +25,10 @@ pbr = "1.0.3"
 cc = "1.0.54"
 
 [features]
-default = ["lz4", "lz4_hc", "lz4f", "lz4-use-stack", "use-tls", "tokio-io"]
+default = ["lz4", "lz4-hc", "lz4f", "lz4-use-stack", "use-tls", "tokio-io"]
 
 lz4 = []
-lz4_hc = ["lz4"]
+lz4-hc = ["lz4"]
 lz4f = []
 
 tokio-io = ["tokio", "pin-project"]
