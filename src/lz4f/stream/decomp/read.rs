@@ -17,7 +17,9 @@ use std::{
 /// # let tmp_dir = assert_fs::TempDir::new().unwrap().into_persistent();
 /// # env::set_current_dir(tmp_dir.path()).unwrap();
 /// #
-/// # tmp_dir.child("foo.lz4").write_str("Hello").unwrap();
+/// # let mut buf = Vec::new();
+/// # lzzzz::lz4f::compress_to_vec(b"Hello world!", &mut buf, &Default::default())?;
+/// # tmp_dir.child("foo.lz4").write_binary(&buf).unwrap();
 /// #
 /// use lzzzz::lz4f::decomp::ReadDecompressor;
 /// use std::{fs::File, io::prelude::*};

@@ -116,7 +116,7 @@ impl<'a> Decompressor<'a> {
         let src = &src[header_consumed..];
         if let State::Body { comp_dict, .. } = self.state {
             if self.dict.as_ptr() != comp_dict {
-                return Err(Error::DictionaryChangedDuringDecompression.into());
+                return Err(Error::DictionaryChangedDuringDecompression);
             }
 
             let len = self.buffer.len();

@@ -21,6 +21,10 @@ use std::{
 /// # let tmp_dir = assert_fs::TempDir::new().unwrap().into_persistent();
 /// # env::set_current_dir(tmp_dir.path()).unwrap();
 /// #
+/// # let mut buf = Vec::new();
+/// # lzzzz::lz4f::compress_to_vec(b"Hello world!", &mut buf, &Default::default())?;
+/// # tmp_dir.child("foo.lz4").write_binary(&buf).unwrap();
+/// #
 /// use lzzzz::lz4f::decomp::BufReadDecompressor;
 /// use std::{
 ///     fs::File,
@@ -72,9 +76,10 @@ impl<R: BufRead> Read for BufReadDecompressor<'_, R> {
     fn read(&mut self, buf: &mut [u8]) -> Result<usize> {
         loop {
             let inner_buf = self.device.fill_buf()?;
+            let inner_buf_len = inner_buf.len();
             let report = self.inner.decompress(inner_buf)?;
             self.device.consume(report.src_len().unwrap());
-            if report.dst_len() > 0 {
+            if inner_buf_len == 0 || report.dst_len() > 0 {
                 break;
             }
         }
@@ -120,6 +125,7 @@ mod tests {
         decomp::{BufReadDecompressor, WriteDecompressor},
         decompress_to_vec, CompressorBuilder, DecompressorBuilder,
     };
+    use assert_fs::prelude::*;
     use std::{
         fs::File,
         io::{BufReader, Read, Write},
@@ -128,26 +134,16 @@ mod tests {
     #[test]
     fn read() -> std::io::Result<()> {
         {
-            let mut file = File::create("foo.lz4")?;
-            let mut file = CompressorBuilder::new(&mut file).build::<WriteCompressor<_>>()?;
-            file.write_all(b"hello")?;
-        }
-        let mut comp = vec![];
-        {
-            let mut file = BufReader::new(File::open("foo.lz4")?);
-            file.read_to_end(&mut comp)?;
-        }
-        {
             let mut buf = Vec::new();
-            let mut decomp = Vec::new();
-            compress_to_vec(b"Hello world!", &mut buf, &Default::default())?;
-            decompress_to_vec(&buf, &mut decomp)?;
-            let mut file = File::create("foo.lz4.dec")?;
-            let mut file = DecompressorBuilder::new(&mut file).build::<WriteDecompressor<_>>()?;
-            println!(">>> {:?}", &decomp);
-            println!(">>> {:?}", file.frame_info());
-            file.write_all(&buf)?;
-            //println!(">>> {:?}", file.frame_info());
+            crate::lz4f::compress_to_vec(b"Hello world!", &mut buf, &Default::default())?;
+            let tmp_dir = assert_fs::TempDir::new().unwrap().into_persistent();
+            tmp_dir.child("foo.lz4").write_binary(&buf).unwrap();
+            std::env::set_current_dir(tmp_dir.path()).unwrap();
+
+            let mut file = BufReader::new(File::open("foo.lz4")?);
+            let mut file = BufReadDecompressor::new(&mut file)?;
+            let mut buf = Vec::new();
+            file.read_to_end(&mut buf)?;
         }
         Ok(())
     }
