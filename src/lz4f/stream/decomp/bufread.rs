@@ -64,7 +64,9 @@ impl<'a, R: BufRead> BufReadDecompressor<'a, R> {
             if let Some(frame) = self.inner.frame_info() {
                 return Ok(frame);
             }
+            self.inner.decode_header_only(true);
             let _ = self.read(&mut [])?;
+            self.inner.decode_header_only(false);
         }
     }
 }
@@ -73,10 +75,10 @@ impl<R: BufRead> Read for BufReadDecompressor<'_, R> {
     fn read(&mut self, buf: &mut [u8]) -> Result<usize> {
         loop {
             let inner_buf = self.device.fill_buf()?;
-            let inner_buf_len = inner_buf.len();
-            let report = self.inner.decompress(inner_buf, false)?;
-            self.device.consume(report.src_len().unwrap());
-            if inner_buf_len == 0 || report.dst_len() > 0 {
+            let report = self.inner.decompress(inner_buf)?;
+            let consumed = report.src_len().unwrap();
+            self.device.consume(consumed);
+            if consumed == 0 || report.dst_len() > 0 {
                 break;
             }
         }
@@ -135,7 +137,9 @@ mod tests {
             let mut file = BufReader::new(File::open("foo.lz4")?);
             let mut file = BufReadDecompressor::new(&mut file)?;
             let mut buf = Vec::new();
+            println!("@@@ {:?} {:?}", buf, file.read_frame_info());
             file.read_to_end(&mut buf)?;
+            println!("@@@ {:?} {:?}", buf, file.read_frame_info());
         }
         Ok(())
     }

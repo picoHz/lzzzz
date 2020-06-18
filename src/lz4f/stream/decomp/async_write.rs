@@ -67,6 +67,10 @@ impl<'a, W: AsyncWrite + Unpin> AsyncWriteDecompressor<'a, W> {
     pub fn frame_info(&self) -> Option<FrameInfo> {
         self.inner.frame_info()
     }
+
+    pub fn decode_header_only(&mut self, flag: bool) {
+        self.inner.decode_header_only(flag);
+    }
 }
 
 impl<W: AsyncWrite + Unpin> AsyncWrite for AsyncWriteDecompressor<'_, W> {
@@ -76,7 +80,7 @@ impl<W: AsyncWrite + Unpin> AsyncWrite for AsyncWriteDecompressor<'_, W> {
         buf: &[u8],
     ) -> Poll<Result<usize>> {
         let mut me = Pin::new(&mut *self);
-        let report = me.inner.decompress(buf, false)?;
+        let report = me.inner.decompress(buf)?;
         let _ = me.poll_flush(cx)?;
         Poll::Ready(Ok(report.src_len().unwrap()))
     }

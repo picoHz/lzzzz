@@ -41,6 +41,7 @@ pub(crate) struct Decompressor<'a> {
     state: State,
     buffer: Vec<u8>,
     dict: Cow<'a, [u8]>,
+    header_only: bool,
 }
 
 impl<'a> Decompressor<'a> {
@@ -59,6 +60,7 @@ impl<'a> Decompressor<'a> {
             },
             buffer: Vec::new(),
             dict: Cow::Borrowed(&[]),
+            header_only: false,
         })
     }
 
@@ -74,7 +76,11 @@ impl<'a> Decompressor<'a> {
         }
     }
 
-    pub fn decompress(&mut self, src: &[u8], header_only: bool) -> Result<Report> {
+    pub fn decode_header_only(&mut self, flag: bool) {
+        self.header_only = flag;
+    }
+
+    pub fn decompress(&mut self, src: &[u8]) -> Result<Report> {
         let mut header_consumed = 0;
         if let State::Header {
             mut header,
@@ -97,9 +103,10 @@ impl<'a> Decompressor<'a> {
                     header_len += len;
                     header_consumed += len;
                 }
-                if header_len >= exact_header_len && !header_only {
+                if header_len >= exact_header_len {
                     let (frame, rep) = self.ctx.get_frame_info(&header[..header_len])?;
                     header_consumed = std::cmp::min(header_consumed, rep);
+
                     self.state = State::Body {
                         frame_info: frame,
                         comp_dict: self.dict.as_ptr(),
@@ -109,6 +116,13 @@ impl<'a> Decompressor<'a> {
             if src.is_empty() {
                 self.ctx.get_frame_info(&header[..header_len])?;
             }
+        }
+
+        if self.header_only {
+            return Ok(Report {
+                src_len: Some(header_consumed),
+                ..Default::default()
+            });
         }
 
         let src = &src[header_consumed..];

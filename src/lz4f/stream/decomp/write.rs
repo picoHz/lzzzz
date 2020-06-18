@@ -52,11 +52,15 @@ impl<'a, W: Write> WriteDecompressor<'a, W> {
     pub fn frame_info(&self) -> Option<FrameInfo> {
         self.inner.frame_info()
     }
+
+    pub fn decode_header_only(&mut self, flag: bool) {
+        self.inner.decode_header_only(flag);
+    }
 }
 
 impl<W: Write> Write for WriteDecompressor<'_, W> {
     fn write(&mut self, buf: &[u8]) -> Result<usize> {
-        let report = self.inner.decompress(buf, false)?;
+        let report = self.inner.decompress(buf)?;
         self.device.write_all(&self.inner.buf())?;
         self.inner.clear_buf();
         Ok(report.src_len.unwrap())
