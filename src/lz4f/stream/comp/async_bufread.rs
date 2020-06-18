@@ -74,46 +74,22 @@ impl<R: AsyncBufRead + Unpin> AsyncBufReadCompressor<R> {
         })
     }
 
-    fn poll_read_impl(
-        self: Pin<&mut Self>,
-        cx: &mut Context,
-        buf: &mut [u8],
-        state: State,
-    ) -> Poll<Result<usize>> {
+    fn fill_buf(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Result<()>> {
         let mut me = self.project();
-        match *me.state {
-            State::None => {
-                *me.state = state;
-            }
-            _ => {
-                if *me.state != state {
+        let inner_buf = match me.device.as_mut().poll_fill_buf(cx) {
+            Poll::Pending => {
+                if me.inner.buf().is_empty() {
                     return Poll::Pending;
+                } else {
+                    Ok(&[][..])
                 }
             }
-        }
-        let inner_buf = match me.device.as_mut().poll_fill_buf(cx) {
-            Poll::Pending => return Poll::Pending,
             Poll::Ready(r) => r,
         }?;
-        let consumed = if inner_buf.is_empty() {
-            me.inner.end(false)?;
-            if me.inner.buf().is_empty() {
-                return Poll::Ready(Ok(0));
-            }
-            0
-        } else {
-            me.inner.update(inner_buf, false)?;
-            inner_buf.len()
-        };
-        me.device.consume(consumed);
-        let len = std::cmp::min(buf.len(), me.inner.buf().len() - *me.consumed);
-        buf[..len].copy_from_slice(&me.inner.buf()[*me.consumed..][..len]);
-        *me.consumed += len;
-        if *me.consumed >= me.inner.buf().len() {
-            me.inner.clear_buf();
-            *me.consumed = 0;
-        }
-        Poll::Ready(Ok(len))
+        me.inner.update(inner_buf, false)?;
+        let len = inner_buf.len();
+        me.device.as_mut().consume(len);
+        Poll::Ready(Ok(()))
     }
 }
 
@@ -123,26 +99,30 @@ impl<R: AsyncBufRead + Unpin> AsyncRead for AsyncBufReadCompressor<R> {
         cx: &mut Context,
         buf: &mut [u8],
     ) -> Poll<Result<usize>> {
-        let result = match Pin::new(&mut *self).poll_read_impl(cx, buf, State::Read) {
-            Poll::Pending => return Poll::Pending,
-            Poll::Ready(r) => r,
-        };
-        let me = self.project();
-        *me.state = State::None;
-        Poll::Ready(result)
+        if let Poll::Pending = Pin::new(&mut *self).fill_buf(cx)? {
+            Poll::Pending
+        } else {
+            let me = self.project();
+            let len = std::cmp::min(buf.len(), me.inner.buf().len() - *me.consumed);
+            buf[..len].copy_from_slice(&me.inner.buf()[*me.consumed..][..len]);
+            *me.consumed += len;
+            if *me.consumed >= me.inner.buf().len() {
+                me.inner.clear_buf();
+                *me.consumed = 0;
+            }
+            Poll::Ready(Ok(len))
+        }
     }
 }
 
 impl<R: AsyncBufRead + Unpin> AsyncBufRead for AsyncBufReadCompressor<R> {
     fn poll_fill_buf(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<Result<&[u8]>> {
-        let result = match Pin::new(&mut *self).poll_read_impl(cx, &mut [], State::FillBuf) {
-            Poll::Pending => return Poll::Pending,
-            Poll::Ready(r) => r,
-        };
-        let me = self.project();
-        *me.state = State::None;
-        result?;
-        Poll::Ready(Ok(&me.inner.buf()[*me.consumed..]))
+        if let Poll::Pending = Pin::new(&mut *self).fill_buf(cx)? {
+            Poll::Pending
+        } else {
+            let me = self.project();
+            Poll::Ready(Ok(&me.inner.buf()[*me.consumed..]))
+        }
     }
 
     fn consume(self: Pin<&mut Self>, amt: usize) {
