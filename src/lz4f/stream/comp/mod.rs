@@ -7,7 +7,6 @@ mod read;
 mod write;
 
 use crate::Result;
-use std::convert::TryInto;
 
 pub use bufread::*;
 pub use read::*;

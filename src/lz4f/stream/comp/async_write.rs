@@ -104,7 +104,7 @@ impl<W: AsyncWrite + Unpin> TryInto<AsyncWriteCompressor<W>> for CompressorBuild
 #[cfg(test)]
 mod tests {
     use crate::lz4f::{comp::AsyncWriteCompressor, CompressorBuilder};
-    use tokio::{fs::File, prelude::*, runtime::Runtime};
+    use tokio::{fs::File, prelude::*};
 
     #[tokio::test]
     async fn async_write() -> std::io::Result<()> {
