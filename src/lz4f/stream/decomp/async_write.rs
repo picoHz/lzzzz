@@ -44,7 +44,7 @@ pub struct AsyncWriteDecompressor<'a, W: AsyncWrite + Unpin> {
     #[pin]
     device: W,
     inner: Decompressor<'a>,
-    len: usize,
+    consumed: usize,
 }
 
 impl<'a, W: AsyncWrite + Unpin> AsyncWriteDecompressor<'a, W> {
@@ -56,7 +56,7 @@ impl<'a, W: AsyncWrite + Unpin> AsyncWriteDecompressor<'a, W> {
         Ok(Self {
             device: writer,
             inner: Decompressor::new()?,
-            len: 0,
+            consumed: 0,
         })
     }
 
@@ -83,18 +83,22 @@ impl<W: AsyncWrite + Unpin> AsyncWrite for AsyncWriteDecompressor<'_, W> {
 
     fn poll_flush(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<()>> {
         let mut me = self.project();
-        if let Poll::Ready(len) = me
+        let poll = me
             .device
             .as_mut()
-            .poll_write(cx, &me.inner.buf()[..*me.len])?
-        {
-            *me.len += len;
-            if *me.len >= me.inner.buf().len() {
-                *me.len = 0;
+            .poll_write(cx, &me.inner.buf()[..*me.consumed])?;
+        if let Poll::Ready(len) = poll {
+            *me.consumed += len;
+            if *me.consumed >= me.inner.buf().len() {
+                *me.consumed = 0;
                 me.inner.clear_buf();
             }
         }
-        me.device.poll_flush(cx)
+        if me.inner.buf().is_empty() {
+            me.device.poll_flush(cx)
+        } else {
+            Poll::Pending
+        }
     }
 
     fn poll_shutdown(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<()>> {
