@@ -71,6 +71,18 @@ impl<'a, W: AsyncWrite + Unpin> AsyncWriteDecompressor<'a, W> {
     pub fn decode_header_only(&mut self, flag: bool) {
         self.inner.decode_header_only(flag);
     }
+
+    fn write_buffer(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<()>> {
+        let me = self.project();
+        if let Poll::Ready(len) = me.device.poll_write(cx, &me.inner.buf()[..*me.consumed])? {
+            *me.consumed += len;
+            if *me.consumed >= me.inner.buf().len() {
+                *me.consumed = 0;
+                me.inner.clear_buf();
+            }
+        }
+        Poll::Ready(Ok(()))
+    }
 }
 
 impl<W: AsyncWrite + Unpin> AsyncWrite for AsyncWriteDecompressor<'_, W> {
@@ -81,23 +93,13 @@ impl<W: AsyncWrite + Unpin> AsyncWrite for AsyncWriteDecompressor<'_, W> {
     ) -> Poll<Result<usize>> {
         let mut me = Pin::new(&mut *self);
         let report = me.inner.decompress(buf)?;
-        let _ = me.poll_flush(cx)?;
+        let _ = me.write_buffer(cx);
         Poll::Ready(Ok(report.src_len().unwrap()))
     }
 
-    fn poll_flush(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<()>> {
-        let mut me = self.project();
-        let poll = me
-            .device
-            .as_mut()
-            .poll_write(cx, &me.inner.buf()[..*me.consumed])?;
-        if let Poll::Ready(len) = poll {
-            *me.consumed += len;
-            if *me.consumed >= me.inner.buf().len() {
-                *me.consumed = 0;
-                me.inner.clear_buf();
-            }
-        }
+    fn poll_flush(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<()>> {
+        let _ = Pin::new(&mut *self).write_buffer(cx);
+        let me = self.project();
         if me.inner.buf().is_empty() {
             me.device.poll_flush(cx)
         } else {
