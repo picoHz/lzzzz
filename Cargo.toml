@@ -32,7 +32,7 @@ lz4 = []
 lz4-hc = ["lz4"]
 lz4f = []
 
-tokio-io = ["tokio", "pin-project"]
+tokio-io = ["tokio/io-util", "pin-project"]
 use-tls = []
 liblz4-experimental = []
 

@@ -10,13 +10,6 @@ use std::{
 };
 use tokio::io::{AsyncBufRead, AsyncRead, Result};
 
-#[derive(PartialEq)]
-enum State {
-    None,
-    Read,
-    FillBuf,
-}
-
 /// AsyncBufRead-based streaming compressor
 ///
 /// # Examples
@@ -53,7 +46,6 @@ pub struct AsyncBufReadCompressor<R: AsyncBufRead + Unpin> {
     device: R,
     inner: Compressor,
     consumed: usize,
-    state: State,
 }
 
 impl<R: AsyncBufRead + Unpin> AsyncBufReadCompressor<R> {
@@ -70,7 +62,6 @@ impl<R: AsyncBufRead + Unpin> AsyncBufReadCompressor<R> {
             device: reader,
             inner: Compressor::new(pref, dict)?,
             consumed: 0,
-            state: State::None,
         })
     }
 
@@ -139,20 +130,5 @@ impl<R: AsyncBufRead + Unpin> TryInto<AsyncBufReadCompressor<R>> for CompressorB
     type Error = crate::Error;
     fn try_into(self) -> crate::Result<AsyncBufReadCompressor<R>> {
         AsyncBufReadCompressor::from_builder(self.device, self.pref, self.dict)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::lz4f::{comp::AsyncBufReadCompressor, CompressorBuilder};
-    use tokio::{fs::File, io::BufReader, prelude::*};
-
-    #[tokio::test]
-    async fn async_read() -> std::io::Result<()> {
-        let mut file = BufReader::new(File::open("README.md").await?);
-        let mut file = CompressorBuilder::new(&mut file).build::<AsyncBufReadCompressor<_>>()?;
-        let mut contents = vec![];
-        file.read_to_end(&mut contents).await?;
-        Ok(())
     }
 }
