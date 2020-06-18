@@ -38,7 +38,7 @@ impl Compressor {
         })
     }
 
-    pub fn begin(&mut self) -> Result<()> {
+    fn begin(&mut self) -> Result<()> {
         if let State::Created = self.state {
             assert!(self.buffer.is_empty());
             self.state = State::Active;
