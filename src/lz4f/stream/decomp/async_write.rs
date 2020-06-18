@@ -81,7 +81,11 @@ impl<'a, W: AsyncWrite + Unpin> AsyncWriteDecompressor<'a, W> {
                 me.inner.clear_buf();
             }
         }
-        Poll::Ready(Ok(()))
+        if me.inner.buf().is_empty() {
+            Poll::Ready(Ok(()))
+        } else {
+            Poll::Pending
+        }
     }
 }
 
@@ -93,15 +97,13 @@ impl<W: AsyncWrite + Unpin> AsyncWrite for AsyncWriteDecompressor<'_, W> {
     ) -> Poll<Result<usize>> {
         let mut me = Pin::new(&mut *self);
         let report = me.inner.decompress(buf)?;
-        let _ = me.write_buffer(cx);
+        let _ = me.write_buffer(cx)?;
         Poll::Ready(Ok(report.src_len().unwrap()))
     }
 
     fn poll_flush(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<()>> {
-        let _ = Pin::new(&mut *self).write_buffer(cx);
-        let me = self.project();
-        if me.inner.buf().is_empty() {
-            me.device.poll_flush(cx)
+        if let Poll::Ready(_) = Pin::new(&mut *self).write_buffer(cx)? {
+            self.project().device.poll_flush(cx)
         } else {
             Poll::Pending
         }
