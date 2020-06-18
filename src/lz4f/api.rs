@@ -14,6 +14,7 @@ use crate::{
 
 use std::{mem::MaybeUninit, os::raw::c_void, ptr::NonNull};
 
+pub const LZ4F_MIN_SIZE_TO_KNOW_HEADER_LENGTH: usize = 5;
 pub const LZ4F_HEADER_SIZE_MAX: usize = 19;
 
 pub struct CompressionContext {
@@ -196,6 +197,10 @@ pub fn compress_bound(input_size: usize, prefs: &Preferences) -> usize {
     unsafe {
         binding::LZ4F_compressBound(input_size as usize, prefs as *const Preferences) as usize
     }
+}
+
+pub fn header_size(src: &[u8]) -> usize {
+    unsafe { binding::LZ4F_headerSize(src.as_ptr() as *const c_void, src.len()) as usize }
 }
 
 pub fn compress(src: &[u8], dst: &mut [u8], prefs: &Preferences) -> Result<Report> {

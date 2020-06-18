@@ -65,7 +65,7 @@ impl<'a, W: AsyncWrite + Unpin> AsyncWriteDecompressor<'a, W> {
     }
 
     pub fn frame_info(&self) -> Option<FrameInfo> {
-        self.inner.get_frame_info().ok()
+        self.inner.frame_info()
     }
 }
 

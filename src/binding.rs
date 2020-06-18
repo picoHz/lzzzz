@@ -253,6 +253,7 @@ extern "C" {
     ) -> usize;
     pub fn LZ4F_freeDecompressionContext(ctx: *mut LZ4FDecompressionCtx) -> usize;
     pub fn LZ4F_resetDecompressionContext(ctx: *mut LZ4FDecompressionCtx);
+    pub fn LZ4F_headerSize(src: *const c_void, src_size: usize) -> usize;
     pub fn LZ4F_getFrameInfo(
         ctx: *mut LZ4FDecompressionCtx,
         frame_info_ptr: *mut FrameInfo,

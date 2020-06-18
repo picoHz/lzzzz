@@ -50,7 +50,7 @@ impl<'a, W: Write> WriteDecompressor<'a, W> {
     }
 
     pub fn frame_info(&self) -> Option<FrameInfo> {
-        self.inner.get_frame_info().ok()
+        self.inner.frame_info()
     }
 }
 

@@ -15,29 +15,52 @@ pub use {async_bufread::*, async_read::*, async_write::*};
 
 use crate::{
     lz4f::{
-        api::{DecompressionContext, LZ4F_HEADER_SIZE_MAX},
+        api::{
+            header_size, DecompressionContext, LZ4F_HEADER_SIZE_MAX,
+            LZ4F_MIN_SIZE_TO_KNOW_HEADER_LENGTH,
+        },
         FrameInfo,
     },
-    Error, Report, Result,
+    Error, LZ4Error, Report, Result,
 };
 use std::borrow::Cow;
+use std::mem;
+use std::mem::MaybeUninit;
+
+enum State {
+    Header {
+        header: [u8; LZ4F_HEADER_SIZE_MAX],
+        header_len: usize,
+    },
+    Body {
+        frame_info: FrameInfo,
+        comp_dict: *const u8,
+    },
+}
 
 pub(crate) struct Decompressor<'a> {
     ctx: DecompressionContext,
-    header: [u8; LZ4F_HEADER_SIZE_MAX + 1],
+    state: State,
     buffer: Vec<u8>,
     dict: Cow<'a, [u8]>,
-    comp_dict: Option<*const u8>,
 }
 
 impl<'a> Decompressor<'a> {
     pub fn new() -> Result<Self> {
+        #[allow(unsafe_code)]
         Ok(Self {
             ctx: DecompressionContext::new()?,
-            header: [0; LZ4F_HEADER_SIZE_MAX + 1],
+            state: State::Header {
+                header: unsafe {
+                    mem::transmute(
+                        MaybeUninit::<[MaybeUninit<u8>; LZ4F_HEADER_SIZE_MAX]>::uninit()
+                            .assume_init(),
+                    )
+                },
+                header_len: 0,
+            },
             buffer: Vec::new(),
             dict: Cow::Borrowed(&[]),
-            comp_dict: None,
         })
     }
 
@@ -45,41 +68,78 @@ impl<'a> Decompressor<'a> {
         self.dict = dict;
     }
 
-    pub fn get_frame_info(&self) -> Result<FrameInfo> {
-        let header_len = self.header[0] as usize;
-        let (frame, _) = self.ctx.get_frame_info(&self.header[1..][..header_len])?;
-        Ok(frame)
+    pub fn frame_info(&self) -> Option<FrameInfo> {
+        if let State::Body { frame_info, .. } = self.state {
+            Some(frame_info)
+        } else {
+            None
+        }
     }
 
     pub fn decompress(&mut self, src: &[u8]) -> Result<Report> {
-        let header_len = self.header[0] as usize;
-        if header_len < LZ4F_HEADER_SIZE_MAX {
-            let len = std::cmp::min(LZ4F_HEADER_SIZE_MAX - header_len, src.len());
-            (&mut self.header[1..][..len]).copy_from_slice(&src[..len]);
-            self.header[0] += len as u8;
+        let mut header_consumed = 0;
+        if let State::Header {
+            mut header,
+            mut header_len,
+        } = &mut self.state
+        {
+            if header_len < LZ4F_MIN_SIZE_TO_KNOW_HEADER_LENGTH {
+                let len =
+                    std::cmp::min(LZ4F_MIN_SIZE_TO_KNOW_HEADER_LENGTH - header_len, src.len());
+                (&mut header[header_len..header_len + len]).copy_from_slice(&src[..len]);
+                header_len += len;
+                header_consumed += len;
+            }
+            if header_len >= LZ4F_MIN_SIZE_TO_KNOW_HEADER_LENGTH {
+                let src = &src[header_consumed..];
+                let exact_header_len = header_size(&header[..header_len]);
+                if header_len < exact_header_len {
+                    let len = std::cmp::min(exact_header_len - header_len, src.len());
+                    (&mut header[header_len..header_len + len]).copy_from_slice(&src[..len]);
+                    header_len += len;
+                    header_consumed += len;
+                }
+                if header_len >= exact_header_len {
+                    let (frame, rep) = self.ctx.get_frame_info(&header[..header_len])?;
+                    header_consumed = std::cmp::min(header_consumed, rep);
+                    self.state = State::Body {
+                        frame_info: frame,
+                        comp_dict: self.dict.as_ptr(),
+                    }
+                }
+            }
+            if src.is_empty() {
+                self.ctx.get_frame_info(&header[..header_len])?;
+            }
         }
 
-        let dict_ptr = if self.dict.is_empty() {
-            self.dict.as_ptr()
+        let src = &src[header_consumed..];
+        if let State::Body { comp_dict, .. } = self.state {
+            if self.dict.as_ptr() != comp_dict {
+                return Err(Error::DictionaryChangedDuringDecompression.into());
+            }
+
+            let len = self.buffer.len();
+            self.buffer.reserve(1024);
+            #[allow(unsafe_code)]
+            unsafe {
+                self.buffer.set_len(self.buffer.capacity());
+            }
+            let report =
+                self.ctx
+                    .decompress_dict(src, &mut self.buffer[len..], &self.dict, false)?;
+            self.buffer
+                .resize_with(len + report.dst_len(), Default::default);
+            Ok(Report {
+                src_len: report.src_len.map(|len| len + header_consumed),
+                ..report
+            })
         } else {
-            std::ptr::null()
-        };
-        if self.dict.as_ptr() != *self.comp_dict.get_or_insert(dict_ptr) {
-            return Err(Error::DictionaryChangedDuringDecompression.into());
+            Ok(Report {
+                src_len: Some(header_consumed),
+                ..Default::default()
+            })
         }
-
-        let len = self.buffer.len();
-        self.buffer.reserve(1024);
-        #[allow(unsafe_code)]
-        unsafe {
-            self.buffer.set_len(self.buffer.capacity());
-        }
-        let report = self
-            .ctx
-            .decompress_dict(src, &mut self.buffer[len..], &self.dict, false)?;
-        self.buffer
-            .resize_with(len + report.dst_len(), Default::default);
-        Ok(report)
     }
 
     pub fn buf(&self) -> &[u8] {

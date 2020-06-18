@@ -1,7 +1,7 @@
 use super::Decompressor;
 use crate::{
-    common::LZ4Error,
     lz4f::{DecompressorBuilder, FrameInfo},
+    Error, LZ4Error,
 };
 use std::{
     borrow::Cow,
@@ -20,8 +20,6 @@ use std::{
 /// # use assert_fs::prelude::*;
 /// # let tmp_dir = assert_fs::TempDir::new().unwrap().into_persistent();
 /// # env::set_current_dir(tmp_dir.path()).unwrap();
-/// #
-/// # tmp_dir.child("foo.lz4").write_str("Hello").unwrap();
 /// #
 /// use lzzzz::lz4f::decomp::BufReadDecompressor;
 /// use std::{
@@ -62,15 +60,10 @@ impl<'a, R: BufRead> BufReadDecompressor<'a, R> {
 
     pub fn read_frame_info(&mut self) -> Result<FrameInfo> {
         loop {
-            let info = self.inner.get_frame_info();
-            if let Err(crate::Error::LZ4Error(LZ4Error::FrameHeaderIncomplete)) = info {
-                let len = self.inner.buf().len();
-                let _ = self.read(&mut [])?;
-                if self.inner.buf().len() > len {
-                    continue;
-                }
+            if let Some(frame) = self.inner.frame_info() {
+                return Ok(frame);
             }
-            return Ok(info?);
+            let _ = self.read(&mut [])?;
         }
     }
 }
@@ -79,9 +72,6 @@ impl<R: BufRead> Read for BufReadDecompressor<'_, R> {
     fn read(&mut self, buf: &mut [u8]) -> Result<usize> {
         loop {
             let inner_buf = self.device.fill_buf()?;
-            if inner_buf.is_empty() {
-                break;
-            }
             let report = self.inner.decompress(inner_buf)?;
             self.device.consume(report.src_len().unwrap());
             if report.dst_len() > 0 {
@@ -126,8 +116,9 @@ impl<'a, R: BufRead> TryInto<BufReadDecompressor<'a, R>> for DecompressorBuilder
 mod tests {
     use crate::lz4f::{
         comp::WriteCompressor,
+        compress_to_vec,
         decomp::{BufReadDecompressor, WriteDecompressor},
-        CompressorBuilder, DecompressorBuilder,
+        decompress_to_vec, CompressorBuilder, DecompressorBuilder,
     };
     use std::{
         fs::File,
@@ -147,11 +138,16 @@ mod tests {
             file.read_to_end(&mut comp)?;
         }
         {
+            let mut buf = Vec::new();
+            let mut decomp = Vec::new();
+            compress_to_vec(b"Hello world!", &mut buf, &Default::default())?;
+            decompress_to_vec(&buf, &mut decomp)?;
             let mut file = File::create("foo.lz4.dec")?;
             let mut file = DecompressorBuilder::new(&mut file).build::<WriteDecompressor<_>>()?;
-            println!("{:?}", file.frame_info());
-            file.write_all(&comp)?;
-            println!("{:?}", file.frame_info());
+            println!(">>> {:?}", &decomp);
+            println!(">>> {:?}", file.frame_info());
+            file.write_all(&buf)?;
+            //println!(">>> {:?}", file.frame_info());
         }
         Ok(())
     }
