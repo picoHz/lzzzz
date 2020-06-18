@@ -1,3 +1,0 @@
-[submodule "vendor/liblz4"]
-	path = vendor/liblz4
-	url = https://github.com/lz4/lz4.git
