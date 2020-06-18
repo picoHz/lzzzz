@@ -21,7 +21,7 @@ use crate::{
         },
         FrameInfo,
     },
-    Error, LZ4Error, Report, Result,
+    Error, Report, Result,
 };
 use std::borrow::Cow;
 use std::mem;

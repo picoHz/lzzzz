@@ -1,8 +1,5 @@
 use super::Decompressor;
-use crate::{
-    lz4f::{DecompressorBuilder, FrameInfo},
-    Error, LZ4Error,
-};
+use crate::lz4f::{DecompressorBuilder, FrameInfo};
 use std::{
     borrow::Cow,
     convert::TryInto,
@@ -119,16 +116,11 @@ impl<'a, R: BufRead> TryInto<BufReadDecompressor<'a, R>> for DecompressorBuilder
 
 #[cfg(test)]
 mod tests {
-    use crate::lz4f::{
-        comp::WriteCompressor,
-        compress_to_vec,
-        decomp::{BufReadDecompressor, WriteDecompressor},
-        decompress_to_vec, CompressorBuilder, DecompressorBuilder,
-    };
+    use crate::lz4f::decomp::BufReadDecompressor;
     use assert_fs::prelude::*;
     use std::{
         fs::File,
-        io::{BufReader, Read, Write},
+        io::{BufReader, Read},
     };
 
     #[test]
