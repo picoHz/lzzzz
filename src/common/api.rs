@@ -1,7 +1,7 @@
 #![allow(unsafe_code)]
 
+use super::binding;
 use super::Result;
-use crate::binding;
 use std::ffi::CStr;
 
 /// Returns the version number of liblz4.

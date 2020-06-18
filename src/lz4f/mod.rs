@@ -2,6 +2,7 @@
 //! LZ4 Frame Compressor/Decompressor
 
 mod api;
+mod binding;
 mod dictionary;
 mod frame;
 mod frame_info;

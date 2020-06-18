@@ -1,6 +1,7 @@
 #![allow(unsafe_code)]
 
-use crate::{binding, binding::LZ4StreamHC, Error, Report, Result};
+use super::super::{binding, binding::LZ4StreamHC};
+use crate::{Error, Report, Result};
 
 use std::{
     os::raw::{c_char, c_int},

@@ -1,12 +1,14 @@
 #![allow(unsafe_code)]
 
 use super::Dictionary;
-use crate::{
+use super::{
     binding,
     binding::{
         LZ4FCompressionCtx, LZ4FCompressionDict, LZ4FCompressionOptions, LZ4FDecompressionCtx,
         LZ4FDecompressionOptions,
     },
+};
+use crate::{
     common,
     lz4f::{FrameInfo, Preferences},
     Error, Report, Result,

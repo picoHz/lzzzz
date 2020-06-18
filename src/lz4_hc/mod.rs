@@ -6,6 +6,7 @@
 //!
 //! [`lz4`]: ../lz4/index.html
 
+mod binding;
 mod block;
 mod stream;
 

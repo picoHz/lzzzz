@@ -1,6 +1,7 @@
 #![allow(unsafe_code)]
 
-use crate::{binding, common, Report, Result};
+use super::super::binding;
+use crate::{common, Report, Result};
 
 use std::{
     cell::RefCell,

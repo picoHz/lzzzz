@@ -28,7 +28,6 @@
 #![deny(unsafe_code)]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
-mod binding;
 mod common;
 
 pub mod lz4;

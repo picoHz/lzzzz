@@ -1,10 +1,10 @@
 #![allow(unsafe_code)]
 
-use crate::{
+use super::super::{
     binding,
     binding::{LZ4DecStream, LZ4Stream},
-    Error, Result,
 };
+use crate::{Error, Result};
 
 use std::{
     mem::{size_of, MaybeUninit},
