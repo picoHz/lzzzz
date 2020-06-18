@@ -1,7 +1,6 @@
 #![allow(unsafe_code)]
 
 use super::binding;
-use super::Result;
 use std::ffi::CStr;
 
 /// Returns the version number of liblz4.
@@ -27,13 +26,5 @@ pub fn version_string() -> &'static str {
         CStr::from_ptr(binding::LZ4_versionString())
             .to_str()
             .unwrap()
-    }
-}
-
-pub fn result_from_code(code: usize) -> Result<()> {
-    if unsafe { binding::LZ4F_isError(code) } == 0 {
-        Ok(())
-    } else {
-        Err(code.into())
     }
 }

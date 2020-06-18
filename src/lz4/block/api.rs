@@ -1,7 +1,7 @@
 #![allow(unsafe_code)]
 
 use super::super::binding;
-use crate::{common, Report, Result};
+use crate::{Error, LZ4Error, Report, Result};
 
 use std::{
     cell::RefCell,
@@ -62,38 +62,46 @@ pub fn compress_fast_ext_state_fast_reset(
 }
 
 pub fn decompress_safe(src: &[u8], dst: &mut [u8]) -> Result<Report> {
-    let code = unsafe {
+    let result = unsafe {
         binding::LZ4_decompress_safe(
             src.as_ptr() as *const c_char,
             dst.as_mut_ptr() as *mut c_char,
             src.len() as c_int,
             dst.len() as c_int,
-        ) as usize
+        ) as i32
     };
-    common::result_from_code(code).map(|_| Report {
-        dst_len: code,
-        ..Default::default()
-    })
+    if result < 0 {
+        Err(Error::LZ4Error(LZ4Error::Generic))
+    } else {
+        Ok(Report {
+            dst_len: result as usize,
+            ..Default::default()
+        })
+    }
 }
 
 pub fn decompress_safe_partial(src: &[u8], dst: &mut [u8], original_size: usize) -> Result<Report> {
-    let code = unsafe {
+    let result = unsafe {
         binding::LZ4_decompress_safe_partial(
             src.as_ptr() as *const c_char,
             dst.as_mut_ptr() as *mut c_char,
             src.len() as c_int,
             original_size as c_int,
             dst.len() as c_int,
-        ) as usize
+        ) as i32
     };
-    common::result_from_code(code).map(|_| Report {
-        dst_len: code,
-        ..Default::default()
-    })
+    if result < 0 {
+        Err(Error::LZ4Error(LZ4Error::Generic))
+    } else {
+        Ok(Report {
+            dst_len: result as usize,
+            ..Default::default()
+        })
+    }
 }
 
 pub fn decompress_safe_using_dict(src: &[u8], dst: &mut [u8], dict: &[u8]) -> Result<Report> {
-    let code = unsafe {
+    let result = unsafe {
         binding::LZ4_decompress_safe_usingDict(
             src.as_ptr() as *const c_char,
             dst.as_mut_ptr() as *mut c_char,
@@ -101,12 +109,16 @@ pub fn decompress_safe_using_dict(src: &[u8], dst: &mut [u8], dict: &[u8]) -> Re
             dst.len() as c_int,
             dict.as_ptr() as *const c_char,
             dict.len() as c_int,
-        ) as usize
+        ) as i32
     };
-    common::result_from_code(code).map(|_| Report {
-        dst_len: code,
-        ..Default::default()
-    })
+    if result < 0 {
+        Err(Error::LZ4Error(LZ4Error::Generic))
+    } else {
+        Ok(Report {
+            dst_len: result as usize,
+            ..Default::default()
+        })
+    }
 }
 
 #[derive(Clone)]

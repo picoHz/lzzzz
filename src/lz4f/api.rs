@@ -9,7 +9,6 @@ use super::{
     },
 };
 use crate::{
-    common,
     lz4f::{FrameInfo, Preferences},
     Error, Report, Result,
 };
@@ -32,7 +31,7 @@ impl CompressionContext {
                 ctx.as_ptr() as *mut *mut binding::LZ4FCompressionCtx,
                 binding::LZ4F_getVersion(),
             );
-            common::result_from_code(code).and_then(|_| {
+            result_from_code(code).and_then(|_| {
                 Ok(Self {
                     ctx: NonNull::new(ctx.assume_init()).ok_or(Error::NullPointerUnexpected)?,
                     dict,
@@ -60,7 +59,7 @@ impl CompressionContext {
                 )
             }
         } as usize;
-        common::result_from_code(code).map(|_| code)
+        result_from_code(code).map(|_| code)
     }
 
     pub fn update(&mut self, dst: &mut [u8], src: &[u8], stable_src: bool) -> Result<usize> {
@@ -75,7 +74,7 @@ impl CompressionContext {
                 &opt as *const LZ4FCompressionOptions,
             )
         } as usize;
-        common::result_from_code(code).map(|_| code)
+        result_from_code(code).map(|_| code)
     }
 
     pub fn flush(&mut self, dst: &mut [u8], stable_src: bool) -> Result<usize> {
@@ -88,7 +87,7 @@ impl CompressionContext {
                 &opt as *const LZ4FCompressionOptions,
             )
         } as usize;
-        common::result_from_code(code).map(|_| code)
+        result_from_code(code).map(|_| code)
     }
 
     pub fn end(&mut self, dst: &mut [u8], stable_src: bool) -> Result<usize> {
@@ -101,7 +100,7 @@ impl CompressionContext {
                 &opt as *const LZ4FCompressionOptions,
             )
         } as usize;
-        common::result_from_code(code).map(|_| code)
+        result_from_code(code).map(|_| code)
     }
 
     pub fn compress_bound(src_size: usize, prefs: &Preferences) -> usize {
@@ -129,7 +128,7 @@ impl DecompressionContext {
                 ctx.as_ptr() as *mut *mut binding::LZ4FDecompressionCtx,
                 binding::LZ4F_getVersion(),
             );
-            common::result_from_code(code).and_then(|_| {
+            result_from_code(code).and_then(|_| {
                 Ok(Self {
                     ctx: NonNull::new(ctx.assume_init()).ok_or(Error::NullPointerUnexpected)?,
                 })
@@ -148,7 +147,7 @@ impl DecompressionContext {
                 &mut src_len as *mut usize,
             )
         };
-        common::result_from_code(code).map(|_| (unsafe { info.assume_init() }, src_len as usize))
+        result_from_code(code).map(|_| (unsafe { info.assume_init() }, src_len as usize))
     }
 
     pub fn decompress_dict(
@@ -173,7 +172,7 @@ impl DecompressionContext {
                 &opt as *const LZ4FDecompressionOptions,
             )
         };
-        common::result_from_code(code).map(|_| Report {
+        result_from_code(code).map(|_| Report {
             src_len: Some(src_len as usize),
             dst_len: dst_len as usize,
             expected_src_len: Some(code as usize),
@@ -215,10 +214,18 @@ pub fn compress(src: &[u8], dst: &mut [u8], prefs: &Preferences) -> Result<Repor
             prefs as *const Preferences,
         ) as usize
     };
-    common::result_from_code(code).map(|_| Report {
+    result_from_code(code).map(|_| Report {
         dst_len: code,
         ..Default::default()
     })
+}
+
+fn result_from_code(code: usize) -> Result<()> {
+    if unsafe { binding::LZ4F_isError(code) } == 0 {
+        Ok(())
+    } else {
+        Err(code.into())
+    }
 }
 
 pub struct DictionaryHandle(NonNull<LZ4FCompressionDict>);

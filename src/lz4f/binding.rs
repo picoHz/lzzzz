@@ -53,6 +53,7 @@ impl LZ4FDecompressionOptions {
 
 extern "C" {
     pub fn LZ4F_getVersion() -> c_uint;
+    pub fn LZ4F_isError(code: size_t) -> c_uint;
     pub fn LZ4F_compressBound(src_size: size_t, prefs: *const Preferences) -> size_t;
     pub fn LZ4F_compressFrame(
         dst_buffer: *mut c_void,
