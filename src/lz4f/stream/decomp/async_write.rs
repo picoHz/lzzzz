@@ -76,7 +76,7 @@ impl<W: AsyncWrite + Unpin> AsyncWrite for AsyncWriteDecompressor<'_, W> {
         buf: &[u8],
     ) -> Poll<Result<usize>> {
         let mut me = Pin::new(&mut *self);
-        let report = { me.inner.decompress(buf)? };
+        let report = me.inner.decompress(buf, false)?;
         let _ = me.poll_flush(cx)?;
         Poll::Ready(Ok(report.src_len().unwrap()))
     }

@@ -23,9 +23,7 @@ use crate::{
     },
     Error, Report, Result,
 };
-use std::borrow::Cow;
-use std::mem;
-use std::mem::MaybeUninit;
+use std::{borrow::Cow, mem, mem::MaybeUninit};
 
 enum State {
     Header {
@@ -76,7 +74,7 @@ impl<'a> Decompressor<'a> {
         }
     }
 
-    pub fn decompress(&mut self, src: &[u8]) -> Result<Report> {
+    pub fn decompress(&mut self, src: &[u8], header_only: bool) -> Result<Report> {
         let mut header_consumed = 0;
         if let State::Header {
             mut header,
@@ -99,7 +97,7 @@ impl<'a> Decompressor<'a> {
                     header_len += len;
                     header_consumed += len;
                 }
-                if header_len >= exact_header_len {
+                if header_len >= exact_header_len && !header_only {
                     let (frame, rep) = self.ctx.get_frame_info(&header[..header_len])?;
                     header_consumed = std::cmp::min(header_consumed, rep);
                     self.state = State::Body {

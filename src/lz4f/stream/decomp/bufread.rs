@@ -74,7 +74,7 @@ impl<R: BufRead> Read for BufReadDecompressor<'_, R> {
         loop {
             let inner_buf = self.device.fill_buf()?;
             let inner_buf_len = inner_buf.len();
-            let report = self.inner.decompress(inner_buf)?;
+            let report = self.inner.decompress(inner_buf, false)?;
             self.device.consume(report.src_len().unwrap());
             if inner_buf_len == 0 || report.dst_len() > 0 {
                 break;
