@@ -5,8 +5,8 @@ use crate::{lz4f::Preferences, Error, Report, Result};
 use std::cell::RefCell;
 
 /// Calculate the maximum size of the compressed data from the original size.
-pub fn max_compressed_size(uncompressed_size: usize, prefs: &Preferences) -> usize {
-    api::compress_bound(uncompressed_size, prefs)
+pub fn max_compressed_size(original_size: usize, prefs: &Preferences) -> usize {
+    api::compress_bound(original_size, prefs)
 }
 
 /// Read data from a slice and write compressed data into another slice.

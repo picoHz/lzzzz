@@ -25,9 +25,9 @@ impl Default for CompressionMode {
 
 /// Calculate the maximum size of the compressed data from the original size.
 ///
-/// If `uncompressed_size` is too large to compress, this function returns `0`.
-pub const fn max_compressed_size(uncompressed_size: usize) -> usize {
-    api::compress_bound(uncompressed_size)
+/// If `original_size` is too large to compress, this function returns `0`.
+pub const fn max_compressed_size(original_size: usize) -> usize {
+    api::compress_bound(original_size)
 }
 
 /// Read data from a slice and write compressed data into another slice.
@@ -180,7 +180,7 @@ pub enum DecompressionMode<'a> {
     /// The destination slice can have smaller size of the uncompressed data.
     Partial {
         /// The value must be the exact size of the uncompressed data.
-        uncompressed_size: usize,
+        original_size: usize,
     },
     Dictionary {
         data: Buffer<'a>,
@@ -237,7 +237,7 @@ impl<'a> Default for DecompressionMode<'a> {
 ///     &data[..],
 ///     &mut buf[..],
 ///     lz4::DecompressionMode::Partial {
-///         uncompressed_size: ORIGINAL_SIZE,
+///         original_size: ORIGINAL_SIZE,
 ///     },
 /// );
 ///
@@ -246,8 +246,8 @@ impl<'a> Default for DecompressionMode<'a> {
 pub fn decompress(src: &[u8], dst: &mut [u8], mode: DecompressionMode) -> Result<Report> {
     match mode {
         DecompressionMode::Default => api::decompress_safe(src, dst),
-        DecompressionMode::Partial { uncompressed_size } => {
-            api::decompress_safe_partial(src, dst, uncompressed_size)
+        DecompressionMode::Partial { original_size } => {
+            api::decompress_safe_partial(src, dst, original_size)
         }
         DecompressionMode::Dictionary { data } => api::decompress_safe_using_dict(src, dst, &data),
     }

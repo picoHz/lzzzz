@@ -179,27 +179,27 @@ impl<'a> Decompressor<'a> {
         Ok(())
     }
 
-    pub fn next(&mut self, src: &[u8], dst_len: usize) -> Result<Report> {
+    pub fn next(&mut self, src: &[u8], original_size: usize) -> Result<&[u8]> {
         if self
             .cache
             .back()
             .map(|v| v.capacity() - v.len())
             .unwrap_or(0)
-            < dst_len
+            < original_size
         {
             self.cache
-                .push_back(Vec::with_capacity(cmp::max(dst_len, 8000)));
+                .push_back(Vec::with_capacity(cmp::max(original_size, 8000)));
         }
 
         let back = self.cache.back_mut().unwrap();
         let len = back.len();
         #[allow(unsafe_code)]
         unsafe {
-            back.set_len(len + dst_len);
+            back.set_len(len + original_size);
         }
 
         let report = self.ctx.decompress(src, &mut back[len..])?;
-        self.last_len = dst_len;
+        self.last_len = original_size;
 
         self.cache_len += report.dst_len();
         let front_len = self.cache.front().map(Vec::len).unwrap_or(0);
@@ -207,10 +207,10 @@ impl<'a> Decompressor<'a> {
             self.cache.pop_front();
             self.cache_len -= front_len;
         }
-        Ok(report)
+        Ok(self.data())
     }
 
-    pub fn data(&self) -> &[u8] {
+    fn data(&self) -> &[u8] {
         if let Some(back) = self.cache.back() {
             let offset = back.len() - self.last_len;
             &back[offset..]
