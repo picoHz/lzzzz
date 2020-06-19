@@ -1,5 +1,5 @@
 #![cfg(feature = "lz4")]
-//! LZ4 Compressor/Decompressor
+//! Extremely fast compression algorithm
 
 mod binding;
 mod block;

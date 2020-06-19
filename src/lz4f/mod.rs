@@ -1,5 +1,5 @@
 #![cfg(feature = "lz4f")]
-//! LZ4 Frame Compressor/Decompressor
+//! LZ4 frame format
 
 mod api;
 mod binding;
