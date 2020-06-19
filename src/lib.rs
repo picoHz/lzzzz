@@ -26,6 +26,7 @@
 //! [`AsyncWrite`]: https://docs.rs/tokio/latest/tokio/io/trait.AsyncWrite.html
 
 #![deny(unsafe_code)]
+#![deny(clippy::all)]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
 mod common;
