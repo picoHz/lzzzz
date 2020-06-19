@@ -9,8 +9,8 @@ use std::{
     os::raw::{c_char, c_int, c_void},
 };
 
-pub fn size_of_state() -> usize {
-    unsafe { binding::LZ4_sizeofStateHC() as usize }
+pub const fn size_of_state() -> usize {
+    binding::LZ4_STREAMHCSIZE
 }
 
 pub fn compress_ext_state(

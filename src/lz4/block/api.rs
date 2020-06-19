@@ -9,12 +9,14 @@ use std::{
     os::raw::{c_char, c_int, c_void},
 };
 
-pub fn compress_bound(input_size: usize) -> usize {
-    unsafe { binding::LZ4_compressBound(input_size as c_int) as usize }
+const LZ4_MAX_INPUT_SIZE: usize = 0x7E000000;
+
+pub const fn compress_bound(input_size: usize) -> usize {
+    (input_size <= LZ4_MAX_INPUT_SIZE) as usize * (input_size + (input_size / 255) + 16)
 }
 
-pub fn size_of_state() -> usize {
-    unsafe { binding::LZ4_sizeofState() as usize }
+pub const fn size_of_state() -> usize {
+    binding::LZ4_STREAMSIZE
 }
 
 pub fn compress_fast_ext_state(

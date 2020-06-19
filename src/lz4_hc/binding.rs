@@ -1,5 +1,11 @@
 use std::os::raw::{c_char, c_int, c_void};
 
+const LZ4HC_HASH_LOG: usize = 15;
+const LZ4HC_HASHTABLESIZE: usize = 1 << LZ4HC_HASH_LOG;
+const LZ4HC_DICTIONARY_LOGSIZE: usize = 16;
+const LZ4HC_MAXD: usize = 1 << LZ4HC_DICTIONARY_LOGSIZE;
+pub const LZ4_STREAMHCSIZE: usize = 4 * LZ4HC_HASHTABLESIZE + 2 * LZ4HC_MAXD + 56;
+
 #[repr(C)]
 pub struct LZ4StreamHC {
     _private: [u8; 0],

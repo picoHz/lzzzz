@@ -1,7 +1,11 @@
-use std::os::raw::{c_char, c_int, c_void};
+use std::{
+    mem,
+    os::raw::{c_char, c_int, c_void},
+};
 
 const LZ4_MEMORY_USAGE: usize = 14;
 const LZ4_STREAMSIZE_U64: usize = (1 << (LZ4_MEMORY_USAGE - 3)) + 4;
+pub const LZ4_STREAMSIZE: usize = LZ4_STREAMSIZE_U64 * mem::size_of::<u64>();
 
 #[repr(C)]
 pub struct LZ4Stream {
@@ -14,8 +18,6 @@ pub struct LZ4DecStream {
 }
 
 extern "C" {
-    pub fn LZ4_compressBound(input_size: c_int) -> c_int;
-    pub fn LZ4_sizeofState() -> c_int;
     pub fn LZ4_compress_fast_extState(
         state: *mut c_void,
         src: *const c_char,

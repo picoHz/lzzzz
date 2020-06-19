@@ -25,7 +25,7 @@ impl Default for CompressionMode {
 }
 
 /// Calculate the maximum size of the compressed data from the original size.
-pub fn max_compressed_size(uncompressed_size: usize) -> usize {
+pub const fn max_compressed_size(uncompressed_size: usize) -> usize {
     api::compress_bound(uncompressed_size)
 }
 

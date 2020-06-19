@@ -27,9 +27,7 @@ mod api;
 
 use crate::{lz4, lz4::CompressionMode, Error, Report, Result};
 use api::{CompressionContext, DecompressionContext};
-use std::borrow::Cow;
-use std::cmp;
-use std::collections::LinkedList;
+use std::{borrow::Cow, cmp, collections::LinkedList};
 
 /// Streaming compressor
 pub struct Compressor<'a> {
