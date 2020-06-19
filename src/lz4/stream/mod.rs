@@ -28,6 +28,7 @@ mod api;
 use crate::{lz4, lz4::CompressionMode, Error, Report, Result};
 use api::{CompressionContext, DecompressionContext};
 use std::borrow::Cow;
+use std::cmp;
 use std::collections::LinkedList;
 
 /// Streaming compressor
@@ -179,7 +180,7 @@ impl<'a> Decompressor<'a> {
             < dst_len
         {
             self.cache
-                .push_back(Vec::with_capacity(dst_len.next_power_of_two()));
+                .push_back(Vec::with_capacity(cmp::max(dst_len, 8000)));
         }
 
         let back = self.cache.back_mut().unwrap();
@@ -193,7 +194,7 @@ impl<'a> Decompressor<'a> {
         self.last_len = dst_len;
 
         self.cache_len += report.dst_len();
-        let front_len = self.cache.front().map(|v| v.len()).unwrap_or(0);
+        let front_len = self.cache.front().map(Vec::len).unwrap_or(0);
         if self.cache_len - front_len >= 64_000 {
             self.cache.pop_front();
             self.cache_len -= front_len;
