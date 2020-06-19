@@ -56,17 +56,13 @@ impl<'a> Compressor<'a> {
         })
     }
 
-    #[cfg(feature = "liblz4-experimental")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "liblz4-experimental")))]
-    pub fn set_compression_level(&mut self, level: CompressionLevel) {
-        self.compression_level = level;
-        self.ctx.set_compression_level(level.as_i32());
-    }
-
-    #[cfg(feature = "liblz4-experimental")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "liblz4-experimental")))]
-    pub fn set_favor_dec_speed(&mut self, flag: bool) {
-        self.ctx.set_favor_dec_speed(flag);
+    pub fn with_dict<B>(dict: B) -> Result<Self>
+    where
+        B: Into<Buffer<'a>>,
+    {
+        let mut comp = Self::new()?;
+        comp.reset_with_dict(dict);
+        Ok(comp)
     }
 
     pub fn reset(&mut self) {
@@ -78,12 +74,21 @@ impl<'a> Compressor<'a> {
         B: Into<Buffer<'a>>,
     {
         let dict = dict.into();
-        if dict.is_empty() {
-            self.reset();
-        } else {
-            self.ctx.load_dict(&dict);
-        }
+        self.ctx.load_dict(&dict);
         self.dict = dict;
+    }
+
+    #[cfg(feature = "liblz4-experimental")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "liblz4-experimental")))]
+    pub fn set_compression_level(&mut self, level: CompressionLevel) {
+        self.compression_level = level;
+        self.ctx.set_compression_level(level.as_i32());
+    }
+
+    #[cfg(feature = "liblz4-experimental")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "liblz4-experimental")))]
+    pub fn set_favor_dec_speed(&mut self, flag: bool) {
+        self.ctx.set_favor_dec_speed(flag);
     }
 
     /// LZ4 Streaming Compressor/Decompressor
