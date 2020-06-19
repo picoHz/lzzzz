@@ -143,6 +143,7 @@ pub struct Decompressor<'a> {
     dict: Cow<'a, [u8]>,
     cache: LinkedList<Vec<u8>>,
     cache_len: usize,
+    last_len: usize,
 }
 
 impl<'a> Decompressor<'a> {
@@ -152,47 +153,61 @@ impl<'a> Decompressor<'a> {
             dict: Cow::Borrowed(&[]),
             cache: LinkedList::new(),
             cache_len: 0,
+            last_len: 0,
         })
     }
 
     pub fn reset(&mut self) -> Result<()> {
-        self.ctx.reset(&[])
+        self.reset_with_dict(Cow::Borrowed(&[]))
     }
 
     pub fn reset_with_dict(&mut self, dict: Cow<'a, [u8]>) -> Result<()> {
         self.ctx.reset(&dict)?;
         self.dict = dict;
+        self.cache.clear();
+        self.cache_len = 0;
+        self.last_len = 0;
         Ok(())
     }
 
-    pub fn next(&mut self, src: &[u8], dst: &mut [u8]) -> Result<Report> {
+    pub fn next(&mut self, src: &[u8], dst_len: usize) -> Result<Report> {
         if self
             .cache
             .back()
             .map(|v| v.capacity() - v.len())
             .unwrap_or(0)
-            < dst.len()
+            < dst_len
         {
             self.cache
-                .push_back(Vec::with_capacity(dst.len().next_power_of_two()));
+                .push_back(Vec::with_capacity(dst_len.next_power_of_two()));
         }
 
         let back = self.cache.back_mut().unwrap();
         let len = back.len();
         #[allow(unsafe_code)]
         unsafe {
-            back.set_len(len + dst.len());
+            back.set_len(len + dst_len);
         }
 
         let report = self.ctx.decompress(src, &mut back[len..])?;
-        self.cache_len += report.dst_len();
+        self.last_len = dst_len;
 
+        self.cache_len += report.dst_len();
         let front_len = self.cache.front().map(|v| v.len()).unwrap_or(0);
         if self.cache_len - front_len >= 64_000 {
             self.cache.pop_front();
             self.cache_len -= front_len;
         }
         Ok(report)
+    }
+
+    pub fn data(&self) -> &[u8] {
+        if let Some(back) = self.cache.back() {
+            let offset = back.len() - self.last_len;
+            &back[offset..]
+        } else {
+            &[]
+        }
     }
 }
 
@@ -220,8 +235,8 @@ mod tests {
                 CompressionMode::Default,
             )
             .unwrap();
-            let mut x = vec![0; 10];
-            decomp.next(&v, &mut x).unwrap();
+            decomp.next(&v, 10).unwrap();
+            println!("<< {:?}", decomp.data());
         }
     }
 }
