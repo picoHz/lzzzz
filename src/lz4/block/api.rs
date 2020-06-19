@@ -1,7 +1,7 @@
 #![allow(unsafe_code)]
 
 use super::super::binding;
-use crate::{Error, LZ4Error, Report, Result};
+use crate::{Error, LZ4FError, Report, Result};
 
 use std::{
     cell::RefCell,
@@ -71,7 +71,7 @@ pub fn decompress_safe(src: &[u8], dst: &mut [u8]) -> Result<Report> {
         ) as i32
     };
     if result < 0 {
-        Err(Error::LZ4Error(LZ4Error::Generic))
+        Err(Error::LZ4FError(LZ4FError::Generic))
     } else {
         Ok(Report {
             dst_len: result as usize,
@@ -91,7 +91,7 @@ pub fn decompress_safe_partial(src: &[u8], dst: &mut [u8], original_size: usize)
         ) as i32
     };
     if result < 0 {
-        Err(Error::LZ4Error(LZ4Error::Generic))
+        Err(Error::LZ4FError(LZ4FError::Generic))
     } else {
         Ok(Report {
             dst_len: result as usize,
@@ -112,7 +112,7 @@ pub fn decompress_safe_using_dict(src: &[u8], dst: &mut [u8], dict: &[u8]) -> Re
         ) as i32
     };
     if result < 0 {
-        Err(Error::LZ4Error(LZ4Error::Generic))
+        Err(Error::LZ4FError(LZ4FError::Generic))
     } else {
         Ok(Report {
             dst_len: result as usize,
