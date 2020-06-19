@@ -35,7 +35,7 @@ pub struct ReadCompressor<R: Read> {
 
 impl<R: Read> ReadCompressor<R> {
     pub fn new(reader: R) -> crate::Result<Self> {
-        Self::from_builder(reader, Default::default(), None)
+        CompressorBuilder::new(reader).build()
     }
 
     fn from_builder(device: R, pref: Preferences, dict: Option<Dictionary>) -> crate::Result<Self> {

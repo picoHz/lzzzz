@@ -1,6 +1,7 @@
 //! LZ4 Frame Compressor/Decompressor
 
 use super::api;
+use crate::common::DEFAULT_BUF_SIZE;
 use crate::{lz4f::Preferences, Error, Report, Result};
 use std::cell::RefCell;
 
@@ -83,8 +84,10 @@ pub fn decompress_to_vec(src: &[u8], dst: &mut Vec<u8>) -> Result<Report> {
     DecompressionCtx::with(|ctx| {
         let mut ctx = ctx.borrow_mut();
         ctx.reset();
+        if dst.capacity() == 0 {
+            dst.reserve(DEFAULT_BUF_SIZE);
+        }
         loop {
-            dst.reserve(1024);
             #[allow(unsafe_code)]
             unsafe {
                 dst.set_len(dst.capacity());
@@ -102,6 +105,7 @@ pub fn decompress_to_vec(src: &[u8], dst: &mut Vec<u8>) -> Result<Report> {
             } else if src_offset >= src.len() {
                 return Err(Error::CompressedDataIncomplete);
             }
+            dst.reserve(DEFAULT_BUF_SIZE);
         }
     })
 }

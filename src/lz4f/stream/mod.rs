@@ -3,6 +3,7 @@
 pub mod comp;
 pub mod decomp;
 
+use crate::common::DEFAULT_BUF_SIZE;
 use crate::{
     lz4f::{Dictionary, Preferences},
     Result,
@@ -46,11 +47,20 @@ impl<D> CompressorBuilder<D> {
 /// A builder struct to create a streaming decompressor
 pub struct DecompressorBuilder<D> {
     device: D,
+    capacity: usize,
 }
 
 impl<D> DecompressorBuilder<D> {
     pub const fn new(device: D) -> Self {
-        Self { device }
+        Self {
+            device,
+            capacity: DEFAULT_BUF_SIZE,
+        }
+    }
+
+    pub const fn capacity(mut self, capacity: usize) -> Self {
+        self.capacity = capacity;
+        self
     }
 
     pub fn build<T>(self) -> Result<T>

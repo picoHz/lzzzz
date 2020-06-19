@@ -7,6 +7,8 @@ use crate::lz4f;
 pub use api::{version_number, version_string};
 pub use buffer::Buffer;
 
+pub(crate) const DEFAULT_BUF_SIZE: usize = 8 * 1024;
+
 /// A result of successful compression/decompression
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct Report {

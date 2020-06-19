@@ -45,7 +45,7 @@ pub struct AsyncWriteCompressor<W: AsyncWrite + Unpin> {
 
 impl<W: AsyncWrite + Unpin> AsyncWriteCompressor<W> {
     pub fn new(writer: W) -> crate::Result<Self> {
-        Self::from_builder(writer, Default::default(), None)
+        CompressorBuilder::new(writer).build()
     }
 
     fn from_builder(writer: W, pref: Preferences, dict: Option<Dictionary>) -> crate::Result<Self> {

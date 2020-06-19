@@ -41,7 +41,7 @@ pub struct BufReadCompressor<R: BufRead> {
 
 impl<R: BufRead> BufReadCompressor<R> {
     pub fn new(reader: R) -> crate::Result<Self> {
-        Self::from_builder(reader, Default::default(), None)
+        CompressorBuilder::new(reader).build()
     }
 
     pub(super) fn from_builder(

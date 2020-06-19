@@ -47,7 +47,7 @@ pub struct AsyncReadCompressor<R: AsyncRead + Unpin> {
 
 impl<R: AsyncRead + Unpin> AsyncReadCompressor<R> {
     pub fn new(reader: R) -> crate::Result<Self> {
-        Self::from_builder(reader, Default::default(), None)
+        CompressorBuilder::new(reader).build()
     }
 
     fn from_builder(reader: R, pref: Preferences, dict: Option<Dictionary>) -> crate::Result<Self> {

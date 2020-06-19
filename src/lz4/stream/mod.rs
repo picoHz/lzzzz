@@ -25,6 +25,7 @@
 
 mod api;
 
+use crate::common::DEFAULT_BUF_SIZE;
 use crate::{lz4, lz4::CompressionMode, Buffer, Error, Report, Result};
 use api::{CompressionContext, DecompressionContext};
 use std::{cmp, collections::LinkedList};
@@ -200,8 +201,10 @@ impl<'a> Decompressor<'a> {
             .unwrap_or(0)
             < original_size
         {
-            self.cache
-                .push_back(Vec::with_capacity(cmp::max(original_size, 8000)));
+            self.cache.push_back(Vec::with_capacity(cmp::max(
+                original_size,
+                DEFAULT_BUF_SIZE,
+            )));
         }
 
         let back = self.cache.back_mut().unwrap();

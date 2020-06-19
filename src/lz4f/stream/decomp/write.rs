@@ -37,13 +37,13 @@ pub struct WriteDecompressor<'a, W: Write> {
 
 impl<'a, W: Write> WriteDecompressor<'a, W> {
     pub fn new(writer: W) -> crate::Result<Self> {
-        Self::from_builder(writer)
+        DecompressorBuilder::new(writer).build()
     }
 
-    fn from_builder(device: W) -> crate::Result<Self> {
+    fn from_builder(device: W, capacity: usize) -> crate::Result<Self> {
         Ok(Self {
             device,
-            inner: Decompressor::new()?,
+            inner: Decompressor::new(capacity)?,
         })
     }
 
@@ -79,6 +79,6 @@ impl<W: Write> Write for WriteDecompressor<'_, W> {
 impl<'a, W: Write> TryInto<WriteDecompressor<'a, W>> for DecompressorBuilder<W> {
     type Error = crate::Error;
     fn try_into(self) -> crate::Result<WriteDecompressor<'a, W>> {
-        WriteDecompressor::from_builder(self.device)
+        WriteDecompressor::from_builder(self.device, self.capacity)
     }
 }

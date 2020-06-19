@@ -45,7 +45,7 @@ pub(crate) struct Decompressor<'a> {
 }
 
 impl<'a> Decompressor<'a> {
-    pub fn new() -> Result<Self> {
+    pub fn new(capacity: usize) -> Result<Self> {
         let header = MaybeUninit::<[MaybeUninit<u8>; LZ4F_HEADER_SIZE_MAX]>::uninit();
         #[allow(unsafe_code)]
         let header = unsafe { mem::transmute(header.assume_init()) };
@@ -55,7 +55,7 @@ impl<'a> Decompressor<'a> {
                 header,
                 header_len: 0,
             },
-            buffer: Vec::new(),
+            buffer: Vec::with_capacity(capacity),
             dict: Buffer::new(),
             header_only: false,
         })
@@ -128,7 +128,6 @@ impl<'a> Decompressor<'a> {
             }
 
             let len = self.buffer.len();
-            self.buffer.reserve(1024);
             #[allow(unsafe_code)]
             unsafe {
                 self.buffer.set_len(self.buffer.capacity());
