@@ -3,6 +3,7 @@ mod binding;
 mod buffer;
 use std::{convert, fmt, io};
 
+use crate::lz4f;
 pub use api::{version_number, version_string};
 pub use buffer::Buffer;
 
@@ -38,7 +39,7 @@ pub type Result<T> = std::result::Result<T, Error>;
 /// Compression/Decompression error
 #[derive(Debug)]
 pub enum Error {
-    LZ4FError(LZ4FError),
+    LZ4FError(lz4f::ErrorKind),
     IOError(io::Error),
     CompressionFailed,
     DecompressionFailed,
@@ -48,31 +49,6 @@ pub enum Error {
     CompressionModeInvalid,
     DecompressionModeInvalid,
     DictionaryChangedDuringDecompression,
-}
-
-/// Errors from liblz4
-#[derive(Debug)]
-pub enum LZ4FError {
-    Generic,
-    MaxBlockSizeInvalid,
-    BlockModeInvalid,
-    ContentChecksumFlagInvalid,
-    CompressionLevelInvalid,
-    HeaderVersionWrong,
-    BlockChecksumInvalid,
-    ReservedFlagSet,
-    AllocationFailed,
-    SrcSizeTooLarge,
-    DstMaxSizeTooSmall,
-    FrameHeaderIncomplete,
-    FrameTypeUnknown,
-    FrameSizeWrong,
-    SrcPtrWrong,
-    DecompressionFailed,
-    HeaderChecksumInvalid,
-    ContentChecksumInvalid,
-    FrameDecodingAlreadyStarted,
-    Unspecified,
 }
 
 impl fmt::Display for Error {
@@ -93,33 +69,6 @@ impl convert::From<Error> for io::Error {
 impl convert::From<io::Error> for Error {
     fn from(err: io::Error) -> Self {
         Self::IOError(err)
-    }
-}
-
-impl convert::From<usize> for Error {
-    fn from(value: usize) -> Self {
-        Self::LZ4FError(match value.wrapping_neg() {
-            1 => LZ4FError::Generic,
-            2 => LZ4FError::MaxBlockSizeInvalid,
-            3 => LZ4FError::BlockModeInvalid,
-            4 => LZ4FError::ContentChecksumFlagInvalid,
-            5 => LZ4FError::CompressionLevelInvalid,
-            6 => LZ4FError::HeaderVersionWrong,
-            7 => LZ4FError::BlockChecksumInvalid,
-            8 => LZ4FError::ReservedFlagSet,
-            9 => LZ4FError::AllocationFailed,
-            10 => LZ4FError::SrcSizeTooLarge,
-            11 => LZ4FError::DstMaxSizeTooSmall,
-            12 => LZ4FError::FrameHeaderIncomplete,
-            13 => LZ4FError::FrameTypeUnknown,
-            14 => LZ4FError::FrameSizeWrong,
-            15 => LZ4FError::SrcPtrWrong,
-            16 => LZ4FError::DecompressionFailed,
-            17 => LZ4FError::HeaderChecksumInvalid,
-            18 => LZ4FError::ContentChecksumInvalid,
-            19 => LZ4FError::FrameDecodingAlreadyStarted,
-            _ => LZ4FError::Unspecified,
-        })
     }
 }
 

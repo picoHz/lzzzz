@@ -9,8 +9,8 @@ use super::{
     Dictionary,
 };
 use crate::{
-    lz4f::{FrameInfo, Preferences},
-    Error, LZ4FError, Report, Result,
+    lz4f::{ErrorKind, FrameInfo, Preferences},
+    Error, Report, Result,
 };
 
 use std::{mem::MaybeUninit, os::raw::c_void, ptr::NonNull};
@@ -225,11 +225,28 @@ pub fn compress(src: &[u8], dst: &mut [u8], prefs: &Preferences) -> Result<Repor
 }
 
 fn result_from_code(code: usize) -> Result<()> {
-    if code != 0 && code.wrapping_neg() < (LZ4FError::Unspecified as usize) {
-        Err(code.into())
-    } else {
-        Ok(())
-    }
+    Err(Error::LZ4FError(match code.wrapping_neg() {
+        1 => ErrorKind::Generic,
+        2 => ErrorKind::MaxBlockSizeInvalid,
+        3 => ErrorKind::BlockModeInvalid,
+        4 => ErrorKind::ContentChecksumFlagInvalid,
+        5 => ErrorKind::CompressionLevelInvalid,
+        6 => ErrorKind::HeaderVersionWrong,
+        7 => ErrorKind::BlockChecksumInvalid,
+        8 => ErrorKind::ReservedFlagSet,
+        9 => ErrorKind::AllocationFailed,
+        10 => ErrorKind::SrcSizeTooLarge,
+        11 => ErrorKind::DstMaxSizeTooSmall,
+        12 => ErrorKind::FrameHeaderIncomplete,
+        13 => ErrorKind::FrameTypeUnknown,
+        14 => ErrorKind::FrameSizeWrong,
+        15 => ErrorKind::SrcPtrWrong,
+        16 => ErrorKind::DecompressionFailed,
+        17 => ErrorKind::HeaderChecksumInvalid,
+        18 => ErrorKind::ContentChecksumInvalid,
+        19 => ErrorKind::FrameDecodingAlreadyStarted,
+        _ => return Ok(()),
+    }))
 }
 
 pub struct DictionaryHandle(NonNull<LZ4FCompressionDict>);
