@@ -23,7 +23,7 @@ pub struct CompressionContext {
 
 impl CompressionContext {
     pub fn new() -> Result<Self> {
-        let mut stream = MaybeUninit::<LZ4Stream>::zeroed();
+        let mut stream = MaybeUninit::<LZ4Stream>::uninit();
         unsafe {
             let ptr = binding::LZ4_initStream(
                 stream.as_mut_ptr() as *mut c_void,
@@ -34,11 +34,12 @@ impl CompressionContext {
                     stream: Stream::Stack(stream.assume_init()),
                 });
             }
-            let ptr = NonNull::new(binding::LZ4_createStream());
-            ptr.ok_or(Error::NullPointerUnexpected).map(|stream| Self {
-                stream: Stream::Heap(stream),
-            })
+            NonNull::new(binding::LZ4_createStream())
         }
+        .ok_or(Error::NullPointerUnexpected)
+        .map(|stream| Self {
+            stream: Stream::Heap(stream),
+        })
     }
 
     fn get_ptr(&mut self) -> *mut LZ4Stream {
