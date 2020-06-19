@@ -25,13 +25,10 @@
 
 mod api;
 
-use crate::{
-    lz4,
-    lz4::{CompressionMode, DecompressionMode},
-    Error, Report, Result,
-};
+use crate::{lz4, lz4::CompressionMode, Error, Report, Result};
 use api::{CompressionContext, DecompressionContext};
 use std::borrow::Cow;
+use std::collections::LinkedList;
 
 /// Streaming compressor
 pub struct Compressor<'a> {
@@ -144,7 +141,8 @@ impl<'a> Compressor<'a> {
 pub struct Decompressor<'a> {
     ctx: DecompressionContext,
     dict: Cow<'a, [u8]>,
-    prev: Cow<'a, [u8]>,
+    cache: LinkedList<Vec<u8>>,
+    cache_len: usize,
 }
 
 impl<'a> Decompressor<'a> {
@@ -152,7 +150,8 @@ impl<'a> Decompressor<'a> {
         Ok(Self {
             ctx: DecompressionContext::new()?,
             dict: Cow::Borrowed(&[]),
-            prev: Cow::Borrowed(&[]),
+            cache: LinkedList::new(),
+            cache_len: 0,
         })
     }
 
@@ -167,13 +166,39 @@ impl<'a> Decompressor<'a> {
     }
 
     pub fn next(&mut self, src: &[u8], dst: &mut [u8]) -> Result<Report> {
-        self.ctx.decompress(src, dst)
+        if self
+            .cache
+            .back()
+            .map(|v| v.capacity() - v.len())
+            .unwrap_or(0)
+            < dst.len()
+        {
+            self.cache
+                .push_back(Vec::with_capacity(dst.len().next_power_of_two()));
+        }
+
+        let back = self.cache.back_mut().unwrap();
+        let len = back.len();
+        #[allow(unsafe_code)]
+        unsafe {
+            back.set_len(len + dst.len());
+        }
+
+        let report = self.ctx.decompress(src, &mut back[len..])?;
+        self.cache_len += report.dst_len();
+
+        let front_len = self.cache.front().map(|v| v.len()).unwrap_or(0);
+        if self.cache_len - front_len >= 64_000 {
+            self.cache.pop_front();
+            self.cache_len -= front_len;
+        }
+        Ok(report)
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::lz4::{CompressionMode, Compressor};
+    use crate::lz4::{CompressionMode, Compressor, Decompressor};
 
     #[test]
     fn empty_dst() {
@@ -181,5 +206,22 @@ mod tests {
             .unwrap()
             .next(&b"hello"[..], &mut [], CompressionMode::Default)
             .is_err());
+    }
+
+    #[test]
+    fn decompressor() {
+        let mut comp = Compressor::new().unwrap();
+        let mut decomp = Decompressor::new().unwrap();
+        for _ in 0..100 {
+            let mut v = Vec::new();
+            comp.next_to_vec(
+                format!(">>>> xxxxx").as_bytes().to_vec(),
+                &mut v,
+                CompressionMode::Default,
+            )
+            .unwrap();
+            let mut x = vec![0; 10];
+            decomp.next(&v, &mut x).unwrap();
+        }
     }
 }
