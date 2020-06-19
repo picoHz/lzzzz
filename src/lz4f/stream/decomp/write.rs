@@ -61,7 +61,7 @@ impl<'a, W: Write> WriteDecompressor<'a, W> {
 impl<W: Write> Write for WriteDecompressor<'_, W> {
     fn write(&mut self, buf: &[u8]) -> Result<usize> {
         let report = self.inner.decompress(buf)?;
-        self.device.write_all(&self.inner.buf())?;
+        self.device.write_all(self.inner.buf())?;
         self.inner.clear_buf();
         Ok(report.src_len.unwrap())
     }

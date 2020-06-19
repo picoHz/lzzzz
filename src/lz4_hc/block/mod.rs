@@ -34,7 +34,7 @@ pub enum CompressionLevel {
 }
 
 impl PartialOrd for CompressionLevel {
-    fn partial_cmp(&self, other: &CompressionLevel) -> Option<Ordering> {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.as_i32().cmp(&other.as_i32()))
     }
 }

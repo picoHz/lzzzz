@@ -45,7 +45,7 @@ pub enum CompressionLevel {
 }
 
 impl PartialOrd for CompressionLevel {
-    fn partial_cmp(&self, other: &CompressionLevel) -> Option<cmp::Ordering> {
+    fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
         Some(self.as_i32().cmp(&other.as_i32()))
     }
 }
@@ -175,13 +175,13 @@ impl PreferencesBuilder {
     }
 
     /// Set the decompression speed mode flag.
-    pub fn favor_dec_speed(mut self, dec_speed: FavorDecSpeed) -> Self {
+    pub const fn favor_dec_speed(mut self, dec_speed: FavorDecSpeed) -> Self {
         self.pref.favor_dec_speed = dec_speed;
         self
     }
 
     /// Set the auto flush flag.
-    pub fn auto_flush(mut self, auto_flush: AutoFlush) -> Self {
+    pub const fn auto_flush(mut self, auto_flush: AutoFlush) -> Self {
         self.pref.auto_flush = auto_flush;
         self
     }
@@ -190,7 +190,7 @@ impl PreferencesBuilder {
     ///
     /// To make I/O operations to the returned `Compressor<D>`,
     /// the `device` should implement `Read`, `BufRead` or `Write`.
-    pub fn build(&self) -> Preferences {
+    pub const fn build(&self) -> Preferences {
         self.pref
     }
 }

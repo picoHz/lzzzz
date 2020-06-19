@@ -25,7 +25,7 @@ impl<D> CompressorBuilder<D> {
         }
     }
 
-    pub fn preferences(mut self, pref: Preferences) -> Self {
+    pub const fn preferences(mut self, pref: Preferences) -> Self {
         self.pref = pref;
         self
     }
@@ -49,7 +49,7 @@ pub struct DecompressorBuilder<D> {
 }
 
 impl<D> DecompressorBuilder<D> {
-    pub fn new(device: D) -> Self {
+    pub const fn new(device: D) -> Self {
         Self { device }
     }
 

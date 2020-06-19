@@ -86,7 +86,7 @@ impl convert::From<Error> for io::Error {
     fn from(err: Error) -> Self {
         match err {
             Error::IOError(err) => err,
-            _ => io::Error::new(io::ErrorKind::Other, err),
+            _ => Self::new(io::ErrorKind::Other, err),
         }
     }
 }
