@@ -121,8 +121,8 @@ pub fn compress(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> Result<Rep
 /// # let compressed = &buf[header.len()..];
 /// # let mut buf = [0u8; 2048];
 /// # let len = lz4::decompress(compressed,
-///     &mut buf[..data.len()],
-///     lz4::DecompressionMode::Default).unwrap().dst_len();
+/// #    &mut buf[..data.len()],
+/// #    lz4::DecompressionMode::Default).unwrap().dst_len();
 /// # assert_eq!(&buf[..len], &data[..]);
 /// ```
 ///
@@ -149,8 +149,8 @@ pub fn compress(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> Result<Rep
 /// # let compressed = &buf;
 /// # let mut buf = [0u8; 2048];
 /// # let len = lz4::decompress(compressed,
-///     &mut buf[..data.len()],
-///     lz4::DecompressionMode::Default).unwrap().dst_len();
+/// #    &mut buf[..data.len()],
+/// #    lz4::DecompressionMode::Default).unwrap().dst_len();
 /// # assert_eq!(&buf[..len], &data[..]);
 /// ```
 pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, mode: CompressionMode) -> Result<Report> {
