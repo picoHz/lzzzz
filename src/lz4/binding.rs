@@ -69,4 +69,16 @@ extern "C" {
     ) -> c_int;
     pub fn LZ4_createStreamDecode() -> *mut LZ4DecStream;
     pub fn LZ4_freeStreamDecode(stream: *mut LZ4DecStream) -> c_int;
+    pub fn LZ4_setStreamDecode(
+        ptr: *mut LZ4DecStream,
+        dictionary: *const c_char,
+        dict_size: c_int,
+    ) -> c_int;
+    pub fn LZ4_decompress_safe_continue(
+        ptr: *mut LZ4DecStream,
+        src: *const c_char,
+        dst: *mut c_char,
+        src_size: c_int,
+        dst_capacity: c_int,
+    ) -> c_int;
 }

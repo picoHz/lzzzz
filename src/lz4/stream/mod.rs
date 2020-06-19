@@ -143,6 +143,7 @@ impl<'a> Compressor<'a> {
 /// Streaming decompressor
 pub struct Decompressor<'a> {
     ctx: DecompressionContext,
+    dict: Cow<'a, [u8]>,
     prev: Cow<'a, [u8]>,
 }
 
@@ -150,21 +151,23 @@ impl<'a> Decompressor<'a> {
     pub fn new() -> Result<Self> {
         Ok(Self {
             ctx: DecompressionContext::new()?,
+            dict: Cow::Borrowed(&[]),
             prev: Cow::Borrowed(&[]),
         })
     }
 
-    pub fn next<S: Into<Cow<'a, [u8]>>>(
-        &mut self,
-        src: S,
-        dst: &mut [u8],
-        mode: DecompressionMode,
-    ) -> Result<Report> {
-        match mode {
-            DecompressionMode::Default => Ok(Default::default()),
-            DecompressionMode::Dictionary { data } => Ok(Default::default()),
-            _ => Err(Error::DecompressionModeInvalid),
-        }
+    pub fn reset(&mut self) -> Result<()> {
+        self.ctx.reset(&[])
+    }
+
+    pub fn reset_with_dict(&mut self, dict: Cow<'a, [u8]>) -> Result<()> {
+        self.ctx.reset(&dict)?;
+        self.dict = dict;
+        Ok(())
+    }
+
+    pub fn next(&mut self, src: &[u8], dst: &mut [u8]) -> Result<Report> {
+        self.ctx.decompress(src, dst)
     }
 }
 
