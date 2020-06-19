@@ -25,6 +25,8 @@ impl Default for CompressionMode {
 }
 
 /// Calculate the maximum size of the compressed data from the original size.
+///
+/// If `uncompressed_size` is too large to compress, this function returns `0`.
 pub const fn max_compressed_size(uncompressed_size: usize) -> usize {
     api::compress_bound(uncompressed_size)
 }

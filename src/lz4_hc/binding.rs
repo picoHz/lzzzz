@@ -12,7 +12,6 @@ pub struct LZ4StreamHC {
 }
 
 extern "C" {
-    pub fn LZ4_sizeofStateHC() -> c_int;
     pub fn LZ4_compress_HC_extStateHC(
         state: *mut c_void,
         src: *const c_char,
