@@ -77,7 +77,6 @@ pub fn compress_dest_size(
     Report {
         src_len: Some(src_len as usize),
         dst_len,
-        ..Default::default()
     }
 }
 

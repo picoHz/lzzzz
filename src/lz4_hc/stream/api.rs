@@ -89,7 +89,6 @@ impl CompressionContext {
             Ok(Report {
                 dst_len,
                 src_len: Some(src_len as usize),
-                ..Default::default()
             })
         } else if src.is_empty() && dst.is_empty() {
             Ok(Report::default())
