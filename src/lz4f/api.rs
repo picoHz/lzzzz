@@ -10,7 +10,7 @@ use super::{
 };
 use crate::{
     lz4f::{FrameInfo, Preferences},
-    Error, Report, Result,
+    Error, LZ4FError, Report, Result,
 };
 
 use std::{mem::MaybeUninit, os::raw::c_void, ptr::NonNull};
@@ -177,7 +177,6 @@ impl DecompressionContext {
                 Report {
                     src_len: Some(src_len as usize),
                     dst_len: dst_len as usize,
-                    ..Default::default()
                 },
                 code as usize,
             )
@@ -226,10 +225,10 @@ pub fn compress(src: &[u8], dst: &mut [u8], prefs: &Preferences) -> Result<Repor
 }
 
 fn result_from_code(code: usize) -> Result<()> {
-    if unsafe { binding::LZ4F_isError(code) } == 0 {
-        Ok(())
-    } else {
+    if code != 0 && code.wrapping_neg() < (LZ4FError::Unspecified as usize) {
         Err(code.into())
+    } else {
+        Ok(())
     }
 }
 
