@@ -61,7 +61,10 @@ impl<'a, R: AsyncRead + Unpin> AsyncReadDecompressor<'a, R> {
         })
     }
 
-    pub fn set_dict<B: Into<Buffer<'a>>>(&mut self, dict: B) {
+    pub fn set_dict<B>(&mut self, dict: B)
+    where
+        B: Into<Buffer<'a>>,
+    {
         self.inner.set_dict(dict.into());
     }
 

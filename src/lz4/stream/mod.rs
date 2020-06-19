@@ -45,7 +45,10 @@ impl<'a> Compressor<'a> {
         })
     }
 
-    pub fn with_dict<B: Into<Buffer<'a>>>(&mut self, dict: B) -> Result<Self> {
+    pub fn with_dict<B>(&mut self, dict: B) -> Result<Self>
+    where
+        B: Into<Buffer<'a>>,
+    {
         let mut comp = Self::new()?;
         comp.reset_with_dict(dict);
         Ok(comp)
@@ -55,7 +58,10 @@ impl<'a> Compressor<'a> {
         self.ctx.reset();
     }
 
-    pub fn reset_with_dict<B: Into<Buffer<'a>>>(&mut self, dict: B) {
+    pub fn reset_with_dict<B>(&mut self, dict: B)
+    where
+        B: Into<Buffer<'a>>,
+    {
         let dict = dict.into();
         self.ctx.load_dict(&dict);
         self.dict = dict;
@@ -91,12 +97,10 @@ impl<'a> Compressor<'a> {
     /// # .dst_len();
     /// # assert_eq!(&buf[..len], &data[..]);
     /// ```
-    pub fn next<B: Into<Buffer<'a>>>(
-        &mut self,
-        src: B,
-        dst: &mut [u8],
-        mode: CompressionMode,
-    ) -> Result<Report> {
+    pub fn next<B>(&mut self, src: B, dst: &mut [u8], mode: CompressionMode) -> Result<Report>
+    where
+        B: Into<Buffer<'a>>,
+    {
         let acc = match mode {
             CompressionMode::Default => 1,
             CompressionMode::Acceleration { factor } => factor,
@@ -117,12 +121,15 @@ impl<'a> Compressor<'a> {
         }
     }
 
-    pub fn next_to_vec<B: Into<Buffer<'a>>>(
+    pub fn next_to_vec<B>(
         &mut self,
         src: B,
         dst: &mut Vec<u8>,
         mode: CompressionMode,
-    ) -> Result<Report> {
+    ) -> Result<Report>
+    where
+        B: Into<Buffer<'a>>,
+    {
         let src = src.into();
         let orig_len = dst.len();
         dst.reserve(lz4::max_compressed_size(src.len()));
@@ -159,7 +166,10 @@ impl<'a> Decompressor<'a> {
         })
     }
 
-    pub fn with_dict<B: Into<Buffer<'a>>>(&mut self, dict: B) -> Result<Self> {
+    pub fn with_dict<B>(&mut self, dict: B) -> Result<Self>
+    where
+        B: Into<Buffer<'a>>,
+    {
         let mut decomp = Self::new()?;
         decomp.reset_with_dict(dict)?;
         Ok(decomp)
@@ -169,7 +179,10 @@ impl<'a> Decompressor<'a> {
         self.reset_with_dict(&[][..])
     }
 
-    pub fn reset_with_dict<B: Into<Buffer<'a>>>(&mut self, dict: B) -> Result<()> {
+    pub fn reset_with_dict<B>(&mut self, dict: B) -> Result<()>
+    where
+        B: Into<Buffer<'a>>,
+    {
         let dict = dict.into();
         self.ctx.reset(&dict)?;
         self.dict = dict;
@@ -245,7 +258,6 @@ mod tests {
             )
             .unwrap();
             decomp.next(&v, 10).unwrap();
-            println!("<< {:?}", decomp.data());
         }
     }
 }

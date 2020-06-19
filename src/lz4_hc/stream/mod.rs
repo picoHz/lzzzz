@@ -73,7 +73,10 @@ impl<'a> Compressor<'a> {
         self.ctx.reset(self.compression_level.as_i32());
     }
 
-    pub fn reset_with_dict<B: Into<Buffer<'a>>>(&mut self, dict: B) {
+    pub fn reset_with_dict<B>(&mut self, dict: B)
+    where
+        B: Into<Buffer<'a>>,
+    {
         let dict = dict.into();
         if dict.is_empty() {
             self.reset();
@@ -113,12 +116,10 @@ impl<'a> Compressor<'a> {
     /// # .dst_len();
     /// # assert_eq!(&buf[..len], &data[..]);
     /// ```
-    pub fn next<B: Into<Buffer<'a>>>(
-        &mut self,
-        src: B,
-        dst: &mut [u8],
-        mode: CompressionMode,
-    ) -> Result<Report> {
+    pub fn next<B>(&mut self, src: B, dst: &mut [u8], mode: CompressionMode) -> Result<Report>
+    where
+        B: Into<Buffer<'a>>,
+    {
         let src = src.into();
         let result = match mode {
             CompressionMode::Default => self.ctx.next(&src, dst),
@@ -128,12 +129,15 @@ impl<'a> Compressor<'a> {
         result
     }
 
-    pub fn next_to_vec<B: Into<Buffer<'a>>>(
+    pub fn next_to_vec<B>(
         &mut self,
         src: B,
         dst: &mut Vec<u8>,
         mode: CompressionMode,
-    ) -> Result<Report> {
+    ) -> Result<Report>
+    where
+        B: Into<Buffer<'a>>,
+    {
         let src = src.into();
         let orig_len = dst.len();
         dst.reserve(lz4::max_compressed_size(src.len()));
