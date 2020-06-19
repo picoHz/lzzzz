@@ -39,6 +39,8 @@ pub enum Error {
     LZ4FError(LZ4FError),
     IOError(io::Error),
     CompressionFailed,
+    DecompressionFailed,
+    StreamResetFailed,
     CompressedDataIncomplete,
     NullPointerUnexpected,
     CompressionModeInvalid,

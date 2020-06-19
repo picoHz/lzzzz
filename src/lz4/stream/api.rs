@@ -4,7 +4,7 @@ use super::super::{
     binding,
     binding::{LZ4DecStream, LZ4Stream},
 };
-use crate::{Error, LZ4FError, Report, Result};
+use crate::{Error, Report, Result};
 
 use std::{
     mem::{size_of, MaybeUninit},
@@ -112,7 +112,7 @@ impl DecompressionContext {
         if result == 1 {
             Ok(())
         } else {
-            Err(Error::LZ4FError(LZ4FError::Generic))
+            Err(Error::StreamResetFailed)
         }
     }
 
@@ -127,7 +127,7 @@ impl DecompressionContext {
             ) as i32
         };
         if result < 0 {
-            Err(Error::LZ4FError(LZ4FError::Generic))
+            Err(Error::DecompressionFailed)
         } else {
             Ok(Report {
                 dst_len: result as usize,
