@@ -46,16 +46,13 @@ pub(crate) struct Decompressor<'a> {
 
 impl<'a> Decompressor<'a> {
     pub fn new() -> Result<Self> {
+        let header = MaybeUninit::<[MaybeUninit<u8>; LZ4F_HEADER_SIZE_MAX]>::uninit();
         #[allow(unsafe_code)]
+        let header = unsafe { mem::transmute(header.assume_init()) };
         Ok(Self {
             ctx: DecompressionContext::new()?,
             state: State::Header {
-                header: unsafe {
-                    mem::transmute(
-                        MaybeUninit::<[MaybeUninit<u8>; LZ4F_HEADER_SIZE_MAX]>::uninit()
-                            .assume_init(),
-                    )
-                },
+                header,
                 header_len: 0,
             },
             buffer: Vec::new(),
