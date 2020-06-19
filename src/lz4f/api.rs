@@ -156,7 +156,7 @@ impl DecompressionContext {
         dst: &mut [u8],
         dict: &[u8],
         stable_dst: bool,
-    ) -> Result<Report> {
+    ) -> Result<(Report, usize)> {
         let mut dst_len = dst.len();
         let mut src_len = src.len();
         let opt = LZ4FDecompressionOptions::stable(stable_dst);
@@ -172,10 +172,15 @@ impl DecompressionContext {
                 &opt as *const LZ4FDecompressionOptions,
             )
         };
-        result_from_code(code).map(|_| Report {
-            src_len: Some(src_len as usize),
-            dst_len: dst_len as usize,
-            expected_src_len: Some(code as usize),
+        result_from_code(code).map(|_| {
+            (
+                Report {
+                    src_len: Some(src_len as usize),
+                    dst_len: dst_len as usize,
+                    ..Default::default()
+                },
+                code as usize,
+            )
         })
     }
 

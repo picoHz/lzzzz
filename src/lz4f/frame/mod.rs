@@ -89,11 +89,10 @@ pub fn decompress_to_vec(src: &[u8], dst: &mut Vec<u8>) -> Result<Report> {
             unsafe {
                 dst.set_len(dst.capacity());
             }
-            let result =
+            let (result, expected) =
                 ctx.decompress_dict(&src[src_offset..], &mut dst[dst_offset..], &[], false)?;
             src_offset += result.src_len().unwrap();
             dst_offset += result.dst_len();
-            let expected = result.expected_src_len().unwrap();
             if expected == 0 {
                 dst.resize_with(dst_offset, Default::default);
                 return Ok(Report {

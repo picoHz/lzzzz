@@ -137,7 +137,7 @@ impl<'a> Decompressor<'a> {
             unsafe {
                 self.buffer.set_len(self.buffer.capacity());
             }
-            let report =
+            let (report, _) =
                 self.ctx
                     .decompress_dict(src, &mut self.buffer[len..], &self.dict, false)?;
             self.buffer
