@@ -4,6 +4,7 @@ use super::{Compressor, Dictionary, Preferences};
 use crate::lz4f::CompressorBuilder;
 use pin_project::pin_project;
 use std::{
+    cmp,
     convert::TryInto,
     pin::Pin,
     task::{Context, Poll},
@@ -94,7 +95,7 @@ impl<R: AsyncBufRead + Unpin> AsyncRead for AsyncBufReadCompressor<R> {
             Poll::Pending
         } else {
             let me = self.project();
-            let len = std::cmp::min(buf.len(), me.inner.buf().len() - *me.consumed);
+            let len = cmp::min(buf.len(), me.inner.buf().len() - *me.consumed);
             buf[..len].copy_from_slice(&me.inner.buf()[*me.consumed..][..len]);
             *me.consumed += len;
             if *me.consumed >= me.inner.buf().len() {

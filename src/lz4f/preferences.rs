@@ -201,6 +201,7 @@ mod tests {
         BlockChecksum, BlockMode, BlockSize, CompressionLevel, ContentChecksum, FavorDecSpeed,
         Preferences, PreferencesBuilder,
     };
+    use std::{i32, u32};
 
     #[test]
     fn preferences_builder() {
@@ -262,10 +263,10 @@ mod tests {
         );
         assert_eq!(
             PreferencesBuilder::new()
-                .compression_level(CompressionLevel::Custom(std::i32::MAX))
+                .compression_level(CompressionLevel::Custom(i32::MAX))
                 .build()
                 .compression_level,
-            CompressionLevel::Custom(std::i32::MAX).as_i32()
+            CompressionLevel::Custom(i32::MAX).as_i32()
         );
         assert_eq!(
             PreferencesBuilder::new()
@@ -283,7 +284,7 @@ mod tests {
         );
         assert_eq!(
             PreferencesBuilder::new()
-                .compression_level(CompressionLevel::Custom(std::i32::MIN))
+                .compression_level(CompressionLevel::Custom(i32::MIN))
                 .build()
                 .compression_level,
             -33_554_430
@@ -298,19 +299,19 @@ mod tests {
         );
         assert_eq!(
             PreferencesBuilder::new()
-                .dict_id(std::u32::MAX)
+                .dict_id(u32::MAX)
                 .build()
                 .frame_info
                 .dict_id(),
-            std::u32::MAX
+            u32::MAX
         );
         assert_eq!(
             PreferencesBuilder::new()
-                .dict_id(std::u32::MIN)
+                .dict_id(u32::MIN)
                 .build()
                 .frame_info
                 .dict_id(),
-            std::u32::MIN
+            u32::MIN
         );
     }
 
@@ -331,21 +332,21 @@ mod tests {
         );
 
         let mut sorted = vec![
-            CompressionLevel::Custom(std::i32::MAX),
+            CompressionLevel::Custom(i32::MAX),
             CompressionLevel::Max,
             CompressionLevel::High,
             CompressionLevel::Default,
-            CompressionLevel::Custom(std::i32::MIN),
+            CompressionLevel::Custom(i32::MIN),
         ];
         sorted.sort_unstable();
         assert_eq!(
             sorted,
             vec![
-                CompressionLevel::Custom(std::i32::MIN),
+                CompressionLevel::Custom(i32::MIN),
                 CompressionLevel::Default,
                 CompressionLevel::High,
                 CompressionLevel::Max,
-                CompressionLevel::Custom(std::i32::MAX),
+                CompressionLevel::Custom(i32::MAX),
             ]
         );
     }

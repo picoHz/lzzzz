@@ -23,7 +23,7 @@ use crate::{
     },
     Error, Report, Result,
 };
-use std::{borrow::Cow, mem, mem::MaybeUninit};
+use std::{borrow::Cow, cmp, mem, mem::MaybeUninit};
 
 enum State {
     Header {
@@ -88,8 +88,7 @@ impl<'a> Decompressor<'a> {
         } = &mut self.state
         {
             if header_len < LZ4F_MIN_SIZE_TO_KNOW_HEADER_LENGTH {
-                let len =
-                    std::cmp::min(LZ4F_MIN_SIZE_TO_KNOW_HEADER_LENGTH - header_len, src.len());
+                let len = cmp::min(LZ4F_MIN_SIZE_TO_KNOW_HEADER_LENGTH - header_len, src.len());
                 (&mut header[header_len..header_len + len]).copy_from_slice(&src[..len]);
                 header_len += len;
                 header_consumed += len;
@@ -98,14 +97,14 @@ impl<'a> Decompressor<'a> {
                 let src = &src[header_consumed..];
                 let exact_header_len = header_size(&header[..header_len]);
                 if header_len < exact_header_len {
-                    let len = std::cmp::min(exact_header_len - header_len, src.len());
+                    let len = cmp::min(exact_header_len - header_len, src.len());
                     (&mut header[header_len..header_len + len]).copy_from_slice(&src[..len]);
                     header_len += len;
                     header_consumed += len;
                 }
                 if header_len >= exact_header_len {
                     let (frame, rep) = self.ctx.get_frame_info(&header[..header_len])?;
-                    header_consumed = std::cmp::min(header_consumed, rep);
+                    header_consumed = cmp::min(header_consumed, rep);
 
                     self.state = State::Body {
                         frame_info: frame,
