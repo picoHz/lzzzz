@@ -1,4 +1,4 @@
-#![cfg(feature = "tokio-io")]
+#![cfg(feature = "use-tokio")]
 
 use super::Decompressor;
 use crate::{
@@ -40,7 +40,7 @@ use tokio::io::{AsyncWrite, Result};
 /// # }).unwrap();
 /// # tmp_dir.close().unwrap();
 /// ```
-#[cfg_attr(docsrs, doc(cfg(feature = "tokio-io")))]
+#[cfg_attr(docsrs, doc(cfg(feature = "use-tokio")))]
 #[pin_project]
 pub struct AsyncWriteDecompressor<'a, W: AsyncWrite + Unpin> {
     #[pin]

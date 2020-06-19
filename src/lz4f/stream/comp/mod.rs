@@ -17,7 +17,7 @@ use crate::lz4f::{
     Dictionary, Preferences,
 };
 
-#[cfg(feature = "tokio-io")]
+#[cfg(feature = "use-tokio")]
 pub use {async_bufread::*, async_read::*, async_write::*};
 
 pub(crate) struct Compressor {

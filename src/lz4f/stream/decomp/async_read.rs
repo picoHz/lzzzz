@@ -1,4 +1,4 @@
-#![cfg(feature = "tokio-io")]
+#![cfg(feature = "use-tokio")]
 
 use super::AsyncBufReadDecompressor;
 use crate::{
@@ -43,7 +43,7 @@ use tokio::io::{AsyncRead, BufReader, Result};
 /// # }).unwrap();
 /// # tmp_dir.close().unwrap();
 /// ```
-#[cfg_attr(docsrs, doc(cfg(feature = "tokio-io")))]
+#[cfg_attr(docsrs, doc(cfg(feature = "use-tokio")))]
 #[pin_project]
 pub struct AsyncReadDecompressor<'a, R: AsyncRead + Unpin> {
     #[pin]

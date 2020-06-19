@@ -1,4 +1,4 @@
-#![cfg(feature = "tokio-io")]
+#![cfg(feature = "use-tokio")]
 
 use super::{Compressor, Dictionary, Preferences};
 use crate::lz4f::CompressorBuilder;
@@ -40,7 +40,7 @@ use tokio::io::{AsyncBufRead, AsyncRead, Result};
 /// # }).unwrap();
 /// # tmp_dir.close().unwrap();
 /// ```
-#[cfg_attr(docsrs, doc(cfg(feature = "tokio-io")))]
+#[cfg_attr(docsrs, doc(cfg(feature = "use-tokio")))]
 #[pin_project]
 pub struct AsyncBufReadCompressor<R: AsyncBufRead + Unpin> {
     #[pin]
