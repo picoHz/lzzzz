@@ -1,7 +1,9 @@
 use super::BufReadDecompressor;
-use crate::lz4f::{DecompressorBuilder, FrameInfo};
+use crate::{
+    lz4f::{DecompressorBuilder, FrameInfo},
+    Buffer,
+};
 use std::{
-    borrow::Cow,
     convert::TryInto,
     io::{BufReader, Read, Result},
 };
@@ -50,8 +52,8 @@ impl<'a, R: Read> ReadDecompressor<'a, R> {
         self.inner.read_frame_info()
     }
 
-    pub fn set_dict(&mut self, dict: Cow<'a, [u8]>) {
-        self.inner.set_dict(dict);
+    pub fn set_dict<B: Into<Buffer<'a>>>(&mut self, dict: B) {
+        self.inner.set_dict(dict.into());
     }
 }
 

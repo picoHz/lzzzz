@@ -21,9 +21,9 @@ use crate::{
         },
         FrameInfo,
     },
-    Error, Report, Result,
+    Buffer, Error, Report, Result,
 };
-use std::{borrow::Cow, cmp, mem, mem::MaybeUninit};
+use std::{cmp, mem, mem::MaybeUninit};
 
 enum State {
     Header {
@@ -40,7 +40,7 @@ pub(crate) struct Decompressor<'a> {
     ctx: DecompressionContext,
     state: State,
     buffer: Vec<u8>,
-    dict: Cow<'a, [u8]>,
+    dict: Buffer<'a>,
     header_only: bool,
 }
 
@@ -59,12 +59,12 @@ impl<'a> Decompressor<'a> {
                 header_len: 0,
             },
             buffer: Vec::new(),
-            dict: Cow::Borrowed(&[]),
+            dict: Buffer::new(),
             header_only: false,
         })
     }
 
-    pub fn set_dict(&mut self, dict: Cow<'a, [u8]>) {
+    pub fn set_dict(&mut self, dict: Buffer<'a>) {
         self.dict = dict;
     }
 

@@ -25,27 +25,27 @@
 
 mod api;
 
-use crate::{lz4, lz4::CompressionMode, Error, Report, Result};
+use crate::{lz4, lz4::CompressionMode, Buffer, Error, Report, Result};
 use api::{CompressionContext, DecompressionContext};
-use std::{borrow::Cow, cmp, collections::LinkedList};
+use std::{cmp, collections::LinkedList};
 
 /// Streaming compressor
 pub struct Compressor<'a> {
     ctx: CompressionContext,
-    dict: Cow<'a, [u8]>,
-    prev: Cow<'a, [u8]>,
+    dict: Buffer<'a>,
+    prev: Buffer<'a>,
 }
 
 impl<'a> Compressor<'a> {
     pub fn new() -> Result<Self> {
         Ok(Self {
             ctx: CompressionContext::new()?,
-            dict: Cow::Borrowed(&[]),
-            prev: Cow::Borrowed(&[]),
+            dict: Buffer::new(),
+            prev: Buffer::new(),
         })
     }
 
-    pub fn with_dict<D: Into<Cow<'a, [u8]>>>(&mut self, dict: D) -> Result<Self> {
+    pub fn with_dict<B: Into<Buffer<'a>>>(&mut self, dict: B) -> Result<Self> {
         let mut comp = Self::new()?;
         comp.reset_with_dict(dict);
         Ok(comp)
@@ -55,7 +55,7 @@ impl<'a> Compressor<'a> {
         self.ctx.reset();
     }
 
-    pub fn reset_with_dict<D: Into<Cow<'a, [u8]>>>(&mut self, dict: D) {
+    pub fn reset_with_dict<B: Into<Buffer<'a>>>(&mut self, dict: B) {
         let dict = dict.into();
         self.ctx.load_dict(&dict);
         self.dict = dict;
@@ -91,9 +91,9 @@ impl<'a> Compressor<'a> {
     /// # .dst_len();
     /// # assert_eq!(&buf[..len], &data[..]);
     /// ```
-    pub fn next<S: Into<Cow<'a, [u8]>>>(
+    pub fn next<B: Into<Buffer<'a>>>(
         &mut self,
-        src: S,
+        src: B,
         dst: &mut [u8],
         mode: CompressionMode,
     ) -> Result<Report> {
@@ -117,9 +117,9 @@ impl<'a> Compressor<'a> {
         }
     }
 
-    pub fn next_to_vec<S: Into<Cow<'a, [u8]>>>(
+    pub fn next_to_vec<B: Into<Buffer<'a>>>(
         &mut self,
-        src: S,
+        src: B,
         dst: &mut Vec<u8>,
         mode: CompressionMode,
     ) -> Result<Report> {
@@ -142,7 +142,7 @@ impl<'a> Compressor<'a> {
 /// Streaming decompressor
 pub struct Decompressor<'a> {
     ctx: DecompressionContext,
-    dict: Cow<'a, [u8]>,
+    dict: Buffer<'a>,
     cache: LinkedList<Vec<u8>>,
     cache_len: usize,
     last_len: usize,
@@ -152,14 +152,14 @@ impl<'a> Decompressor<'a> {
     pub fn new() -> Result<Self> {
         Ok(Self {
             ctx: DecompressionContext::new()?,
-            dict: Cow::Borrowed(&[]),
+            dict: Buffer::new(),
             cache: LinkedList::new(),
             cache_len: 0,
             last_len: 0,
         })
     }
 
-    pub fn with_dict<D: Into<Cow<'a, [u8]>>>(&mut self, dict: D) -> Result<Self> {
+    pub fn with_dict<B: Into<Buffer<'a>>>(&mut self, dict: B) -> Result<Self> {
         let mut decomp = Self::new()?;
         decomp.reset_with_dict(dict)?;
         Ok(decomp)
@@ -169,7 +169,7 @@ impl<'a> Decompressor<'a> {
         self.reset_with_dict(&[][..])
     }
 
-    pub fn reset_with_dict<D: Into<Cow<'a, [u8]>>>(&mut self, dict: D) -> Result<()> {
+    pub fn reset_with_dict<B: Into<Buffer<'a>>>(&mut self, dict: B) -> Result<()> {
         let dict = dict.into();
         self.ctx.reset(&dict)?;
         self.dict = dict;

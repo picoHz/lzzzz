@@ -1,9 +1,8 @@
 //! LZ4 Block Compressor/Decompressor
 mod api;
 
-use crate::{Error, Report, Result};
+use crate::{Buffer, Error, Report, Result};
 use api::ExtState;
-use std::borrow::Cow;
 
 /// Compression mode specifier
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
@@ -184,7 +183,7 @@ pub enum DecompressionMode<'a> {
         uncompressed_size: usize,
     },
     Dictionary {
-        data: Cow<'a, [u8]>,
+        data: Buffer<'a>,
     },
 }
 

@@ -34,17 +34,16 @@ mod api;
 use crate::{
     lz4,
     lz4_hc::{CompressionLevel, CompressionMode},
-    Report, Result,
+    Buffer, Report, Result,
 };
 use api::CompressionContext;
-use std::borrow::Cow;
 
 /// Streaming compressor
 pub struct Compressor<'a> {
     ctx: CompressionContext,
     compression_level: CompressionLevel,
-    dict: Cow<'a, [u8]>,
-    prev: Cow<'a, [u8]>,
+    dict: Buffer<'a>,
+    prev: Buffer<'a>,
 }
 
 impl<'a> Compressor<'a> {
@@ -52,8 +51,8 @@ impl<'a> Compressor<'a> {
         Ok(Self {
             ctx: CompressionContext::new()?,
             compression_level: CompressionLevel::Default,
-            dict: Cow::Borrowed(&[]),
-            prev: Cow::Borrowed(&[]),
+            dict: Buffer::new(),
+            prev: Buffer::new(),
         })
     }
 
@@ -74,7 +73,8 @@ impl<'a> Compressor<'a> {
         self.ctx.reset(self.compression_level.as_i32());
     }
 
-    pub fn reset_with_dict(&mut self, dict: Cow<'a, [u8]>) {
+    pub fn reset_with_dict<B: Into<Buffer<'a>>>(&mut self, dict: B) {
+        let dict = dict.into();
         if dict.is_empty() {
             self.reset();
         } else {
@@ -113,9 +113,9 @@ impl<'a> Compressor<'a> {
     /// # .dst_len();
     /// # assert_eq!(&buf[..len], &data[..]);
     /// ```
-    pub fn next<S: Into<Cow<'a, [u8]>>>(
+    pub fn next<B: Into<Buffer<'a>>>(
         &mut self,
-        src: S,
+        src: B,
         dst: &mut [u8],
         mode: CompressionMode,
     ) -> Result<Report> {
@@ -128,9 +128,9 @@ impl<'a> Compressor<'a> {
         result
     }
 
-    pub fn next_to_vec<S: Into<Cow<'a, [u8]>>>(
+    pub fn next_to_vec<B: Into<Buffer<'a>>>(
         &mut self,
-        src: S,
+        src: B,
         dst: &mut Vec<u8>,
         mode: CompressionMode,
     ) -> Result<Report> {

@@ -1,8 +1,10 @@
 mod api;
 mod binding;
+mod buffer;
 use std::{convert, fmt, io};
 
 pub use api::{version_number, version_string};
+pub use buffer::Buffer;
 
 /// A result of successful compression/decompression
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
