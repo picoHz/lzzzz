@@ -47,16 +47,19 @@ impl<'a> Compressor<'a> {
         })
     }
 
+    pub fn with_dict<D: Into<Cow<'a, [u8]>>>(&mut self, dict: D) -> Result<Self> {
+        let mut comp = Self::new()?;
+        comp.reset_with_dict(dict);
+        Ok(comp)
+    }
+
     pub fn reset(&mut self) {
         self.ctx.reset();
     }
 
-    pub fn reset_with_dict(&mut self, dict: Cow<'a, [u8]>) {
-        if dict.is_empty() {
-            self.reset();
-        } else {
-            self.ctx.load_dict(&dict);
-        }
+    pub fn reset_with_dict<D: Into<Cow<'a, [u8]>>>(&mut self, dict: D) {
+        let dict = dict.into();
+        self.ctx.load_dict(&dict);
         self.dict = dict;
     }
 
@@ -158,11 +161,18 @@ impl<'a> Decompressor<'a> {
         })
     }
 
-    pub fn reset(&mut self) -> Result<()> {
-        self.reset_with_dict(Cow::Borrowed(&[]))
+    pub fn with_dict<D: Into<Cow<'a, [u8]>>>(&mut self, dict: D) -> Result<Self> {
+        let mut decomp = Self::new()?;
+        decomp.reset_with_dict(dict)?;
+        Ok(decomp)
     }
 
-    pub fn reset_with_dict(&mut self, dict: Cow<'a, [u8]>) -> Result<()> {
+    pub fn reset(&mut self) -> Result<()> {
+        self.reset_with_dict(&[][..])
+    }
+
+    pub fn reset_with_dict<D: Into<Cow<'a, [u8]>>>(&mut self, dict: D) -> Result<()> {
+        let dict = dict.into();
         self.ctx.reset(&dict)?;
         self.dict = dict;
         self.cache.clear();
