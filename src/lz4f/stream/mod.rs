@@ -3,8 +3,8 @@
 pub mod comp;
 pub mod decomp;
 
-use crate::common::DEFAULT_BUF_SIZE;
 use crate::{
+    common::DEFAULT_BUF_SIZE,
     lz4f::{
         AutoFlush, BlockChecksum, BlockMode, BlockSize, CompressionLevel, ContentChecksum,
         Dictionary, FavorDecSpeed, Preferences,

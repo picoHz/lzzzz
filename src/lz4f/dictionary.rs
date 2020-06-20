@@ -25,3 +25,17 @@ impl Dictionary {
         &self.0
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::Dictionary;
+    use static_assertions::assert_impl_all;
+
+    assert_impl_all!(Dictionary: Send, Sync);
+
+    #[test]
+    fn create_dictionary() {
+        assert!(Dictionary::new(&[]).is_ok());
+        assert!(Dictionary::new(&b"quick brown fox jumps over the lazy dog"[..]).is_ok());
+    }
+}

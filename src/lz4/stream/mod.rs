@@ -25,8 +25,7 @@
 
 mod api;
 
-use crate::common::DEFAULT_BUF_SIZE;
-use crate::{lz4, lz4::CompressionMode, Buffer, Error, Report, Result};
+use crate::{common::DEFAULT_BUF_SIZE, lz4, lz4::CompressionMode, Buffer, Error, Report, Result};
 use api::{CompressionContext, DecompressionContext};
 use std::{cmp, collections::LinkedList};
 

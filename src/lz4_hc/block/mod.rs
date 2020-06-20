@@ -1,7 +1,6 @@
 mod api;
 
-use crate::lz4;
-use crate::{Error, Report, Result};
+use crate::{lz4, Error, Report, Result};
 use api::ExtState;
 use std::cmp::Ordering;
 

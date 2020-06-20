@@ -1,10 +1,8 @@
 //! LZ4 Frame Compressor/Decompressor
 
 use super::api;
-use crate::common::DEFAULT_BUF_SIZE;
-use crate::{lz4f::Preferences, Error, Report, Result};
-use std::cell::RefCell;
-use std::ops::Deref;
+use crate::{common::DEFAULT_BUF_SIZE, lz4f::Preferences, Error, Report, Result};
+use std::{cell::RefCell, ops::Deref};
 
 /// Calculate the maximum size of the compressed data from the original size.
 pub fn max_compressed_size(original_size: usize, prefs: &Preferences) -> usize {
