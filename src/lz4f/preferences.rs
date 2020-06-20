@@ -98,6 +98,40 @@ impl Preferences {
     pub const fn favor_dec_speed(&self) -> FavorDecSpeed {
         self.favor_dec_speed
     }
+
+    pub(super) fn set_block_size(&mut self, block_size: BlockSize) {
+        self.frame_info.set_block_size(block_size);
+    }
+
+    pub(super) fn set_block_mode(&mut self, block_mode: BlockMode) {
+        self.frame_info.set_block_mode(block_mode);
+    }
+
+    pub(super) fn set_content_checksum(&mut self, checksum: ContentChecksum) {
+        self.frame_info.set_content_checksum(checksum);
+    }
+
+    pub(super) fn set_dict_id(&mut self, dict_id: u32) {
+        self.frame_info.set_dict_id(dict_id);
+    }
+
+    pub(super) fn set_block_checksum(&mut self, checksum: BlockChecksum) {
+        self.frame_info.set_block_checksum(checksum);
+    }
+
+    pub(super) fn set_compression_level(&mut self, level: CompressionLevel) {
+        // Workaround for the integer overflow bug in liblz4.
+        const MIN_COMPRESSION_LEVEL: i32 = -33_554_430;
+        self.compression_level = cmp::max(level.as_i32(), MIN_COMPRESSION_LEVEL) as c_int;
+    }
+
+    pub(super) fn set_favor_dec_speed(&mut self, dec_speed: FavorDecSpeed) {
+        self.favor_dec_speed = dec_speed;
+    }
+
+    pub(super) fn set_auto_flush(&mut self, auto_flush: AutoFlush) {
+        self.auto_flush = auto_flush;
+    }
 }
 
 impl Default for Preferences {
@@ -138,51 +172,49 @@ impl PreferencesBuilder {
 
     /// Set the block size.
     pub fn block_size(mut self, block_size: BlockSize) -> Self {
-        self.pref.frame_info.set_block_size(block_size);
+        self.pref.set_block_size(block_size);
         self
     }
 
     /// Set the block mode.
     pub fn block_mode(mut self, block_mode: BlockMode) -> Self {
-        self.pref.frame_info.set_block_mode(block_mode);
+        self.pref.set_block_mode(block_mode);
         self
     }
 
     /// Set the content checksum.
     pub fn content_checksum(mut self, checksum: ContentChecksum) -> Self {
-        self.pref.frame_info.set_content_checksum(checksum);
+        self.pref.set_content_checksum(checksum);
         self
     }
 
     /// Set the dict id.
     pub fn dict_id(mut self, dict_id: u32) -> Self {
-        self.pref.frame_info.set_dict_id(dict_id);
+        self.pref.set_dict_id(dict_id);
         self
     }
 
     /// Set the block checksum.
     pub fn block_checksum(mut self, checksum: BlockChecksum) -> Self {
-        self.pref.frame_info.set_block_checksum(checksum);
+        self.pref.set_block_checksum(checksum);
         self
     }
 
     /// Set the compression level.
     pub fn compression_level(mut self, level: CompressionLevel) -> Self {
-        // Workaround for the integer overflow bug in liblz4.
-        const MIN_COMPRESSION_LEVEL: i32 = -33_554_430;
-        self.pref.compression_level = cmp::max(level.as_i32(), MIN_COMPRESSION_LEVEL) as c_int;
+        self.pref.set_compression_level(level);
         self
     }
 
     /// Set the decompression speed mode flag.
-    pub const fn favor_dec_speed(mut self, dec_speed: FavorDecSpeed) -> Self {
-        self.pref.favor_dec_speed = dec_speed;
+    pub fn favor_dec_speed(mut self, dec_speed: FavorDecSpeed) -> Self {
+        self.pref.set_favor_dec_speed(dec_speed);
         self
     }
 
     /// Set the auto flush flag.
-    pub const fn auto_flush(mut self, auto_flush: AutoFlush) -> Self {
-        self.pref.auto_flush = auto_flush;
+    pub fn auto_flush(mut self, auto_flush: AutoFlush) -> Self {
+        self.pref.set_auto_flush(auto_flush);
         self
     }
 
