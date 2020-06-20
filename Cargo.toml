@@ -14,7 +14,7 @@ include = ["src/**/*", "build.rs", "vendor/liblz4/*", "Cargo.toml"]
 [dependencies]
 tokio = { version = "0.2.21", optional = true }
 pin-project = { version = "0.4.22", optional = true }
-bytes = { version = "0.5.4", optional = true }
+bytes = { version = "0.5.5", optional = true }
 
 [dev-dependencies]
 rand = { version = "0.7.3", features = ["small_rng"] }
