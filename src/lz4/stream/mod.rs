@@ -251,15 +251,24 @@ mod tests {
     fn decompressor() {
         let mut comp = Compressor::new().unwrap();
         let mut decomp = Decompressor::new().unwrap();
-        for _ in 0..100 {
+        let mut region = vec![0; 1000];
+        for i in 0..10 {
+            for b in region.iter_mut() {
+                *b = i as u8;
+            }
             let mut v = Vec::new();
+            let s = &region[(i * 100)..][..100];
+            println!("> {:?}", s);
             comp.next_to_vec(
-                format!(">>>> xxxxx").as_bytes().to_vec(),
+                #[allow(unsafe_code)]
+                unsafe {
+                    std::slice::from_raw_parts(s.as_ptr(), s.len())
+                },
                 &mut v,
                 CompressionMode::Default,
             )
             .unwrap();
-            decomp.next(&v, 10).unwrap();
+            println!("{:?}", decomp.next(&v, 100).unwrap());
         }
     }
 }
