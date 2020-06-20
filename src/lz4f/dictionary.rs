@@ -16,6 +16,7 @@ use std::sync::Arc;
 pub struct Dictionary(Arc<DictionaryHandle>);
 
 impl Dictionary {
+    /// Build a new `Dictionary`.
     pub fn new(data: &[u8]) -> Result<Self> {
         DictionaryHandle::new(data).map(|dict| Self(Arc::new(dict)))
     }

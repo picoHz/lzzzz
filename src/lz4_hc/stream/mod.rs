@@ -91,36 +91,6 @@ impl<'a> Compressor<'a> {
         self.ctx.set_favor_dec_speed(flag);
     }
 
-    /// LZ4 Streaming Compressor/Decompressor
-    ///
-    /// # Example
-    /// ```
-    /// use lzzzz::{lz4, lz4_hc};
-    ///
-    /// let mut stream = lz4_hc::Compressor::new().unwrap();
-    ///
-    /// let data = &b"As soon as they had strength, they arose, joined hands again, and went on."[..];
-    /// let mut buf = [0u8; 2048];
-    ///
-    /// // The slice should have enough space.
-    /// assert!(buf.len() >= lz4::max_compressed_size(data.len()));
-    ///
-    /// let len = stream
-    ///     .next(data, &mut buf, lz4_hc::CompressionMode::Default)
-    ///     .unwrap()
-    ///     .dst_len();
-    /// let compressed = &buf[..len];
-    ///
-    /// # let mut buf = [0u8; 2048];
-    /// # let len = lz4::decompress(
-    /// #     compressed,
-    /// #     &mut buf[..data.len()],
-    /// #     lz4::DecompressionMode::Default,
-    /// # )
-    /// # .unwrap()
-    /// # .dst_len();
-    /// # assert_eq!(&buf[..len], &data[..]);
-    /// ```
     pub fn next<B>(&mut self, src: B, dst: &mut [u8], mode: CompressionMode) -> Result<Report>
     where
         B: Into<Buffer<'a>>,

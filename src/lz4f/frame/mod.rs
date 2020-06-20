@@ -4,6 +4,7 @@ use super::api;
 use crate::common::DEFAULT_BUF_SIZE;
 use crate::{lz4f::Preferences, Error, Report, Result};
 use std::cell::RefCell;
+use std::ops::Deref;
 
 /// Calculate the maximum size of the compressed data from the original size.
 pub fn max_compressed_size(original_size: usize, prefs: &Preferences) -> usize {
@@ -110,9 +111,13 @@ pub fn decompress_to_vec(src: &[u8], dst: &mut Vec<u8>) -> Result<Report> {
     })
 }
 
-struct DecompressionCtx;
+struct DecompressionCtx(RefCell<api::DecompressionContext>);
 
 impl DecompressionCtx {
+    fn new() -> Self {
+        Self(RefCell::new(api::DecompressionContext::new().unwrap()))
+    }
+
     fn with<F, R>(f: F) -> R
     where
         F: FnOnce(&RefCell<api::DecompressionContext>) -> R,
@@ -124,12 +129,18 @@ impl DecompressionCtx {
 
         #[cfg(not(feature = "use-tls"))]
         {
-            let ctx = RefCell::new(api::DecompressionContext::new().unwrap());
-            (f)(&ctx)
+            (f)(&Self::new())
         }
     }
 }
 
+impl Deref for DecompressionCtx {
+    type Target = RefCell<api::DecompressionContext>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
 #[cfg(feature = "use-tls")]
-thread_local!(static DECOMPRESSION_CTX: RefCell<api::DecompressionContext> = 
-    RefCell::new(api::DecompressionContext::new().unwrap()));
+thread_local!(static DECOMPRESSION_CTX: DecompressionCtx = DecompressionCtx::new());

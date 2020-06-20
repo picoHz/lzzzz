@@ -26,11 +26,13 @@ impl<D> CompressorBuilder<D> {
         }
     }
 
+    /// Set the compression preferences.
     pub const fn preferences(mut self, pref: Preferences) -> Self {
         self.pref = pref;
         self
     }
 
+    /// Set the compression dictionary.
     pub fn dict(mut self, dict: Dictionary) -> Self {
         self.dict = Some(dict);
         self
@@ -58,6 +60,7 @@ impl<D> DecompressorBuilder<D> {
         }
     }
 
+    /// Set the capacity of the internal buffer.
     pub const fn capacity(mut self, capacity: usize) -> Self {
         self.capacity = capacity;
         self

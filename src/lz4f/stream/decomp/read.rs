@@ -38,6 +38,7 @@ pub struct ReadDecompressor<'a, R: Read> {
 }
 
 impl<'a, R: Read> ReadDecompressor<'a, R> {
+    /// Create a new `ReadDecompressor`.
     pub fn new(reader: R) -> crate::Result<Self> {
         DecompressorBuilder::new(reader).build()
     }
@@ -52,6 +53,7 @@ impl<'a, R: Read> ReadDecompressor<'a, R> {
         self.inner.read_frame_info()
     }
 
+    /// Set the dictionary.
     pub fn set_dict<B>(&mut self, dict: B)
     where
         B: Into<Buffer<'a>>,
