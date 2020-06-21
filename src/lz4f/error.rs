@@ -31,7 +31,7 @@ pub enum Error {
 }
 
 impl Error {
-    pub const fn new(kind: ErrorKind) -> Self {
+    pub(super) const fn new(kind: ErrorKind) -> Self {
         Self::Lz4f(kind)
     }
 }
