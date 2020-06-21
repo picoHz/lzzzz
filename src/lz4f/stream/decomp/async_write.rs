@@ -2,7 +2,7 @@
 
 use super::Decompressor;
 use crate::{
-    lz4f::{DecompressorBuilder, FrameInfo},
+    lz4f::{DecompressorBuilder, Error, FrameInfo, Result},
     Buffer,
 };
 use pin_project::pin_project;
@@ -12,7 +12,7 @@ use std::{
     pin::Pin,
     task::{Context, Poll},
 };
-use tokio::io::{AsyncWrite, Result};
+use tokio::io::AsyncWrite;
 
 /// AsyncWrite-based streaming decompressor
 ///
@@ -50,11 +50,11 @@ pub struct AsyncWriteDecompressor<'a, W: AsyncWrite + Unpin> {
 }
 
 impl<'a, W: AsyncWrite + Unpin> AsyncWriteDecompressor<'a, W> {
-    pub fn new(writer: W) -> crate::lz4f::Result<Self> {
+    pub fn new(writer: W) -> Result<Self> {
         DecompressorBuilder::new(writer).build()
     }
 
-    fn from_builder(writer: W, capacity: usize) -> crate::lz4f::Result<Self> {
+    fn from_builder(writer: W, capacity: usize) -> Result<Self> {
         Ok(Self {
             device: writer,
             inner: Decompressor::new(capacity)?,
@@ -77,7 +77,7 @@ impl<'a, W: AsyncWrite + Unpin> AsyncWriteDecompressor<'a, W> {
         self.inner.decode_header_only(flag);
     }
 
-    fn write_buffer(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<()>> {
+    fn write_buffer(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<tokio::io::Result<()>> {
         let me = self.project();
         if let Poll::Ready(len) = me.device.poll_write(cx, &me.inner.buf()[..*me.consumed])? {
             *me.consumed += len;
@@ -99,14 +99,14 @@ impl<W: AsyncWrite + Unpin> AsyncWrite for AsyncWriteDecompressor<'_, W> {
         mut self: Pin<&mut Self>,
         cx: &mut Context<'_>,
         buf: &[u8],
-    ) -> Poll<Result<usize>> {
+    ) -> Poll<tokio::io::Result<usize>> {
         let mut me = Pin::new(&mut *self);
         let report = me.inner.decompress(buf)?;
         let _ = me.write_buffer(cx)?;
         Poll::Ready(Ok(report.src_len().unwrap()))
     }
 
-    fn poll_flush(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<()>> {
+    fn poll_flush(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<tokio::io::Result<()>> {
         if let Poll::Ready(_) = Pin::new(&mut *self).write_buffer(cx)? {
             self.project().device.poll_flush(cx)
         } else {
@@ -114,14 +114,17 @@ impl<W: AsyncWrite + Unpin> AsyncWrite for AsyncWriteDecompressor<'_, W> {
         }
     }
 
-    fn poll_shutdown(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<()>> {
+    fn poll_shutdown(
+        mut self: Pin<&mut Self>,
+        cx: &mut Context<'_>,
+    ) -> Poll<tokio::io::Result<()>> {
         Pin::new(&mut *self).poll_flush(cx)
     }
 }
 
 impl<'a, W: AsyncWrite + Unpin> TryInto<AsyncWriteDecompressor<'a, W>> for DecompressorBuilder<W> {
-    type Error = crate::lz4f::Error;
-    fn try_into(self) -> crate::lz4f::Result<AsyncWriteDecompressor<'a, W>> {
+    type Error = Error;
+    fn try_into(self) -> Result<AsyncWriteDecompressor<'a, W>> {
         AsyncWriteDecompressor::from_builder(self.device, self.capacity)
     }
 }

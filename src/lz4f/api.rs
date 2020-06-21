@@ -8,7 +8,6 @@ use super::{
     },
     Dictionary,
 };
-use crate::Error2;
 use crate::{
     lz4f::{Error, ErrorKind, FrameInfo, Preferences, Result},
     Report,
@@ -35,7 +34,7 @@ impl CompressionContext {
             result_from_code(code).and_then(|_| {
                 Ok(Self {
                     ctx: NonNull::new(ctx.assume_init())
-                        .ok_or(Error2::new(crate::ErrorKind::NullPointerUnexpected))?,
+                        .ok_or(crate::Error::new(crate::ErrorKind::NullPointerUnexpected))?,
                     dict,
                 })
             })
@@ -133,7 +132,7 @@ impl DecompressionContext {
             result_from_code(code).and_then(|_| {
                 Ok(Self {
                     ctx: NonNull::new(ctx.assume_init())
-                        .ok_or(Error2::new(crate::ErrorKind::NullPointerUnexpected))?,
+                        .ok_or(crate::Error::new(crate::ErrorKind::NullPointerUnexpected))?,
                 })
             })
         }
@@ -261,7 +260,7 @@ impl DictionaryHandle {
     pub fn new(data: &[u8]) -> Result<Self> {
         let dict = unsafe { binding::LZ4F_createCDict(data.as_ptr() as *const c_void, data.len()) };
         NonNull::new(dict)
-            .ok_or_else(|| Error2::new(crate::ErrorKind::NullPointerUnexpected).into())
+            .ok_or_else(|| crate::Error::new(crate::ErrorKind::NullPointerUnexpected).into())
             .map(Self)
     }
 }

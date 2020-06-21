@@ -34,46 +34,6 @@ impl Report {
     }
 }
 
-/// A specialized Result type for compression/decompression operations.
-pub type Result<T> = std::result::Result<T, Error>;
-
-/// Compression/Decompression error
-#[derive(Debug)]
-pub enum Error {
-    IOError(io::Error),
-    CompressionFailed,
-    DecompressionFailed,
-    StreamResetFailed,
-    CompressedDataIncomplete,
-    NullPointerUnexpected,
-    CompressionModeInvalid,
-    DecompressionModeInvalid,
-    DictionaryChangedDuringDecompression,
-}
-
-impl fmt::Display for Error {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), fmt::Error> {
-        <Self as fmt::Debug>::fmt(self, f)
-    }
-}
-
-impl convert::From<Error> for io::Error {
-    fn from(err: Error) -> Self {
-        match err {
-            Error::IOError(err) => err,
-            _ => Self::new(io::ErrorKind::Other, err),
-        }
-    }
-}
-
-impl convert::From<io::Error> for Error {
-    fn from(err: io::Error) -> Self {
-        Self::IOError(err)
-    }
-}
-
-impl std::error::Error for Error {}
-
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum ErrorKind {
     CompressionFailed,
@@ -87,11 +47,11 @@ pub enum ErrorKind {
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-pub struct Error2 {
+pub struct Error {
     kind: ErrorKind,
 }
 
-impl Error2 {
+impl Error {
     pub const fn new(kind: ErrorKind) -> Self {
         Self { kind }
     }
@@ -101,19 +61,19 @@ impl Error2 {
     }
 }
 
-impl convert::From<Error2> for io::Error {
-    fn from(err: Error2) -> Self {
+impl convert::From<Error> for io::Error {
+    fn from(err: Error) -> Self {
         Self::new(io::ErrorKind::Other, err)
     }
 }
 
-impl fmt::Display for Error2 {
+impl fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), fmt::Error> {
         <Self as fmt::Debug>::fmt(self, f)
     }
 }
 
-impl std::error::Error for Error2 {}
+impl std::error::Error for Error {}
 
 /// A specialized Result type for compression/decompression operations.
-pub type Result2<T> = std::result::Result<T, Error2>;
+pub type Result<T> = std::result::Result<T, Error>;

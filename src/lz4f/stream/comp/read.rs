@@ -1,8 +1,8 @@
 use super::{BufReadCompressor, Dictionary, Preferences};
-use crate::lz4f::CompressorBuilder;
+use crate::lz4f::{CompressorBuilder, Error, Result};
 use std::{
     convert::TryInto,
-    io::{BufReader, Read, Result},
+    io::{BufReader, Read},
 };
 
 /// Read-based streaming compressor
@@ -34,15 +34,11 @@ pub struct ReadCompressor<R: Read> {
 }
 
 impl<R: Read> ReadCompressor<R> {
-    pub fn new(reader: R) -> crate::lz4f::Result<Self> {
+    pub fn new(reader: R) -> Result<Self> {
         CompressorBuilder::new(reader).build()
     }
 
-    fn from_builder(
-        device: R,
-        pref: Preferences,
-        dict: Option<Dictionary>,
-    ) -> crate::lz4f::Result<Self> {
+    fn from_builder(device: R, pref: Preferences, dict: Option<Dictionary>) -> Result<Self> {
         Ok(Self {
             inner: BufReadCompressor::from_builder(BufReader::new(device), pref, dict)?,
         })
@@ -50,14 +46,14 @@ impl<R: Read> ReadCompressor<R> {
 }
 
 impl<R: Read> Read for ReadCompressor<R> {
-    fn read(&mut self, buf: &mut [u8]) -> Result<usize> {
+    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
         self.inner.read(buf)
     }
 }
 
 impl<R: Read> TryInto<ReadCompressor<R>> for CompressorBuilder<R> {
-    type Error = crate::lz4f::Error;
-    fn try_into(self) -> crate::lz4f::Result<ReadCompressor<R>> {
+    type Error = Error;
+    fn try_into(self) -> Result<ReadCompressor<R>> {
         ReadCompressor::from_builder(self.device, self.pref, self.dict)
     }
 }

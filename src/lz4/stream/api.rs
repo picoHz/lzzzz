@@ -4,7 +4,7 @@ use super::super::{
     binding,
     binding::{LZ4DecStream, LZ4Stream},
 };
-use crate::{Error2, ErrorKind, Report, Result2};
+use crate::{Error, ErrorKind, Report, Result};
 
 use std::{
     mem::{size_of, MaybeUninit},
@@ -22,7 +22,7 @@ pub struct CompressionContext {
 }
 
 impl CompressionContext {
-    pub fn new() -> Result2<Self> {
+    pub fn new() -> Result<Self> {
         let mut stream = MaybeUninit::<LZ4Stream>::uninit();
         unsafe {
             let ptr = binding::LZ4_initStream(
@@ -36,7 +36,7 @@ impl CompressionContext {
             }
             NonNull::new(binding::LZ4_createStream())
         }
-        .ok_or(Error2::new(ErrorKind::NullPointerUnexpected))
+        .ok_or(Error::new(ErrorKind::NullPointerUnexpected))
         .map(|stream| Self {
             stream: Stream::Heap(stream),
         })
@@ -94,15 +94,15 @@ pub struct DecompressionContext {
 }
 
 impl DecompressionContext {
-    pub fn new() -> Result2<Self> {
+    pub fn new() -> Result<Self> {
         unsafe {
             let ptr = NonNull::new(binding::LZ4_createStreamDecode());
-            ptr.ok_or(Error2::new(ErrorKind::NullPointerUnexpected))
+            ptr.ok_or(Error::new(ErrorKind::NullPointerUnexpected))
                 .map(|stream| Self { stream })
         }
     }
 
-    pub fn reset(&mut self, dict: &[u8]) -> Result2<()> {
+    pub fn reset(&mut self, dict: &[u8]) -> Result<()> {
         let result = unsafe {
             binding::LZ4_setStreamDecode(
                 self.stream.as_ptr(),
@@ -113,11 +113,11 @@ impl DecompressionContext {
         if result == 1 {
             Ok(())
         } else {
-            Err(Error2::new(ErrorKind::StreamResetFailed))
+            Err(Error::new(ErrorKind::StreamResetFailed))
         }
     }
 
-    pub fn decompress(&mut self, src: &[u8], dst: &mut [u8]) -> Result2<Report> {
+    pub fn decompress(&mut self, src: &[u8], dst: &mut [u8]) -> Result<Report> {
         let result = unsafe {
             binding::LZ4_decompress_safe_continue(
                 self.stream.as_ptr(),
@@ -128,7 +128,7 @@ impl DecompressionContext {
             ) as i32
         };
         if result < 0 {
-            Err(Error2::new(ErrorKind::DecompressionFailed))
+            Err(Error::new(ErrorKind::DecompressionFailed))
         } else {
             Ok(Report {
                 dst_len: result as usize,

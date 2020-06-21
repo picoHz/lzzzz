@@ -1,11 +1,8 @@
 use crate::{
-    lz4f::{decomp::Decompressor, DecompressorBuilder, FrameInfo},
+    lz4f::{decomp::Decompressor, DecompressorBuilder, Error, FrameInfo, Result},
     Buffer,
 };
-use std::{
-    convert::TryInto,
-    io::{Result, Write},
-};
+use std::{convert::TryInto, io::Write};
 
 /// Write-based streaming decompressor
 ///
@@ -36,11 +33,11 @@ pub struct WriteDecompressor<'a, W: Write> {
 }
 
 impl<'a, W: Write> WriteDecompressor<'a, W> {
-    pub fn new(writer: W) -> crate::lz4f::Result<Self> {
+    pub fn new(writer: W) -> Result<Self> {
         DecompressorBuilder::new(writer).build()
     }
 
-    fn from_builder(device: W, capacity: usize) -> crate::lz4f::Result<Self> {
+    fn from_builder(device: W, capacity: usize) -> Result<Self> {
         Ok(Self {
             device,
             inner: Decompressor::new(capacity)?,
@@ -64,21 +61,21 @@ impl<'a, W: Write> WriteDecompressor<'a, W> {
 }
 
 impl<W: Write> Write for WriteDecompressor<'_, W> {
-    fn write(&mut self, buf: &[u8]) -> Result<usize> {
+    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
         let report = self.inner.decompress(buf)?;
         self.device.write_all(self.inner.buf())?;
         self.inner.clear_buf();
         Ok(report.src_len.unwrap())
     }
 
-    fn flush(&mut self) -> Result<()> {
+    fn flush(&mut self) -> std::io::Result<()> {
         self.device.flush()
     }
 }
 
 impl<'a, W: Write> TryInto<WriteDecompressor<'a, W>> for DecompressorBuilder<W> {
-    type Error = crate::lz4f::Error;
-    fn try_into(self) -> crate::lz4f::Result<WriteDecompressor<'a, W>> {
+    type Error = Error;
+    fn try_into(self) -> Result<WriteDecompressor<'a, W>> {
         WriteDecompressor::from_builder(self.device, self.capacity)
     }
 }

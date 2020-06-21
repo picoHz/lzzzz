@@ -2,7 +2,7 @@
 
 use super::Decompressor;
 use crate::{
-    lz4f::{DecompressorBuilder, FrameInfo},
+    lz4f::{DecompressorBuilder, Error, FrameInfo, Result},
     Buffer,
 };
 use pin_project::pin_project;
@@ -11,7 +11,7 @@ use std::{
     pin::Pin,
     task::{Context, Poll},
 };
-use tokio::io::{AsyncBufRead, AsyncRead, AsyncReadExt, Result};
+use tokio::io::{AsyncBufRead, AsyncRead, AsyncReadExt};
 
 /// AsyncBufRead-based streaming decompressor
 ///
@@ -55,11 +55,11 @@ pub struct AsyncBufReadDecompressor<'a, R: AsyncBufRead + Unpin> {
 }
 
 impl<'a, R: AsyncBufRead + Unpin> AsyncBufReadDecompressor<'a, R> {
-    pub fn new(reader: R) -> crate::lz4f::Result<Self> {
+    pub fn new(reader: R) -> Result<Self> {
         DecompressorBuilder::new(reader).build()
     }
 
-    pub(super) fn from_builder(device: R, capacity: usize) -> crate::lz4f::Result<Self> {
+    pub(super) fn from_builder(device: R, capacity: usize) -> Result<Self> {
         Ok(Self {
             device,
             inner: Decompressor::new(capacity)?,
@@ -74,7 +74,7 @@ impl<'a, R: AsyncBufRead + Unpin> AsyncBufReadDecompressor<'a, R> {
         self.inner.set_dict(dict.into());
     }
 
-    pub async fn read_frame_info(&mut self) -> Result<FrameInfo> {
+    pub async fn read_frame_info(&mut self) -> tokio::io::Result<FrameInfo> {
         loop {
             if let Some(frame) = self.inner.frame_info() {
                 return Ok(frame);
@@ -85,7 +85,7 @@ impl<'a, R: AsyncBufRead + Unpin> AsyncBufReadDecompressor<'a, R> {
         }
     }
 
-    fn fill_buf(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Result<()>> {
+    fn fill_buf(self: Pin<&mut Self>, cx: &mut Context) -> Poll<tokio::io::Result<()>> {
         let mut me = self.project();
         let inner_buf = match me.device.as_mut().poll_fill_buf(cx) {
             Poll::Pending => {
@@ -109,7 +109,7 @@ impl<'a, R: AsyncBufRead + Unpin> AsyncRead for AsyncBufReadDecompressor<'a, R> 
         mut self: Pin<&mut Self>,
         cx: &mut Context,
         buf: &mut [u8],
-    ) -> Poll<Result<usize>> {
+    ) -> Poll<tokio::io::Result<usize>> {
         if let Poll::Pending = Pin::new(&mut *self).fill_buf(cx)? {
             Poll::Pending
         } else {
@@ -127,7 +127,7 @@ impl<'a, R: AsyncBufRead + Unpin> AsyncRead for AsyncBufReadDecompressor<'a, R> 
 }
 
 impl<'a, R: AsyncBufRead + Unpin> AsyncBufRead for AsyncBufReadDecompressor<'a, R> {
-    fn poll_fill_buf(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<Result<&[u8]>> {
+    fn poll_fill_buf(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<tokio::io::Result<&[u8]>> {
         if let Poll::Pending = Pin::new(&mut *self).fill_buf(cx)? {
             Poll::Pending
         } else {
@@ -149,8 +149,8 @@ impl<'a, R: AsyncBufRead + Unpin> AsyncBufRead for AsyncBufReadDecompressor<'a, 
 impl<'a, R: AsyncBufRead + Unpin> TryInto<AsyncBufReadDecompressor<'a, R>>
     for DecompressorBuilder<R>
 {
-    type Error = crate::lz4f::Error;
-    fn try_into(self) -> crate::lz4f::Result<AsyncBufReadDecompressor<'a, R>> {
+    type Error = Error;
+    fn try_into(self) -> Result<AsyncBufReadDecompressor<'a, R>> {
         AsyncBufReadDecompressor::from_builder(self.device, self.capacity)
     }
 }

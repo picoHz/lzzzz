@@ -1,8 +1,8 @@
 use super::{Compressor, Dictionary, Preferences};
-use crate::lz4f::CompressorBuilder;
+use crate::lz4f::{CompressorBuilder, Error, Result};
 use std::{
     convert::TryInto,
-    io::{BufRead, Read, Result},
+    io::{BufRead, Read},
 };
 
 /// BufRead-based streaming compressor
@@ -40,7 +40,7 @@ pub struct BufReadCompressor<R: BufRead> {
 }
 
 impl<R: BufRead> BufReadCompressor<R> {
-    pub fn new(reader: R) -> crate::lz4f::Result<Self> {
+    pub fn new(reader: R) -> Result<Self> {
         CompressorBuilder::new(reader).build()
     }
 
@@ -48,7 +48,7 @@ impl<R: BufRead> BufReadCompressor<R> {
         device: R,
         pref: Preferences,
         dict: Option<Dictionary>,
-    ) -> crate::lz4f::Result<Self> {
+    ) -> Result<Self> {
         Ok(Self {
             device,
             inner: Compressor::new(pref, dict)?,
@@ -58,7 +58,7 @@ impl<R: BufRead> BufReadCompressor<R> {
 }
 
 impl<R: BufRead> Read for BufReadCompressor<R> {
-    fn read(&mut self, buf: &mut [u8]) -> Result<usize> {
+    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
         let consumed = {
             let inner_buf = self.device.fill_buf()?;
             if inner_buf.is_empty() {
@@ -86,7 +86,7 @@ impl<R: BufRead> Read for BufReadCompressor<R> {
 }
 
 impl<R: BufRead> BufRead for BufReadCompressor<R> {
-    fn fill_buf(&mut self) -> Result<&[u8]> {
+    fn fill_buf(&mut self) -> std::io::Result<&[u8]> {
         let _ = self.read(&mut [])?;
         Ok(&self.inner.buf()[self.consumed..])
     }
@@ -101,8 +101,8 @@ impl<R: BufRead> BufRead for BufReadCompressor<R> {
 }
 
 impl<R: BufRead> TryInto<BufReadCompressor<R>> for CompressorBuilder<R> {
-    type Error = crate::lz4f::Error;
-    fn try_into(self) -> crate::lz4f::Result<BufReadCompressor<R>> {
+    type Error = Error;
+    fn try_into(self) -> Result<BufReadCompressor<R>> {
         BufReadCompressor::from_builder(self.device, self.pref, self.dict)
     }
 }

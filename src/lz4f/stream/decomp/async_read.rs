@@ -2,7 +2,7 @@
 
 use super::AsyncBufReadDecompressor;
 use crate::{
-    lz4f::{DecompressorBuilder, FrameInfo},
+    lz4f::{DecompressorBuilder, Error, FrameInfo, Result},
     Buffer,
 };
 use pin_project::pin_project;
@@ -11,7 +11,7 @@ use std::{
     pin::Pin,
     task::{Context, Poll},
 };
-use tokio::io::{AsyncRead, BufReader, Result};
+use tokio::io::{AsyncRead, BufReader};
 
 /// AsyncRead-based streaming decompressor
 ///
@@ -51,11 +51,11 @@ pub struct AsyncReadDecompressor<'a, R: AsyncRead + Unpin> {
 }
 
 impl<'a, R: AsyncRead + Unpin> AsyncReadDecompressor<'a, R> {
-    pub fn new(reader: R) -> crate::lz4f::Result<Self> {
+    pub fn new(reader: R) -> Result<Self> {
         DecompressorBuilder::new(reader).build()
     }
 
-    fn from_builder(device: R, capacity: usize) -> crate::lz4f::Result<Self> {
+    fn from_builder(device: R, capacity: usize) -> Result<Self> {
         Ok(Self {
             inner: AsyncBufReadDecompressor::from_builder(BufReader::new(device), capacity)?,
         })
@@ -68,20 +68,24 @@ impl<'a, R: AsyncRead + Unpin> AsyncReadDecompressor<'a, R> {
         self.inner.set_dict(dict.into());
     }
 
-    pub async fn read_frame_info(&mut self) -> Result<FrameInfo> {
+    pub async fn read_frame_info(&mut self) -> tokio::io::Result<FrameInfo> {
         self.inner.read_frame_info().await
     }
 }
 
 impl<'a, R: AsyncRead + Unpin> AsyncRead for AsyncReadDecompressor<'a, R> {
-    fn poll_read(self: Pin<&mut Self>, cx: &mut Context, buf: &mut [u8]) -> Poll<Result<usize>> {
+    fn poll_read(
+        self: Pin<&mut Self>,
+        cx: &mut Context,
+        buf: &mut [u8],
+    ) -> Poll<tokio::io::Result<usize>> {
         self.project().inner.poll_read(cx, buf)
     }
 }
 
 impl<'a, R: AsyncRead + Unpin> TryInto<AsyncReadDecompressor<'a, R>> for DecompressorBuilder<R> {
-    type Error = crate::lz4f::Error;
-    fn try_into(self) -> crate::lz4f::Result<AsyncReadDecompressor<'a, R>> {
+    type Error = Error;
+    fn try_into(self) -> Result<AsyncReadDecompressor<'a, R>> {
         AsyncReadDecompressor::from_builder(self.device, self.capacity)
     }
 }

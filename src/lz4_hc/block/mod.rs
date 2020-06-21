@@ -1,6 +1,6 @@
 mod api;
 
-use crate::{lz4, Error2, ErrorKind, Report, Result2};
+use crate::{lz4, Error, ErrorKind, Report, Result};
 use api::ExtState;
 use std::cmp::Ordering;
 
@@ -133,7 +133,7 @@ pub fn compress(
     dst: &mut [u8],
     mode: CompressionMode,
     compression_level: CompressionLevel,
-) -> Result2<Report> {
+) -> Result<Report> {
     let result = ExtState::with(|state, reset| match mode {
         CompressionMode::Default => {
             if reset {
@@ -164,7 +164,7 @@ pub fn compress(
     } else if src.is_empty() && dst.is_empty() {
         Ok(Report::default())
     } else {
-        Err(Error2::new(ErrorKind::CompressionFailed))
+        Err(Error::new(ErrorKind::CompressionFailed))
     }
 }
 
@@ -238,9 +238,9 @@ pub fn compress_to_vec(
     dst: &mut Vec<u8>,
     mode: CompressionMode,
     compression_level: CompressionLevel,
-) -> Result2<Report> {
+) -> Result<Report> {
     if mode != CompressionMode::Default {
-        return Err(Error2::new(ErrorKind::CompressionModeInvalid));
+        return Err(Error::new(ErrorKind::CompressionModeInvalid));
     }
     let orig_len = dst.len();
     dst.reserve(lz4::max_compressed_size(src.len()));

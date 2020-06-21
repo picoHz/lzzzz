@@ -1,9 +1,6 @@
 use super::{Compressor, Dictionary, Preferences};
-use crate::lz4f::CompressorBuilder;
-use std::{
-    convert::TryInto,
-    io::{Result, Write},
-};
+use crate::lz4f::{CompressorBuilder, Error, Result};
+use std::{convert::TryInto, io::Write};
 
 /// Write-based streaming compressor
 ///
@@ -31,22 +28,18 @@ pub struct WriteCompressor<W: Write> {
 }
 
 impl<W: Write> WriteCompressor<W> {
-    pub fn new(writer: W) -> crate::lz4f::Result<Self> {
+    pub fn new(writer: W) -> Result<Self> {
         CompressorBuilder::new(writer).build()
     }
 
-    fn from_builder(
-        writer: W,
-        pref: Preferences,
-        dict: Option<Dictionary>,
-    ) -> crate::lz4f::Result<Self> {
+    fn from_builder(writer: W, pref: Preferences, dict: Option<Dictionary>) -> Result<Self> {
         Ok(Self {
             device: writer,
             inner: Compressor::new(pref, dict)?,
         })
     }
 
-    fn end(&mut self) -> Result<()> {
+    fn end(&mut self) -> std::io::Result<()> {
         self.inner.end(false)?;
         self.device.write_all(self.inner.buf())?;
         self.inner.clear_buf();
@@ -55,14 +48,14 @@ impl<W: Write> WriteCompressor<W> {
 }
 
 impl<W: Write> Write for WriteCompressor<W> {
-    fn write(&mut self, buf: &[u8]) -> Result<usize> {
+    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
         self.inner.update(buf, false)?;
         self.device.write_all(self.inner.buf())?;
         self.inner.clear_buf();
         Ok(buf.len())
     }
 
-    fn flush(&mut self) -> Result<()> {
+    fn flush(&mut self) -> std::io::Result<()> {
         self.inner.flush(false)?;
         self.device.write_all(self.inner.buf())?;
         self.device.flush()
@@ -76,8 +69,8 @@ impl<W: Write> Drop for WriteCompressor<W> {
 }
 
 impl<W: Write> TryInto<WriteCompressor<W>> for CompressorBuilder<W> {
-    type Error = crate::lz4f::Error;
-    fn try_into(self) -> crate::lz4f::Result<WriteCompressor<W>> {
+    type Error = Error;
+    fn try_into(self) -> Result<WriteCompressor<W>> {
         WriteCompressor::from_builder(self.device, self.pref, self.dict)
     }
 }

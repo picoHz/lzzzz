@@ -34,7 +34,7 @@ mod api;
 use crate::{
     lz4,
     lz4_hc::{CompressionLevel, CompressionMode},
-    Buffer, Report, Result2,
+    Buffer, Report, Result,
 };
 use api::CompressionContext;
 
@@ -47,7 +47,7 @@ pub struct Compressor<'a> {
 }
 
 impl<'a> Compressor<'a> {
-    pub fn new() -> Result2<Self> {
+    pub fn new() -> Result<Self> {
         Ok(Self {
             ctx: CompressionContext::new()?,
             compression_level: CompressionLevel::Default,
@@ -56,7 +56,7 @@ impl<'a> Compressor<'a> {
         })
     }
 
-    pub fn with_dict<B>(dict: B) -> Result2<Self>
+    pub fn with_dict<B>(dict: B) -> Result<Self>
     where
         B: Into<Buffer<'a>>,
     {
@@ -91,7 +91,7 @@ impl<'a> Compressor<'a> {
         self.ctx.set_favor_dec_speed(flag);
     }
 
-    pub fn next<B>(&mut self, src: B, dst: &mut [u8], mode: CompressionMode) -> Result2<Report>
+    pub fn next<B>(&mut self, src: B, dst: &mut [u8], mode: CompressionMode) -> Result<Report>
     where
         B: Into<Buffer<'a>>,
     {
@@ -109,7 +109,7 @@ impl<'a> Compressor<'a> {
         src: B,
         dst: &mut Vec<u8>,
         mode: CompressionMode,
-    ) -> Result2<Report>
+    ) -> Result<Report>
     where
         B: Into<Buffer<'a>>,
     {

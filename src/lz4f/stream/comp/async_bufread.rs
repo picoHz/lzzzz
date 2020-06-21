@@ -1,7 +1,7 @@
 #![cfg(feature = "use-tokio")]
 
 use super::{Compressor, Dictionary, Preferences};
-use crate::lz4f::CompressorBuilder;
+use crate::lz4f::{CompressorBuilder, Error, Result};
 use pin_project::pin_project;
 use std::{
     cmp,
@@ -9,7 +9,7 @@ use std::{
     pin::Pin,
     task::{Context, Poll},
 };
-use tokio::io::{AsyncBufRead, AsyncRead, Result};
+use tokio::io::{AsyncBufRead, AsyncRead};
 
 /// AsyncBufRead-based streaming compressor
 ///
@@ -50,7 +50,7 @@ pub struct AsyncBufReadCompressor<R: AsyncBufRead + Unpin> {
 }
 
 impl<R: AsyncBufRead + Unpin> AsyncBufReadCompressor<R> {
-    pub fn new(reader: R) -> crate::lz4f::Result<Self> {
+    pub fn new(reader: R) -> Result<Self> {
         CompressorBuilder::new(reader).build()
     }
 
@@ -58,7 +58,7 @@ impl<R: AsyncBufRead + Unpin> AsyncBufReadCompressor<R> {
         reader: R,
         pref: Preferences,
         dict: Option<Dictionary>,
-    ) -> crate::lz4f::Result<Self> {
+    ) -> Result<Self> {
         Ok(Self {
             device: reader,
             inner: Compressor::new(pref, dict)?,
@@ -66,7 +66,7 @@ impl<R: AsyncBufRead + Unpin> AsyncBufReadCompressor<R> {
         })
     }
 
-    fn fill_buf(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Result<()>> {
+    fn fill_buf(self: Pin<&mut Self>, cx: &mut Context) -> Poll<tokio::io::Result<()>> {
         let mut me = self.project();
         let inner_buf = match me.device.as_mut().poll_fill_buf(cx) {
             Poll::Pending => {
@@ -90,7 +90,7 @@ impl<R: AsyncBufRead + Unpin> AsyncRead for AsyncBufReadCompressor<R> {
         mut self: Pin<&mut Self>,
         cx: &mut Context,
         buf: &mut [u8],
-    ) -> Poll<Result<usize>> {
+    ) -> Poll<tokio::io::Result<usize>> {
         if let Poll::Pending = Pin::new(&mut *self).fill_buf(cx)? {
             Poll::Pending
         } else {
@@ -108,7 +108,7 @@ impl<R: AsyncBufRead + Unpin> AsyncRead for AsyncBufReadCompressor<R> {
 }
 
 impl<R: AsyncBufRead + Unpin> AsyncBufRead for AsyncBufReadCompressor<R> {
-    fn poll_fill_buf(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<Result<&[u8]>> {
+    fn poll_fill_buf(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<tokio::io::Result<&[u8]>> {
         if let Poll::Pending = Pin::new(&mut *self).fill_buf(cx)? {
             Poll::Pending
         } else {
@@ -128,8 +128,8 @@ impl<R: AsyncBufRead + Unpin> AsyncBufRead for AsyncBufReadCompressor<R> {
 }
 
 impl<R: AsyncBufRead + Unpin> TryInto<AsyncBufReadCompressor<R>> for CompressorBuilder<R> {
-    type Error = crate::lz4f::Error;
-    fn try_into(self) -> crate::lz4f::Result<AsyncBufReadCompressor<R>> {
+    type Error = Error;
+    fn try_into(self) -> Result<AsyncBufReadCompressor<R>> {
         AsyncBufReadCompressor::from_builder(self.device, self.pref, self.dict)
     }
 }

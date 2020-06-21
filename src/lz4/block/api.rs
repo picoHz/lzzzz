@@ -1,7 +1,7 @@
 #![allow(unsafe_code)]
 
 use super::super::binding;
-use crate::{Error2, ErrorKind, Report, Result2};
+use crate::{Error, ErrorKind, Report, Result};
 
 use std::{
     cell::RefCell,
@@ -63,7 +63,7 @@ pub fn compress_fast_ext_state_fast_reset(
     }
 }
 
-pub fn decompress_safe(src: &[u8], dst: &mut [u8]) -> Result2<Report> {
+pub fn decompress_safe(src: &[u8], dst: &mut [u8]) -> Result<Report> {
     let result = unsafe {
         binding::LZ4_decompress_safe(
             src.as_ptr() as *const c_char,
@@ -73,7 +73,7 @@ pub fn decompress_safe(src: &[u8], dst: &mut [u8]) -> Result2<Report> {
         ) as i32
     };
     if result < 0 {
-        Err(Error2::new(ErrorKind::DecompressionFailed))
+        Err(Error::new(ErrorKind::DecompressionFailed))
     } else {
         Ok(Report {
             dst_len: result as usize,
@@ -82,11 +82,7 @@ pub fn decompress_safe(src: &[u8], dst: &mut [u8]) -> Result2<Report> {
     }
 }
 
-pub fn decompress_safe_partial(
-    src: &[u8],
-    dst: &mut [u8],
-    original_size: usize,
-) -> Result2<Report> {
+pub fn decompress_safe_partial(src: &[u8], dst: &mut [u8], original_size: usize) -> Result<Report> {
     let result = unsafe {
         binding::LZ4_decompress_safe_partial(
             src.as_ptr() as *const c_char,
@@ -97,7 +93,7 @@ pub fn decompress_safe_partial(
         ) as i32
     };
     if result < 0 {
-        Err(Error2::new(ErrorKind::DecompressionFailed))
+        Err(Error::new(ErrorKind::DecompressionFailed))
     } else {
         Ok(Report {
             dst_len: result as usize,
@@ -106,7 +102,7 @@ pub fn decompress_safe_partial(
     }
 }
 
-pub fn decompress_safe_using_dict(src: &[u8], dst: &mut [u8], dict: &[u8]) -> Result2<Report> {
+pub fn decompress_safe_using_dict(src: &[u8], dst: &mut [u8], dict: &[u8]) -> Result<Report> {
     let result = unsafe {
         binding::LZ4_decompress_safe_usingDict(
             src.as_ptr() as *const c_char,
@@ -118,7 +114,7 @@ pub fn decompress_safe_using_dict(src: &[u8], dst: &mut [u8], dict: &[u8]) -> Re
         ) as i32
     };
     if result < 0 {
-        Err(Error2::new(ErrorKind::DecompressionFailed))
+        Err(Error::new(ErrorKind::DecompressionFailed))
     } else {
         Ok(Report {
             dst_len: result as usize,

@@ -1,11 +1,11 @@
 use super::Decompressor;
 use crate::{
-    lz4f::{DecompressorBuilder, FrameInfo},
+    lz4f::{DecompressorBuilder, Error, FrameInfo, Result},
     Buffer,
 };
 use std::{
     convert::TryInto,
-    io::{BufRead, Read, Result},
+    io::{BufRead, Read},
 };
 
 /// BufRead-based streaming decompressor
@@ -45,11 +45,11 @@ pub struct BufReadDecompressor<'a, R: BufRead> {
 }
 
 impl<'a, R: BufRead> BufReadDecompressor<'a, R> {
-    pub fn new(reader: R) -> crate::lz4f::Result<Self> {
+    pub fn new(reader: R) -> Result<Self> {
         DecompressorBuilder::new(reader).build()
     }
 
-    pub(super) fn from_builder(device: R, capacity: usize) -> crate::lz4f::Result<Self> {
+    pub(super) fn from_builder(device: R, capacity: usize) -> Result<Self> {
         Ok(Self {
             device,
             inner: Decompressor::new(capacity)?,
@@ -64,7 +64,7 @@ impl<'a, R: BufRead> BufReadDecompressor<'a, R> {
         self.inner.set_dict(dict.into());
     }
 
-    pub fn read_frame_info(&mut self) -> Result<FrameInfo> {
+    pub fn read_frame_info(&mut self) -> std::io::Result<FrameInfo> {
         loop {
             if let Some(frame) = self.inner.frame_info() {
                 return Ok(frame);
@@ -77,7 +77,7 @@ impl<'a, R: BufRead> BufReadDecompressor<'a, R> {
 }
 
 impl<R: BufRead> Read for BufReadDecompressor<'_, R> {
-    fn read(&mut self, buf: &mut [u8]) -> Result<usize> {
+    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
         loop {
             let inner_buf = self.device.fill_buf()?;
             let report = self.inner.decompress(inner_buf)?;
@@ -100,7 +100,7 @@ impl<R: BufRead> Read for BufReadDecompressor<'_, R> {
 }
 
 impl<R: BufRead> BufRead for BufReadDecompressor<'_, R> {
-    fn fill_buf(&mut self) -> Result<&[u8]> {
+    fn fill_buf(&mut self) -> std::io::Result<&[u8]> {
         let _ = self.read(&mut [])?;
         Ok(&self.inner.buf()[self.consumed..])
     }
@@ -115,8 +115,8 @@ impl<R: BufRead> BufRead for BufReadDecompressor<'_, R> {
 }
 
 impl<'a, R: BufRead> TryInto<BufReadDecompressor<'a, R>> for DecompressorBuilder<R> {
-    type Error = crate::lz4f::Error;
-    fn try_into(self) -> crate::lz4f::Result<BufReadDecompressor<'a, R>> {
+    type Error = Error;
+    fn try_into(self) -> Result<BufReadDecompressor<'a, R>> {
         BufReadDecompressor::from_builder(self.device, self.capacity)
     }
 }

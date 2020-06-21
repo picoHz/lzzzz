@@ -23,7 +23,7 @@ use crate::{
     },
     Buffer, Report,
 };
-use crate::{Error2, ErrorKind};
+use crate::{Error, ErrorKind};
 use std::{cmp, mem, mem::MaybeUninit};
 
 enum State {
@@ -125,7 +125,7 @@ impl<'a> Decompressor<'a> {
         let src = &src[header_consumed..];
         if let State::Body { comp_dict, .. } = self.state {
             if self.dict.as_ptr() != comp_dict {
-                return Err(Error2::new(ErrorKind::DictionaryChangedDuringDecompression).into());
+                return Err(Error::new(ErrorKind::DictionaryChangedDuringDecompression).into());
             }
 
             let len = self.buffer.len();

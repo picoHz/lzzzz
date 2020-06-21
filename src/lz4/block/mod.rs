@@ -1,7 +1,7 @@
 //! LZ4 Block Compressor/Decompressor
 mod api;
 
-use crate::{Buffer, Error2, ErrorKind, Report, Result2};
+use crate::{Buffer, Error, ErrorKind, Report, Result};
 use api::ExtState;
 
 /// Compression mode specifier
@@ -59,7 +59,7 @@ pub const fn max_compressed_size(original_size: usize) -> usize {
 /// #    lz4::DecompressionMode::Default).unwrap().dst_len();
 /// # assert_eq!(&buf[..len], &data[..]);
 /// ```
-pub fn compress(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> Result2<Report> {
+pub fn compress(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> Result<Report> {
     let acc = match mode {
         CompressionMode::Default => 1,
         CompressionMode::Acceleration { factor } => factor,
@@ -77,7 +77,7 @@ pub fn compress(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> Result2<Re
     } else if src.is_empty() && dst.is_empty() {
         Ok(Report::default())
     } else {
-        Err(Error2::new(ErrorKind::DecompressionFailed))
+        Err(Error::new(ErrorKind::DecompressionFailed))
     }
 }
 
@@ -153,7 +153,7 @@ pub fn compress(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> Result2<Re
 /// #    lz4::DecompressionMode::Default).unwrap().dst_len();
 /// # assert_eq!(&buf[..len], &data[..]);
 /// ```
-pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, mode: CompressionMode) -> Result2<Report> {
+pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, mode: CompressionMode) -> Result<Report> {
     let orig_len = dst.len();
     dst.reserve(max_compressed_size(src.len()));
     #[allow(unsafe_code)]
@@ -243,7 +243,7 @@ impl<'a> Default for DecompressionMode<'a> {
 ///
 /// assert_eq!(&buf[..], b"Alb. The weight of this sad ti");
 /// ```
-pub fn decompress(src: &[u8], dst: &mut [u8], mode: DecompressionMode) -> Result2<Report> {
+pub fn decompress(src: &[u8], dst: &mut [u8], mode: DecompressionMode) -> Result<Report> {
     match mode {
         DecompressionMode::Default => api::decompress_safe(src, dst),
         DecompressionMode::Partial { original_size } => {

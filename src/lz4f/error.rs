@@ -42,8 +42,8 @@ impl convert::From<Error> for io::Error {
     }
 }
 
-impl convert::From<crate::Error2> for Error {
-    fn from(err: crate::Error2) -> Self {
+impl convert::From<crate::Error> for Error {
+    fn from(err: crate::Error) -> Self {
         Self::Common(err.kind())
     }
 }
