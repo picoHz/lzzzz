@@ -12,6 +12,12 @@ pub enum ErrorKind {
     DictionaryChangedDuringDecompression,
 }
 
+impl fmt::Display for ErrorKind {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), fmt::Error> {
+        <Self as fmt::Debug>::fmt(self, f)
+    }
+}
+
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct Error {
     kind: ErrorKind,
@@ -35,7 +41,7 @@ impl convert::From<Error> for io::Error {
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), fmt::Error> {
-        <Self as fmt::Debug>::fmt(self, f)
+        <ErrorKind as fmt::Display>::fmt(&self.kind, f)
     }
 }
 

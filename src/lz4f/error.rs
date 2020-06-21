@@ -24,6 +24,12 @@ pub enum ErrorKind {
     FrameDecodingAlreadyStarted,
 }
 
+impl fmt::Display for ErrorKind {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), fmt::Error> {
+        <Self as fmt::Debug>::fmt(self, f)
+    }
+}
+
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum Error {
     Lz4f(ErrorKind),
@@ -50,7 +56,10 @@ impl convert::From<crate::Error> for Error {
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), fmt::Error> {
-        <Self as fmt::Debug>::fmt(self, f)
+        match self {
+            Self::Lz4f(kind) => <ErrorKind as fmt::Display>::fmt(&kind, f),
+            Self::Common(kind) => <crate::ErrorKind as fmt::Display>::fmt(&kind, f),
+        }
     }
 }
 

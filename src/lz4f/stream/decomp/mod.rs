@@ -21,9 +21,8 @@ use crate::{
         },
         FrameInfo, Result,
     },
-    Buffer, Report,
+    Buffer, Error, ErrorKind, Report,
 };
-use crate::{Error, ErrorKind};
 use std::{cmp, mem, mem::MaybeUninit};
 
 enum State {
