@@ -25,7 +25,9 @@
 
 mod api;
 
-use crate::{common::DEFAULT_BUF_SIZE, lz4, lz4::CompressionMode, Buffer, Error, Report, Result};
+use crate::{
+    common::DEFAULT_BUF_SIZE, lz4, lz4::CompressionMode, Buffer, Error2, ErrorKind, Report, Result2,
+};
 use api::{CompressionContext, DecompressionContext};
 use std::{cmp, collections::LinkedList};
 
@@ -37,7 +39,7 @@ pub struct Compressor<'a> {
 }
 
 impl<'a> Compressor<'a> {
-    pub fn new() -> Result<Self> {
+    pub fn new() -> Result2<Self> {
         Ok(Self {
             ctx: CompressionContext::new()?,
             dict: Buffer::new(),
@@ -45,7 +47,7 @@ impl<'a> Compressor<'a> {
         })
     }
 
-    pub fn with_dict<B>(&mut self, dict: B) -> Result<Self>
+    pub fn with_dict<B>(&mut self, dict: B) -> Result2<Self>
     where
         B: Into<Buffer<'a>>,
     {
@@ -97,7 +99,7 @@ impl<'a> Compressor<'a> {
     /// # .dst_len();
     /// # assert_eq!(&buf[..len], &data[..]);
     /// ```
-    pub fn next<B>(&mut self, src: B, dst: &mut [u8], mode: CompressionMode) -> Result<Report>
+    pub fn next<B>(&mut self, src: B, dst: &mut [u8], mode: CompressionMode) -> Result2<Report>
     where
         B: Into<Buffer<'a>>,
     {
@@ -117,7 +119,7 @@ impl<'a> Compressor<'a> {
         } else if src_is_empty && dst.is_empty() {
             Ok(Report::default())
         } else {
-            Err(Error::CompressionFailed)
+            Err(Error2::new(ErrorKind::CompressionFailed))
         }
     }
 
@@ -126,7 +128,7 @@ impl<'a> Compressor<'a> {
         src: B,
         dst: &mut Vec<u8>,
         mode: CompressionMode,
-    ) -> Result<Report>
+    ) -> Result2<Report>
     where
         B: Into<Buffer<'a>>,
     {
@@ -156,7 +158,7 @@ pub struct Decompressor<'a> {
 }
 
 impl<'a> Decompressor<'a> {
-    pub fn new() -> Result<Self> {
+    pub fn new() -> Result2<Self> {
         Ok(Self {
             ctx: DecompressionContext::new()?,
             dict: Buffer::new(),
@@ -166,7 +168,7 @@ impl<'a> Decompressor<'a> {
         })
     }
 
-    pub fn with_dict<B>(&mut self, dict: B) -> Result<Self>
+    pub fn with_dict<B>(&mut self, dict: B) -> Result2<Self>
     where
         B: Into<Buffer<'a>>,
     {
@@ -175,11 +177,11 @@ impl<'a> Decompressor<'a> {
         Ok(decomp)
     }
 
-    pub fn reset(&mut self) -> Result<()> {
+    pub fn reset(&mut self) -> Result2<()> {
         self.reset_with_dict(&[][..])
     }
 
-    pub fn reset_with_dict<B>(&mut self, dict: B) -> Result<()>
+    pub fn reset_with_dict<B>(&mut self, dict: B) -> Result2<()>
     where
         B: Into<Buffer<'a>>,
     {
@@ -192,7 +194,7 @@ impl<'a> Decompressor<'a> {
         Ok(())
     }
 
-    pub fn next(&mut self, src: &[u8], original_size: usize) -> Result<&[u8]> {
+    pub fn next(&mut self, src: &[u8], original_size: usize) -> Result2<&[u8]> {
         if self
             .cache
             .back()
