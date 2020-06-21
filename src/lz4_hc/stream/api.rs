@@ -15,7 +15,7 @@ pub struct CompressionContext {
 impl CompressionContext {
     pub fn new() -> Result<Self> {
         let ptr = unsafe { NonNull::new(binding::LZ4_createStreamHC()) };
-        ptr.ok_or(Error::new(ErrorKind::NullPointerUnexpected))
+        ptr.ok_or_else(|| Error::new(ErrorKind::NullPointerUnexpected))
             .map(|stream| Self { stream })
     }
 

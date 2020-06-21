@@ -33,8 +33,9 @@ impl CompressionContext {
             );
             result_from_code(code).and_then(|_| {
                 Ok(Self {
-                    ctx: NonNull::new(ctx.assume_init())
-                        .ok_or(crate::Error::new(crate::ErrorKind::NullPointerUnexpected))?,
+                    ctx: NonNull::new(ctx.assume_init()).ok_or_else(|| {
+                        crate::Error::new(crate::ErrorKind::NullPointerUnexpected)
+                    })?,
                     dict,
                 })
             })
@@ -131,8 +132,9 @@ impl DecompressionContext {
             );
             result_from_code(code).and_then(|_| {
                 Ok(Self {
-                    ctx: NonNull::new(ctx.assume_init())
-                        .ok_or(crate::Error::new(crate::ErrorKind::NullPointerUnexpected))?,
+                    ctx: NonNull::new(ctx.assume_init()).ok_or_else(|| {
+                        crate::Error::new(crate::ErrorKind::NullPointerUnexpected)
+                    })?,
                 })
             })
         }

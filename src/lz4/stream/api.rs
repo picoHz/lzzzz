@@ -12,6 +12,7 @@ use std::{
     ptr::NonNull,
 };
 
+#[allow(clippy::large_enum_variant)]
 enum Stream {
     Stack(LZ4Stream),
     Heap(NonNull<LZ4Stream>),
@@ -36,7 +37,7 @@ impl CompressionContext {
             }
             NonNull::new(binding::LZ4_createStream())
         }
-        .ok_or(Error::new(ErrorKind::NullPointerUnexpected))
+        .ok_or_else(|| Error::new(ErrorKind::NullPointerUnexpected))
         .map(|stream| Self {
             stream: Stream::Heap(stream),
         })
@@ -97,7 +98,7 @@ impl DecompressionContext {
     pub fn new() -> Result<Self> {
         unsafe {
             let ptr = NonNull::new(binding::LZ4_createStreamDecode());
-            ptr.ok_or(Error::new(ErrorKind::NullPointerUnexpected))
+            ptr.ok_or_else(|| Error::new(ErrorKind::NullPointerUnexpected))
                 .map(|stream| Self { stream })
         }
     }
