@@ -22,29 +22,29 @@ pub enum ErrorKind {
     HeaderChecksumInvalid,
     ContentChecksumInvalid,
     FrameDecodingAlreadyStarted,
-    _NullPointerUnexpected,
-    _CompressedDataIncomplete,
-    _DictionaryChangedDuringDecompression,
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-pub struct Error {
-    kind: ErrorKind,
+pub enum Error {
+    Lz4f(ErrorKind),
+    Common(crate::ErrorKind),
 }
 
 impl Error {
     pub const fn new(kind: ErrorKind) -> Self {
-        Self { kind }
-    }
-
-    pub const fn kind(self) -> ErrorKind {
-        self.kind
+        Self::Lz4f(kind)
     }
 }
 
 impl convert::From<Error> for io::Error {
     fn from(err: Error) -> Self {
         Self::new(io::ErrorKind::Other, err)
+    }
+}
+
+impl convert::From<crate::Error2> for Error {
+    fn from(err: crate::Error2) -> Self {
+        Self::Common(err.kind())
     }
 }
 

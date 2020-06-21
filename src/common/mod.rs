@@ -114,3 +114,6 @@ impl fmt::Display for Error2 {
 }
 
 impl std::error::Error for Error2 {}
+
+/// A specialized Result type for compression/decompression operations.
+pub type Result2<T> = std::result::Result<T, Error2>;
