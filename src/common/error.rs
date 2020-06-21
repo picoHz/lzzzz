@@ -1,27 +1,15 @@
 use std::{convert, fmt, io};
 
-/// Errors from liblz4
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum ErrorKind {
-    Generic,
-    MaxBlockSizeInvalid,
-    BlockModeInvalid,
-    ContentChecksumFlagInvalid,
-    CompressionLevelInvalid,
-    HeaderVersionWrong,
-    BlockChecksumInvalid,
-    ReservedFlagSet,
-    AllocationFailed,
-    SrcSizeTooLarge,
-    DstMaxSizeTooSmall,
-    FrameHeaderIncomplete,
-    FrameTypeUnknown,
-    FrameSizeWrong,
-    SrcPtrWrong,
+    CompressionFailed,
     DecompressionFailed,
-    HeaderChecksumInvalid,
-    ContentChecksumInvalid,
-    FrameDecodingAlreadyStarted,
+    StreamResetFailed,
+    CompressedDataIncomplete,
+    NullPointerUnexpected,
+    CompressionModeInvalid,
+    DecompressionModeInvalid,
+    DictionaryChangedDuringDecompression,
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]

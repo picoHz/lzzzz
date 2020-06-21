@@ -1,6 +1,7 @@
 mod api;
 mod binding;
 mod buffer;
+mod error;
 use std::{convert, fmt, io};
 
 use crate::lz4f;
