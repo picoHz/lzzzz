@@ -46,11 +46,15 @@ pub struct AsyncReadCompressor<R: AsyncRead + Unpin> {
 }
 
 impl<R: AsyncRead + Unpin> AsyncReadCompressor<R> {
-    pub fn new(reader: R) -> crate::Result<Self> {
+    pub fn new(reader: R) -> crate::lz4f::Result<Self> {
         CompressorBuilder::new(reader).build()
     }
 
-    fn from_builder(reader: R, pref: Preferences, dict: Option<Dictionary>) -> crate::Result<Self> {
+    fn from_builder(
+        reader: R,
+        pref: Preferences,
+        dict: Option<Dictionary>,
+    ) -> crate::lz4f::Result<Self> {
         Ok(Self {
             inner: AsyncBufReadCompressor::from_builder(BufReader::new(reader), pref, dict)?,
         })
@@ -64,8 +68,8 @@ impl<R: AsyncRead + Unpin> AsyncRead for AsyncReadCompressor<R> {
 }
 
 impl<R: AsyncRead + Unpin> TryInto<AsyncReadCompressor<R>> for CompressorBuilder<R> {
-    type Error = crate::Error;
-    fn try_into(self) -> crate::Result<AsyncReadCompressor<R>> {
+    type Error = crate::lz4f::Error;
+    fn try_into(self) -> crate::lz4f::Result<AsyncReadCompressor<R>> {
         AsyncReadCompressor::from_builder(self.device, self.pref, self.dict)
     }
 }

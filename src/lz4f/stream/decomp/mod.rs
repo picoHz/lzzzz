@@ -19,9 +19,9 @@ use crate::{
             header_size, DecompressionContext, LZ4F_HEADER_SIZE_MAX,
             LZ4F_MIN_SIZE_TO_KNOW_HEADER_LENGTH,
         },
-        FrameInfo,
+        Error, ErrorKind, FrameInfo, Result,
     },
-    Buffer, Error, Report, Result,
+    Buffer, Report,
 };
 use std::{cmp, mem, mem::MaybeUninit};
 
@@ -124,7 +124,7 @@ impl<'a> Decompressor<'a> {
         let src = &src[header_consumed..];
         if let State::Body { comp_dict, .. } = self.state {
             if self.dict.as_ptr() != comp_dict {
-                return Err(Error::DictionaryChangedDuringDecompression);
+                return Err(Error::new(ErrorKind::_DictionaryChangedDuringDecompression));
             }
 
             let len = self.buffer.len();

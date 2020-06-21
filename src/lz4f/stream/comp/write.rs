@@ -31,11 +31,15 @@ pub struct WriteCompressor<W: Write> {
 }
 
 impl<W: Write> WriteCompressor<W> {
-    pub fn new(writer: W) -> crate::Result<Self> {
+    pub fn new(writer: W) -> crate::lz4f::Result<Self> {
         CompressorBuilder::new(writer).build()
     }
 
-    fn from_builder(writer: W, pref: Preferences, dict: Option<Dictionary>) -> crate::Result<Self> {
+    fn from_builder(
+        writer: W,
+        pref: Preferences,
+        dict: Option<Dictionary>,
+    ) -> crate::lz4f::Result<Self> {
         Ok(Self {
             device: writer,
             inner: Compressor::new(pref, dict)?,
@@ -72,8 +76,8 @@ impl<W: Write> Drop for WriteCompressor<W> {
 }
 
 impl<W: Write> TryInto<WriteCompressor<W>> for CompressorBuilder<W> {
-    type Error = crate::Error;
-    fn try_into(self) -> crate::Result<WriteCompressor<W>> {
+    type Error = crate::lz4f::Error;
+    fn try_into(self) -> crate::lz4f::Result<WriteCompressor<W>> {
         WriteCompressor::from_builder(self.device, self.pref, self.dict)
     }
 }

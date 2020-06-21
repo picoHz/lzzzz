@@ -44,11 +44,15 @@ pub struct AsyncWriteCompressor<W: AsyncWrite + Unpin> {
 }
 
 impl<W: AsyncWrite + Unpin> AsyncWriteCompressor<W> {
-    pub fn new(writer: W) -> crate::Result<Self> {
+    pub fn new(writer: W) -> crate::lz4f::Result<Self> {
         CompressorBuilder::new(writer).build()
     }
 
-    fn from_builder(writer: W, pref: Preferences, dict: Option<Dictionary>) -> crate::Result<Self> {
+    fn from_builder(
+        writer: W,
+        pref: Preferences,
+        dict: Option<Dictionary>,
+    ) -> crate::lz4f::Result<Self> {
         Ok(Self {
             device: writer,
             inner: Compressor::new(pref, dict)?,
@@ -95,8 +99,8 @@ impl<W: AsyncWrite + Unpin> AsyncWrite for AsyncWriteCompressor<W> {
 }
 
 impl<W: AsyncWrite + Unpin> TryInto<AsyncWriteCompressor<W>> for CompressorBuilder<W> {
-    type Error = crate::Error;
-    fn try_into(self) -> crate::Result<AsyncWriteCompressor<W>> {
+    type Error = crate::lz4f::Error;
+    fn try_into(self) -> crate::lz4f::Result<AsyncWriteCompressor<W>> {
         AsyncWriteCompressor::from_builder(self.device, self.pref, self.dict)
     }
 }

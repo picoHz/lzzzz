@@ -50,11 +50,11 @@ pub struct AsyncWriteDecompressor<'a, W: AsyncWrite + Unpin> {
 }
 
 impl<'a, W: AsyncWrite + Unpin> AsyncWriteDecompressor<'a, W> {
-    pub fn new(writer: W) -> crate::Result<Self> {
+    pub fn new(writer: W) -> crate::lz4f::Result<Self> {
         DecompressorBuilder::new(writer).build()
     }
 
-    fn from_builder(writer: W, capacity: usize) -> crate::Result<Self> {
+    fn from_builder(writer: W, capacity: usize) -> crate::lz4f::Result<Self> {
         Ok(Self {
             device: writer,
             inner: Decompressor::new(capacity)?,
@@ -120,8 +120,8 @@ impl<W: AsyncWrite + Unpin> AsyncWrite for AsyncWriteDecompressor<'_, W> {
 }
 
 impl<'a, W: AsyncWrite + Unpin> TryInto<AsyncWriteDecompressor<'a, W>> for DecompressorBuilder<W> {
-    type Error = crate::Error;
-    fn try_into(self) -> crate::Result<AsyncWriteDecompressor<'a, W>> {
+    type Error = crate::lz4f::Error;
+    fn try_into(self) -> crate::lz4f::Result<AsyncWriteDecompressor<'a, W>> {
         AsyncWriteDecompressor::from_builder(self.device, self.capacity)
     }
 }

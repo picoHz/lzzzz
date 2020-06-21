@@ -45,11 +45,11 @@ pub struct BufReadDecompressor<'a, R: BufRead> {
 }
 
 impl<'a, R: BufRead> BufReadDecompressor<'a, R> {
-    pub fn new(reader: R) -> crate::Result<Self> {
+    pub fn new(reader: R) -> crate::lz4f::Result<Self> {
         DecompressorBuilder::new(reader).build()
     }
 
-    pub(super) fn from_builder(device: R, capacity: usize) -> crate::Result<Self> {
+    pub(super) fn from_builder(device: R, capacity: usize) -> crate::lz4f::Result<Self> {
         Ok(Self {
             device,
             inner: Decompressor::new(capacity)?,
@@ -115,8 +115,8 @@ impl<R: BufRead> BufRead for BufReadDecompressor<'_, R> {
 }
 
 impl<'a, R: BufRead> TryInto<BufReadDecompressor<'a, R>> for DecompressorBuilder<R> {
-    type Error = crate::Error;
-    fn try_into(self) -> crate::Result<BufReadDecompressor<'a, R>> {
+    type Error = crate::lz4f::Error;
+    fn try_into(self) -> crate::lz4f::Result<BufReadDecompressor<'a, R>> {
         BufReadDecompressor::from_builder(self.device, self.capacity)
     }
 }

@@ -34,11 +34,15 @@ pub struct ReadCompressor<R: Read> {
 }
 
 impl<R: Read> ReadCompressor<R> {
-    pub fn new(reader: R) -> crate::Result<Self> {
+    pub fn new(reader: R) -> crate::lz4f::Result<Self> {
         CompressorBuilder::new(reader).build()
     }
 
-    fn from_builder(device: R, pref: Preferences, dict: Option<Dictionary>) -> crate::Result<Self> {
+    fn from_builder(
+        device: R,
+        pref: Preferences,
+        dict: Option<Dictionary>,
+    ) -> crate::lz4f::Result<Self> {
         Ok(Self {
             inner: BufReadCompressor::from_builder(BufReader::new(device), pref, dict)?,
         })
@@ -52,8 +56,8 @@ impl<R: Read> Read for ReadCompressor<R> {
 }
 
 impl<R: Read> TryInto<ReadCompressor<R>> for CompressorBuilder<R> {
-    type Error = crate::Error;
-    fn try_into(self) -> crate::Result<ReadCompressor<R>> {
+    type Error = crate::lz4f::Error;
+    fn try_into(self) -> crate::lz4f::Result<ReadCompressor<R>> {
         ReadCompressor::from_builder(self.device, self.pref, self.dict)
     }
 }

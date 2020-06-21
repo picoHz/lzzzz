@@ -8,9 +8,10 @@ use super::{
     },
     Dictionary,
 };
+use super::{Error, ErrorKind, Result};
 use crate::{
-    lz4f::{ErrorKind, FrameInfo, Preferences},
-    Error, Report, Result,
+    lz4f::{FrameInfo, Preferences},
+    Report,
 };
 
 use std::{mem::MaybeUninit, os::raw::c_void, ptr::NonNull};
@@ -33,7 +34,8 @@ impl CompressionContext {
             );
             result_from_code(code).and_then(|_| {
                 Ok(Self {
-                    ctx: NonNull::new(ctx.assume_init()).ok_or(Error::NullPointerUnexpected)?,
+                    ctx: NonNull::new(ctx.assume_init())
+                        .ok_or(Error::new(ErrorKind::_NullPointerUnexpected))?,
                     dict,
                 })
             })
@@ -130,7 +132,8 @@ impl DecompressionContext {
             );
             result_from_code(code).and_then(|_| {
                 Ok(Self {
-                    ctx: NonNull::new(ctx.assume_init()).ok_or(Error::NullPointerUnexpected)?,
+                    ctx: NonNull::new(ctx.assume_init())
+                        .ok_or(Error::new(ErrorKind::_NullPointerUnexpected))?,
                 })
             })
         }
@@ -225,7 +228,7 @@ pub fn compress(src: &[u8], dst: &mut [u8], prefs: &Preferences) -> Result<Repor
 }
 
 fn result_from_code(code: usize) -> Result<()> {
-    Err(Error::LZ4FError(match code.wrapping_neg() {
+    Err(Error::new(match code.wrapping_neg() {
         1 => ErrorKind::Generic,
         2 => ErrorKind::MaxBlockSizeInvalid,
         3 => ErrorKind::BlockModeInvalid,
@@ -258,7 +261,7 @@ impl DictionaryHandle {
     pub fn new(data: &[u8]) -> Result<Self> {
         let dict = unsafe { binding::LZ4F_createCDict(data.as_ptr() as *const c_void, data.len()) };
         NonNull::new(dict)
-            .ok_or(Error::NullPointerUnexpected)
+            .ok_or(Error::new(ErrorKind::_NullPointerUnexpected))
             .map(Self)
     }
 }

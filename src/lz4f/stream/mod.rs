@@ -7,9 +7,8 @@ use crate::{
     common::DEFAULT_BUF_SIZE,
     lz4f::{
         AutoFlush, BlockChecksum, BlockMode, BlockSize, CompressionLevel, ContentChecksum,
-        Dictionary, FavorDecSpeed, Preferences,
+        Dictionary, FavorDecSpeed, Preferences, Result,
     },
-    Result,
 };
 use std::convert::TryInto;
 
@@ -91,7 +90,7 @@ impl<D> CompressorBuilder<D> {
 
     pub fn build<T>(self) -> Result<T>
     where
-        Self: TryInto<T, Error = crate::Error>,
+        Self: TryInto<T, Error = crate::lz4f::Error>,
     {
         self.try_into()
     }
@@ -119,7 +118,7 @@ impl<D> DecompressorBuilder<D> {
 
     pub fn build<T>(self) -> Result<T>
     where
-        Self: TryInto<T, Error = crate::Error>,
+        Self: TryInto<T, Error = crate::lz4f::Error>,
     {
         self.try_into()
     }

@@ -22,6 +22,9 @@ pub enum ErrorKind {
     HeaderChecksumInvalid,
     ContentChecksumInvalid,
     FrameDecodingAlreadyStarted,
+    _NullPointerUnexpected,
+    _CompressedDataIncomplete,
+    _DictionaryChangedDuringDecompression,
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
@@ -52,3 +55,6 @@ impl fmt::Display for Error {
 }
 
 impl std::error::Error for Error {}
+
+/// A specialized Result type for compression/decompression operations.
+pub type Result<T> = std::result::Result<T, Error>;

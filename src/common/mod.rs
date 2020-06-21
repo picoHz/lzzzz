@@ -1,10 +1,8 @@
 mod api;
 mod binding;
 mod buffer;
-mod error;
 use std::{convert, fmt, io};
 
-use crate::lz4f;
 pub use api::{version_number, version_string};
 pub use buffer::Buffer;
 
@@ -42,7 +40,6 @@ pub type Result<T> = std::result::Result<T, Error>;
 /// Compression/Decompression error
 #[derive(Debug)]
 pub enum Error {
-    LZ4FError(lz4f::ErrorKind),
     IOError(io::Error),
     CompressionFailed,
     DecompressionFailed,
@@ -76,3 +73,44 @@ impl convert::From<io::Error> for Error {
 }
 
 impl std::error::Error for Error {}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum ErrorKind {
+    CompressionFailed,
+    DecompressionFailed,
+    StreamResetFailed,
+    CompressedDataIncomplete,
+    NullPointerUnexpected,
+    CompressionModeInvalid,
+    DecompressionModeInvalid,
+    DictionaryChangedDuringDecompression,
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub struct Error2 {
+    kind: ErrorKind,
+}
+
+impl Error2 {
+    pub const fn new(kind: ErrorKind) -> Self {
+        Self { kind }
+    }
+
+    pub const fn kind(self) -> ErrorKind {
+        self.kind
+    }
+}
+
+impl convert::From<Error2> for io::Error {
+    fn from(err: Error2) -> Self {
+        Self::new(io::ErrorKind::Other, err)
+    }
+}
+
+impl fmt::Display for Error2 {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), fmt::Error> {
+        <Self as fmt::Debug>::fmt(self, f)
+    }
+}
+
+impl std::error::Error for Error2 {}

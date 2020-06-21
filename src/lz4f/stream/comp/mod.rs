@@ -6,7 +6,7 @@ mod bufread;
 mod read;
 mod write;
 
-use crate::Result;
+use crate::lz4f::Result;
 
 pub use bufread::*;
 pub use read::*;

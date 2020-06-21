@@ -55,11 +55,11 @@ pub struct AsyncBufReadDecompressor<'a, R: AsyncBufRead + Unpin> {
 }
 
 impl<'a, R: AsyncBufRead + Unpin> AsyncBufReadDecompressor<'a, R> {
-    pub fn new(reader: R) -> crate::Result<Self> {
+    pub fn new(reader: R) -> crate::lz4f::Result<Self> {
         DecompressorBuilder::new(reader).build()
     }
 
-    pub(super) fn from_builder(device: R, capacity: usize) -> crate::Result<Self> {
+    pub(super) fn from_builder(device: R, capacity: usize) -> crate::lz4f::Result<Self> {
         Ok(Self {
             device,
             inner: Decompressor::new(capacity)?,
@@ -149,8 +149,8 @@ impl<'a, R: AsyncBufRead + Unpin> AsyncBufRead for AsyncBufReadDecompressor<'a, 
 impl<'a, R: AsyncBufRead + Unpin> TryInto<AsyncBufReadDecompressor<'a, R>>
     for DecompressorBuilder<R>
 {
-    type Error = crate::Error;
-    fn try_into(self) -> crate::Result<AsyncBufReadDecompressor<'a, R>> {
+    type Error = crate::lz4f::Error;
+    fn try_into(self) -> crate::lz4f::Result<AsyncBufReadDecompressor<'a, R>> {
         AsyncBufReadDecompressor::from_builder(self.device, self.capacity)
     }
 }

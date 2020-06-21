@@ -1,5 +1,5 @@
 use super::api::DictionaryHandle;
-use crate::Result;
+use super::Result;
 use std::sync::Arc;
 
 /// A pre-compiled dictionary for the efficient compression

@@ -40,7 +40,7 @@ pub struct BufReadCompressor<R: BufRead> {
 }
 
 impl<R: BufRead> BufReadCompressor<R> {
-    pub fn new(reader: R) -> crate::Result<Self> {
+    pub fn new(reader: R) -> crate::lz4f::Result<Self> {
         CompressorBuilder::new(reader).build()
     }
 
@@ -48,7 +48,7 @@ impl<R: BufRead> BufReadCompressor<R> {
         device: R,
         pref: Preferences,
         dict: Option<Dictionary>,
-    ) -> crate::Result<Self> {
+    ) -> crate::lz4f::Result<Self> {
         Ok(Self {
             device,
             inner: Compressor::new(pref, dict)?,
@@ -101,8 +101,8 @@ impl<R: BufRead> BufRead for BufReadCompressor<R> {
 }
 
 impl<R: BufRead> TryInto<BufReadCompressor<R>> for CompressorBuilder<R> {
-    type Error = crate::Error;
-    fn try_into(self) -> crate::Result<BufReadCompressor<R>> {
+    type Error = crate::lz4f::Error;
+    fn try_into(self) -> crate::lz4f::Result<BufReadCompressor<R>> {
         BufReadCompressor::from_builder(self.device, self.pref, self.dict)
     }
 }
