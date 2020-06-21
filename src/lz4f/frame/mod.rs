@@ -1,8 +1,9 @@
 //! LZ4 Frame Compressor/Decompressor
 
 use super::api;
-use super::{Error, ErrorKind, Result};
+use super::Result;
 use crate::{common::DEFAULT_BUF_SIZE, lz4f::Preferences, Report};
+use crate::{Error2, ErrorKind};
 use std::{cell::RefCell, ops::Deref};
 
 /// Calculate the maximum size of the compressed data from the original size.
@@ -103,7 +104,7 @@ pub fn decompress_to_vec(src: &[u8], dst: &mut Vec<u8>) -> Result<Report> {
                     ..Default::default()
                 });
             } else if src_offset >= src.len() {
-                return Err(Error::new(ErrorKind::_CompressedDataIncomplete));
+                return Err(Error2::new(ErrorKind::CompressedDataIncomplete).into());
             }
             dst.reserve(DEFAULT_BUF_SIZE);
         }
