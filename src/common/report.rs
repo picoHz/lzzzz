@@ -18,7 +18,7 @@ impl Report {
     /// In most cases, the consumed length must be equal to the length of the source buffer
     /// and this method just returns [`None`].
     ///
-    /// [`None`]: https://doc.rust-lang.org/nightly/core/option/enum.Option.html#variant.None
+    /// [`None`]: https://doc.rust-lang.org/core/option/enum.Option.html#variant.None
     pub const fn src_len(&self) -> Option<usize> {
         self.src_len
     }

@@ -67,5 +67,7 @@ impl fmt::Display for Error {
 
 impl std::error::Error for Error {}
 
-/// A specialized Result type for compression/decompression operations.
+/// A specialized [`Result`] type for compression/decompression operations.
+///
+/// [`Result`]: https://doc.rust-lang.org/std/io/type.Result.html
 pub type Result<T> = std::result::Result<T, Error>;

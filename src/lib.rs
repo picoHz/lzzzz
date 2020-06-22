@@ -18,9 +18,9 @@
 //! [`LZ4 Streaming`]: ./lz4_stream/index.html
 //! [`LZ4_HC Streaming`]: ./lz4_hc_stream/index.html
 //! [`LZ4F Streaming`]: ./lz4f_stream/index.html
-//! [`Read`]: https://doc.rust-lang.org/nightly/std/io/trait.Read.html
-//! [`BufRead`]: https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html
-//! [`Write`]: https://doc.rust-lang.org/nightly/std/io/trait.Write.html
+//! [`Read`]: https://doc.rust-lang.org/std/io/trait.Read.html
+//! [`BufRead`]: https://doc.rust-lang.org/std/io/trait.BufRead.html
+//! [`Write`]: https://doc.rust-lang.org/std/io/trait.Write.html
 //! [`AsyncRead`]: https://docs.rs/tokio/latest/tokio/io/trait.AsyncRead.html
 //! [`AsyncBufRead`]: https://docs.rs/tokio/latest/tokio/io/trait.AsyncBufRead.html
 //! [`AsyncWrite`]: https://docs.rs/tokio/latest/tokio/io/trait.AsyncWrite.html
