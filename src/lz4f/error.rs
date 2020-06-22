@@ -3,6 +3,7 @@ use std::{convert, fmt, io};
 /// A list specifying general categories of LZ4F error.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 #[non_exhaustive]
+#[allow(missing_docs)]
 pub enum ErrorKind {
     Generic,
     MaxBlockSizeInvalid,
