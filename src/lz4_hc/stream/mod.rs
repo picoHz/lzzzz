@@ -37,6 +37,7 @@ use crate::{
     Buffer, Report, Result,
 };
 use api::CompressionContext;
+use std::collections::LinkedList;
 use std::mem::MaybeUninit;
 
 /// Streaming compressor
@@ -44,7 +45,8 @@ pub struct Compressor<'a> {
     ctx: CompressionContext,
     compression_level: CompressionLevel,
     dict: Buffer<'a>,
-    prev: Buffer<'a>,
+    cache: LinkedList<Buffer<'a>>,
+    cache_len: usize,
 }
 
 impl<'a> Compressor<'a> {
@@ -53,7 +55,8 @@ impl<'a> Compressor<'a> {
             ctx: CompressionContext::new()?,
             compression_level: CompressionLevel::Default,
             dict: Buffer::new(),
-            prev: Buffer::new(),
+            cache: LinkedList::new(),
+            cache_len: 0,
         })
     }
 
@@ -101,7 +104,21 @@ impl<'a> Compressor<'a> {
             CompressionMode::Default => self.ctx.next(&src, dst),
             _ => self.ctx.next_partial(&src, dst),
         };
-        self.prev = src;
+        if !src.is_empty() {
+            self.cache_len += src.len();
+            self.cache.push_back(src);
+        }
+
+        while let Some(len) = self
+            .cache
+            .front()
+            .map(|b| b.len())
+            .filter(|n| self.cache_len - n >= 64_000)
+        {
+            self.cache.pop_front();
+            self.cache_len -= len;
+        }
+
         result
     }
 
