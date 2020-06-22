@@ -2,7 +2,7 @@
 
 use super::{api, Result};
 use crate::{common::DEFAULT_BUF_SIZE, lz4f::Preferences, Error, ErrorKind, Report};
-use std::{cell::RefCell, ops::Deref};
+use std::{cell::RefCell, mem::MaybeUninit, ops::Deref};
 
 /// Calculate the maximum size of the compressed data from the original size.
 pub fn max_compressed_size(original_size: usize, prefs: &Preferences) -> usize {
@@ -62,10 +62,12 @@ pub fn compress(src: &[u8], dst: &mut [u8], prefs: &Preferences) -> Result<Repor
 /// ```
 pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, prefs: &Preferences) -> Result<Report> {
     let orig_len = dst.len();
-    dst.reserve(max_compressed_size(src.len(), prefs));
     #[allow(unsafe_code)]
     unsafe {
-        dst.set_len(dst.capacity());
+        dst.resize(
+            orig_len + max_compressed_size(src.len(), prefs),
+            MaybeUninit::uninit().assume_init(),
+        );
     }
     let result = compress(src, &mut dst[orig_len..], prefs);
     dst.resize_with(

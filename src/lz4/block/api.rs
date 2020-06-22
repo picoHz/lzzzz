@@ -5,6 +5,7 @@ use crate::{Error, ErrorKind, Report, Result};
 
 use std::{
     cell::RefCell,
+    mem::MaybeUninit,
     ops::Deref,
     os::raw::{c_char, c_int, c_void},
 };
@@ -129,8 +130,7 @@ pub struct ExtState(RefCell<Box<[u8]>>);
 impl ExtState {
     fn new() -> Self {
         let size = size_of_state() + 1;
-        let mut buf = Vec::with_capacity(size);
-        unsafe { buf.set_len(size) };
+        let mut buf = unsafe { vec![MaybeUninit::uninit().assume_init(); size] };
         buf[size - 1] = 0;
         Self(RefCell::new(buf.into_boxed_slice()))
     }

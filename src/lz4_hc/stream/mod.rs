@@ -37,6 +37,7 @@ use crate::{
     Buffer, Report, Result,
 };
 use api::CompressionContext;
+use std::mem::MaybeUninit;
 
 /// Streaming compressor
 pub struct Compressor<'a> {
@@ -115,10 +116,12 @@ impl<'a> Compressor<'a> {
     {
         let src = src.into();
         let orig_len = dst.len();
-        dst.reserve(lz4::max_compressed_size(src.len()));
         #[allow(unsafe_code)]
         unsafe {
-            dst.set_len(dst.capacity());
+            dst.resize(
+                orig_len + lz4::max_compressed_size(src.len()),
+                MaybeUninit::uninit().assume_init(),
+            );
         }
         let result = self.next(src, &mut dst[orig_len..], mode);
         dst.resize_with(

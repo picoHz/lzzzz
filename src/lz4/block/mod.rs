@@ -3,6 +3,7 @@ mod api;
 
 use crate::{Buffer, Error, ErrorKind, Report, Result};
 use api::ExtState;
+use std::mem::MaybeUninit;
 
 /// Compression mode specifier
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
@@ -155,11 +156,13 @@ pub fn compress(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> Result<Rep
 /// ```
 pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, mode: CompressionMode) -> Result<Report> {
     let orig_len = dst.len();
-    dst.reserve(max_compressed_size(src.len()));
     #[allow(unsafe_code)]
     unsafe {
-        dst.set_len(dst.capacity());
-    }
+        dst.resize(
+            orig_len + max_compressed_size(src.len()),
+            MaybeUninit::uninit().assume_init(),
+        );
+    };
     let result = compress(src, &mut dst[orig_len..], mode);
     dst.resize_with(
         orig_len + result.as_ref().map(|r| r.dst_len()).unwrap_or(0),

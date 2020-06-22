@@ -16,6 +16,7 @@ use crate::lz4f::{
     api::{CompressionContext, LZ4F_HEADER_SIZE_MAX},
     Dictionary, Preferences,
 };
+use std::mem::MaybeUninit;
 
 #[cfg(feature = "use-tokio")]
 pub use {async_bufread::*, async_read::*, async_write::*};
@@ -90,12 +91,10 @@ impl Compressor {
     }
 
     fn buf_resize(&mut self, size: usize) {
-        if size > self.buffer.len() {
-            self.buffer.reserve(size - self.buffer.len());
-        }
         #[allow(unsafe_code)]
         unsafe {
-            self.buffer.set_len(size);
+            self.buffer
+                .resize(size, MaybeUninit::uninit().assume_init());
         }
     }
 
