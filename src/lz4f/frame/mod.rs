@@ -85,13 +85,13 @@ pub fn decompress_to_vec(src: &[u8], dst: &mut Vec<u8>) -> Result<Report> {
     DecompressionCtx::with(|ctx| {
         let mut ctx = ctx.borrow_mut();
         ctx.reset();
-        if dst.capacity() == 0 {
-            dst.reserve(DEFAULT_BUF_SIZE);
-        }
         loop {
             #[allow(unsafe_code)]
             unsafe {
-                dst.set_len(dst.capacity());
+                dst.resize(
+                    dst.len() + DEFAULT_BUF_SIZE,
+                    MaybeUninit::uninit().assume_init(),
+                );
             }
             let (result, expected) =
                 ctx.decompress_dict(&src[src_offset..], &mut dst[dst_offset..], &[], false)?;
@@ -106,7 +106,6 @@ pub fn decompress_to_vec(src: &[u8], dst: &mut Vec<u8>) -> Result<Report> {
             } else if src_offset >= src.len() {
                 return Err(Error::new(ErrorKind::CompressedDataIncomplete).into());
             }
-            dst.reserve(DEFAULT_BUF_SIZE);
         }
     })
 }
