@@ -221,10 +221,14 @@ impl<'a> Decompressor<'a> {
         self.last_len = original_size;
 
         self.cache_len += report.dst_len();
-        let front_len = self.cache.front().map(Vec::len).unwrap_or(0);
-        if self.cache_len - front_len >= 64_000 {
+        while let Some(len) = self
+            .cache
+            .front()
+            .map(Vec::len)
+            .filter(|n| self.cache_len - n >= 64_000)
+        {
             self.cache.pop_front();
-            self.cache_len -= front_len;
+            self.cache_len -= len;
         }
         Ok(self.data())
     }
