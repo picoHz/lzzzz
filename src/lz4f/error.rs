@@ -1,7 +1,8 @@
 use std::{convert, fmt, io};
 
-/// Errors from liblz4
+/// A list specifying general categories of LZ4F error.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[non_exhaustive]
 pub enum ErrorKind {
     Generic,
     MaxBlockSizeInvalid,

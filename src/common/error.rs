@@ -1,6 +1,8 @@
 use std::{convert, fmt, io};
 
+/// A list specifying general categories of compression/decompression error.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[non_exhaustive]
 pub enum ErrorKind {
     CompressionFailed,
     DecompressionFailed,
@@ -28,6 +30,7 @@ impl Error {
         Self { kind }
     }
 
+    /// Return the corresponding `ErrorKind` for this error.
     pub const fn kind(self) -> ErrorKind {
         self.kind
     }
