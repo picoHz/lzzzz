@@ -201,8 +201,8 @@ impl<'a> Decompressor<'a> {
             .cache
             .back()
             .map(|v| v.capacity() - v.len())
-            .unwrap_or(0)
-            < original_size
+            .filter(|n| *n >= original_size)
+            .is_none()
         {
             self.cache.push_back(Vec::with_capacity(cmp::max(
                 original_size,
