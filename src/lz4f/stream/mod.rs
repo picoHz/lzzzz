@@ -29,61 +29,61 @@ impl<D> CompressorBuilder<D> {
     }
 
     /// Set the compression preferences.
-    pub const fn preferences(mut self, pref: Preferences) -> Self {
+    pub fn preferences(&mut self, pref: Preferences) -> &mut Self {
         self.pref = pref;
         self
     }
 
     /// Set the block size.
-    pub fn block_size(mut self, block_size: BlockSize) -> Self {
+    pub fn block_size(&mut self, block_size: BlockSize) -> &mut Self {
         self.pref.set_block_size(block_size);
         self
     }
 
     /// Set the block mode.
-    pub fn block_mode(mut self, block_mode: BlockMode) -> Self {
+    pub fn block_mode(&mut self, block_mode: BlockMode) -> &mut Self {
         self.pref.set_block_mode(block_mode);
         self
     }
 
     /// Set the content checksum.
-    pub fn content_checksum(mut self, checksum: ContentChecksum) -> Self {
+    pub fn content_checksum(&mut self, checksum: ContentChecksum) -> &mut Self {
         self.pref.set_content_checksum(checksum);
         self
     }
 
     /// Set the dict id.
-    pub fn dict_id(mut self, dict_id: u32) -> Self {
+    pub fn dict_id(&mut self, dict_id: u32) -> &mut Self {
         self.pref.set_dict_id(dict_id);
         self
     }
 
     /// Set the block checksum.
-    pub fn block_checksum(mut self, checksum: BlockChecksum) -> Self {
+    pub fn block_checksum(&mut self, checksum: BlockChecksum) -> &mut Self {
         self.pref.set_block_checksum(checksum);
         self
     }
 
     /// Set the compression level.
-    pub fn compression_level(mut self, level: CompressionLevel) -> Self {
+    pub fn compression_level(&mut self, level: CompressionLevel) -> &mut Self {
         self.pref.set_compression_level(level);
         self
     }
 
     /// Set the decompression speed mode flag.
-    pub fn favor_dec_speed(mut self, dec_speed: FavorDecSpeed) -> Self {
+    pub fn favor_dec_speed(&mut self, dec_speed: FavorDecSpeed) -> &mut Self {
         self.pref.set_favor_dec_speed(dec_speed);
         self
     }
 
     /// Set the auto flush flag.
-    pub fn auto_flush(mut self, auto_flush: AutoFlush) -> Self {
+    pub fn auto_flush(&mut self, auto_flush: AutoFlush) -> &mut Self {
         self.pref.set_auto_flush(auto_flush);
         self
     }
 
     /// Set the compression dictionary.
-    pub fn dict(mut self, dict: Dictionary) -> Self {
+    pub fn dict(&mut self, dict: Dictionary) -> &mut Self {
         self.dict = Some(dict);
         self
     }
@@ -111,7 +111,7 @@ impl<D> DecompressorBuilder<D> {
     }
 
     /// Set the capacity of the internal buffer.
-    pub const fn capacity(mut self, capacity: usize) -> Self {
+    pub fn capacity(&mut self, capacity: usize) -> &mut Self {
         self.capacity = capacity;
         self
     }

@@ -2,8 +2,7 @@ mod api;
 
 use crate::{lz4, Error, ErrorKind, Report, Result};
 use api::ExtState;
-use std::cmp::Ordering;
-use std::mem::MaybeUninit;
+use std::{cmp::Ordering, mem::MaybeUninit};
 
 /// Compression mode specifier
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
