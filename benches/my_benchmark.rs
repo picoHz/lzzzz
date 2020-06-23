@@ -1,24 +1,31 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use lzzzz::lz4;
 
-fn fibonacci(n: u64) -> u64 {
-    let mut a = 0;
-    let mut b = 1;
+fn lz4_compress(src: &[u8]) -> Vec<u8> {
+    let mut buf = Vec::new();
+    lz4::compress_to_vec(src, &mut buf, lz4::CompressionMode::Default).unwrap();
+    buf
+}
 
-    match n {
-        0 => b,
-        _ => {
-            for _ in 0..n {
-                let c = a + b;
-                a = b;
-                b = c;
-            }
-            b
-        }
-    }
+fn lz4_compress_fast(src: &[u8]) -> Vec<u8> {
+    let mut buf = Vec::new();
+    lz4::compress_to_vec(
+        src,
+        &mut buf,
+        lz4::CompressionMode::Acceleration { factor: 10000 },
+    )
+    .unwrap();
+    buf
 }
 
 pub fn criterion_benchmark(c: &mut Criterion) {
-    c.bench_function("fib 20", |b| b.iter(|| fibonacci(black_box(20))));
+    let data = "En vérité, ne ferait-on pas, pour moins que cela, le Tour du Monde ?";
+    c.bench_function("lz4_compress", |b| {
+        b.iter(|| lz4_compress(black_box(data.as_bytes())))
+    });
+    c.bench_function("lz4_compress_fast", |b| {
+        b.iter(|| lz4_compress_fast(black_box(data.as_bytes())))
+    });
 }
 
 criterion_group!(benches, criterion_benchmark);

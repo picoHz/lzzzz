@@ -35,7 +35,8 @@ use std::{cmp, collections::LinkedList, mem::MaybeUninit};
 pub struct Compressor<'a> {
     ctx: CompressionContext,
     dict: Buffer<'a>,
-    prev: Buffer<'a>,
+    cache: LinkedList<Buffer<'a>>,
+    cache_len: usize,
 }
 
 impl<'a> Compressor<'a> {
@@ -43,7 +44,8 @@ impl<'a> Compressor<'a> {
         Ok(Self {
             ctx: CompressionContext::new()?,
             dict: Buffer::new(),
-            prev: Buffer::new(),
+            cache: LinkedList::new(),
+            cache_len: 0,
         })
     }
 
@@ -110,7 +112,22 @@ impl<'a> Compressor<'a> {
         let src = src.into();
         let src_is_empty = src.is_empty();
         let dst_len = self.ctx.next(&src, dst, acc);
-        self.prev = src;
+
+        if !src_is_empty {
+            self.cache_len += src.len();
+            self.cache.push_back(src);
+        }
+
+        while let Some(len) = self
+            .cache
+            .front()
+            .map(|b| b.len())
+            .filter(|n| self.cache_len - n >= 64_000)
+        {
+            self.cache.pop_front();
+            self.cache_len -= len;
+        }
+
         if dst_len > 0 {
             Ok(Report {
                 dst_len,
