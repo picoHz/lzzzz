@@ -6,7 +6,7 @@ use std::{cell::RefCell, mem::MaybeUninit, ops::Deref};
 
 /// Calculate the maximum size of the compressed data from the original size.
 pub fn max_compressed_size(original_size: usize, prefs: &Preferences) -> usize {
-    api::compress_bound(original_size, prefs)
+    api::compress_frame_bound(original_size, prefs)
 }
 
 /// Read data from a slice and write compressed data into another slice.
