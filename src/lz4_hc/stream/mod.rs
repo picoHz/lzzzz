@@ -37,8 +37,7 @@ use crate::{
     Buffer, Report, Result,
 };
 use api::CompressionContext;
-use std::collections::LinkedList;
-use std::mem::MaybeUninit;
+use std::{collections::LinkedList, mem::MaybeUninit};
 
 /// Streaming compressor
 pub struct Compressor<'a> {

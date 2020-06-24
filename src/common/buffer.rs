@@ -1,5 +1,6 @@
 use std::{
     borrow::{Borrow, Cow},
+    cmp,
     iter::FromIterator,
     ops::Deref,
 };
@@ -96,5 +97,41 @@ impl From<bytes::Bytes> for Buffer<'_> {
 impl From<bytes::BytesMut> for Buffer<'_> {
     fn from(v: bytes::BytesMut) -> Self {
         Self::Bytes(v.into())
+    }
+}
+
+impl PartialEq<[u8]> for Buffer<'_> {
+    fn eq(&self, other: &[u8]) -> bool {
+        self.as_ref() == other
+    }
+}
+
+impl PartialOrd<[u8]> for Buffer<'_> {
+    fn partial_cmp(&self, other: &[u8]) -> Option<cmp::Ordering> {
+        self.as_ref().partial_cmp(other)
+    }
+}
+
+impl PartialEq<Buffer<'_>> for [u8] {
+    fn eq(&self, other: &Buffer<'_>) -> bool {
+        *other == *self
+    }
+}
+
+impl PartialOrd<Buffer<'_>> for [u8] {
+    fn partial_cmp(&self, other: &Buffer<'_>) -> Option<cmp::Ordering> {
+        <[u8] as PartialOrd<[u8]>>::partial_cmp(self, other)
+    }
+}
+
+impl PartialEq<Vec<u8>> for Buffer<'_> {
+    fn eq(&self, other: &Vec<u8>) -> bool {
+        self.as_ref() == &other[..]
+    }
+}
+
+impl PartialEq<Buffer<'_>> for &[u8] {
+    fn eq(&self, other: &Buffer<'_>) -> bool {
+        other.as_ref() == *self
     }
 }
