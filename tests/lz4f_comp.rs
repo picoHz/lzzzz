@@ -26,10 +26,11 @@ mod compress_to_vec {
 
     #[test]
     fn default() {
-        test(&[], &Preferences::default());
-        test("Hello world!".as_bytes(), &Preferences::default());
+        let prefs = Preferences::default();
+        test(&[], &prefs);
+        test("Hello world!".as_bytes(), &prefs);
         for i in generate_data() {
-            test(&i.collect::<Vec<_>>(), &Preferences::default());
+            test(&i.collect::<Vec<_>>(), &prefs);
         }
     }
 }
