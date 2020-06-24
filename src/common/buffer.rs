@@ -130,8 +130,78 @@ impl PartialEq<Vec<u8>> for Buffer<'_> {
     }
 }
 
+impl PartialOrd<Vec<u8>> for Buffer<'_> {
+    fn partial_cmp(&self, other: &Vec<u8>) -> Option<cmp::Ordering> {
+        self.as_ref().partial_cmp(&other[..])
+    }
+}
+
+impl PartialEq<Buffer<'_>> for Vec<u8> {
+    fn eq(&self, other: &Buffer<'_>) -> bool {
+        *other == *self
+    }
+}
+
+impl PartialOrd<Buffer<'_>> for Vec<u8> {
+    fn partial_cmp(&self, other: &Buffer<'_>) -> Option<cmp::Ordering> {
+        <[u8] as PartialOrd<[u8]>>::partial_cmp(self, other)
+    }
+}
+
+#[cfg(feature = "use-bytes")]
+impl PartialEq<bytes::Bytes> for Buffer<'_> {
+    fn eq(&self, other: &bytes::Bytes) -> bool {
+        self.as_ref() == &other[..]
+    }
+}
+
+#[cfg(feature = "use-bytes")]
+impl PartialOrd<bytes::Bytes> for Buffer<'_> {
+    fn partial_cmp(&self, other: &bytes::Bytes) -> Option<cmp::Ordering> {
+        self.as_ref().partial_cmp(&other[..])
+    }
+}
+
+#[cfg(feature = "use-bytes")]
+impl PartialEq<Buffer<'_>> for bytes::Bytes {
+    fn eq(&self, other: &Buffer<'_>) -> bool {
+        *other == *self
+    }
+}
+
+#[cfg(feature = "use-bytes")]
+impl PartialOrd<Buffer<'_>> for bytes::Bytes {
+    fn partial_cmp(&self, other: &Buffer<'_>) -> Option<cmp::Ordering> {
+        <[u8] as PartialOrd<[u8]>>::partial_cmp(self, other)
+    }
+}
+
 impl PartialEq<Buffer<'_>> for &[u8] {
     fn eq(&self, other: &Buffer<'_>) -> bool {
         other.as_ref() == *self
+    }
+}
+
+impl PartialOrd<Buffer<'_>> for &[u8] {
+    fn partial_cmp(&self, other: &Buffer<'_>) -> Option<cmp::Ordering> {
+        <[u8] as PartialOrd<[u8]>>::partial_cmp(self, other)
+    }
+}
+
+impl<'a, T: ?Sized> PartialEq<&'a T> for Buffer<'a>
+where
+    Buffer<'a>: PartialEq<T>,
+{
+    fn eq(&self, other: &&'a T) -> bool {
+        *self == **other
+    }
+}
+
+impl<'a, T: ?Sized> PartialOrd<&'a T> for Buffer<'a>
+where
+    Buffer<'a>: PartialOrd<T>,
+{
+    fn partial_cmp(&self, other: &&'a T) -> Option<cmp::Ordering> {
+        self.partial_cmp(&**other)
     }
 }

@@ -27,7 +27,7 @@ criterion = "0.3.2"
 cc = { version = "1.0.54", features = ["parallel"] }
 
 [features]
-default = ["lz4", "lz4-hc", "lz4f", "use-tls", "use-tokio"]
+default = ["lz4", "lz4-hc", "lz4f", "use-tls", "use-tokio", "use-bytes"]
 
 lz4 = []
 lz4-hc = ["lz4"]
