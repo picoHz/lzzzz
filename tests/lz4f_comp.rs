@@ -175,3 +175,33 @@ mod decompress_to_vec {
         });
     }
 }
+
+mod write_compressor {
+    use super::*;
+    use lzzzz::lz4f::{comp::WriteCompressor, CompressorBuilder};
+    use std::io::prelude::*;
+
+    #[test]
+    fn normal() {
+        preferences_set().par_iter().for_each(|prefs| {
+            for src in generate_data() {
+                let mut comp_buf = Vec::new();
+                let mut decomp_buf = Vec::new();
+                {
+                    let mut w = CompressorBuilder::new(&mut comp_buf)
+                        .preferences(prefs.clone())
+                        .build::<WriteCompressor<_>>()
+                        .unwrap();
+                    w.write_all(&src).unwrap();
+                }
+                assert_eq!(
+                    lz4f::decompress_to_vec(&comp_buf, &mut decomp_buf)
+                        .unwrap()
+                        .dst_len(),
+                    decomp_buf.len()
+                );
+                assert_eq!(decomp_buf, src);
+            }
+        });
+    }
+}
