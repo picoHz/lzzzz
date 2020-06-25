@@ -5,6 +5,7 @@ use lzzzz::{
     },
 };
 use rand::{distributions::Standard, rngs::SmallRng, Rng, SeedableRng};
+use rayon::prelude::*;
 use std::i32;
 
 fn test_compress_to_vec(prefs: &Preferences) {
@@ -19,15 +20,15 @@ fn test_compress_to_vec(prefs: &Preferences) {
 }
 
 fn generate_data() -> impl Iterator<Item = Vec<u8>> {
-    (0..24).map(|n| {
+    (0..20).map(|n| {
         let rng = SmallRng::seed_from_u64(n as u64);
-        rng.sample_iter(Standard).take(2 << n).collect()
+        rng.sample_iter(Standard).take(16 << n).collect()
     })
 }
 
 #[test]
 fn compress_to_vec() {
-    let prefs = [
+    let prefs = &[
         PreferencesBuilder::new().build(),
         PreferencesBuilder::new()
             .block_size(BlockSize::Max64KB)
@@ -59,9 +60,7 @@ fn compress_to_vec() {
         PreferencesBuilder::new()
             .auto_flush(AutoFlush::Enabled)
             .build(),
-    ];
+    ][..];
 
-    for p in prefs.iter() {
-        test_compress_to_vec(&p);
-    }
+    prefs.par_iter().for_each(|p| test_compress_to_vec(&p));
 }
