@@ -63,7 +63,7 @@ fn preferences_set() -> Vec<Preferences> {
 }
 
 #[test]
-fn compress_to_vec() {
+fn compress_decompress_to_vec() {
     preferences_set().par_iter().for_each(|prefs| {
         for src in generate_data() {
             let mut comp_buf = Vec::new();
@@ -119,6 +119,19 @@ fn compress_too_small_dst() {
             let mut comp_buf = Vec::new();
             assert_eq!(
                 lz4f::compress(&src, &mut comp_buf, prefs),
+                Err(Error::Lz4f(ErrorKind::DstMaxSizeTooSmall))
+            );
+        }
+    });
+}
+
+#[test]
+fn decompress_to_vec() {
+    preferences_set().par_iter().for_each(|prefs| {
+        for src in generate_data() {
+            let mut decomp_buf = Vec::new();
+            assert_eq!(
+                lz4f::decompress_to_vec(&src, &mut decomp_buf),
                 Err(Error::Lz4f(ErrorKind::DstMaxSizeTooSmall))
             );
         }
