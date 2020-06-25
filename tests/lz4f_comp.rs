@@ -129,8 +129,9 @@ fn compress_too_small_dst() {
 fn decompress_to_vec_invalid_header() {
     preferences_set().par_iter().for_each(|prefs| {
         for src in generate_data() {
+            let header = Vec::from("hello!".as_bytes());
             let mut comp_buf = Vec::new();
-            let mut decomp_buf = Vec::new();
+            let mut decomp_buf = header.clone();
             assert_eq!(
                 lz4f::compress_to_vec(&src, &mut comp_buf, prefs)
                     .unwrap()
@@ -141,7 +142,7 @@ fn decompress_to_vec_invalid_header() {
                 lz4f::decompress_to_vec(&comp_buf[1..], &mut decomp_buf),
                 Err(Error::Lz4f(ErrorKind::FrameTypeUnknown))
             );
-            assert!(decomp_buf.is_empty());
+            assert_eq!(decomp_buf, header);
         }
     });
 }
@@ -150,8 +151,9 @@ fn decompress_to_vec_invalid_header() {
 fn decompress_to_vec_incomplete_src() {
     preferences_set().par_iter().for_each(|prefs| {
         for src in generate_data() {
+            let header = Vec::from("hello!".as_bytes());
             let mut comp_buf = Vec::new();
-            let mut decomp_buf = Vec::new();
+            let mut decomp_buf = header.clone();
             assert_eq!(
                 lz4f::compress_to_vec(&src, &mut comp_buf, prefs)
                     .unwrap()
@@ -162,7 +164,7 @@ fn decompress_to_vec_incomplete_src() {
                 lz4f::decompress_to_vec(&comp_buf[..comp_buf.len() - 1], &mut decomp_buf),
                 Err(Error::Common(lzzzz::ErrorKind::CompressedDataIncomplete))
             );
-            assert!(decomp_buf.is_empty());
+            assert_eq!(decomp_buf, header);
         }
     });
 }
