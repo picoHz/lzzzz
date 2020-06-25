@@ -93,18 +93,25 @@ pub fn decompress_to_vec(src: &[u8], dst: &mut Vec<u8>) -> Result<Report> {
                     MaybeUninit::uninit().assume_init(),
                 );
             }
-            let (result, expected) =
-                ctx.decompress_dict(&src[src_offset..], &mut dst[dst_offset..], &[], false)?;
-            src_offset += result.src_len().unwrap();
-            dst_offset += result.dst_len();
-            if expected == 0 {
-                dst.resize_with(dst_offset, Default::default);
-                return Ok(Report {
-                    dst_len: dst_offset - header_len,
-                    ..Default::default()
-                });
-            } else if src_offset >= src.len() {
-                return Err(Error::new(ErrorKind::CompressedDataIncomplete).into());
+            match ctx.decompress_dict(&src[src_offset..], &mut dst[dst_offset..], &[], false) {
+                Ok((result, expected)) => {
+                    src_offset += result.src_len().unwrap();
+                    dst_offset += result.dst_len();
+                    if expected == 0 {
+                        dst.resize_with(dst_offset, Default::default);
+                        return Ok(Report {
+                            dst_len: dst_offset - header_len,
+                            ..Default::default()
+                        });
+                    } else if src_offset >= src.len() {
+                        dst.resize_with(header_len, Default::default);
+                        return Err(Error::new(ErrorKind::CompressedDataIncomplete).into());
+                    }
+                }
+                Err(err) => {
+                    dst.resize_with(header_len, Default::default);
+                    return Err(err);
+                }
             }
         }
     })
