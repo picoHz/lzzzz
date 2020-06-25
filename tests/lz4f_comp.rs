@@ -66,22 +66,23 @@ fn preferences_set() -> Vec<Preferences> {
 fn compress_decompress_to_vec() {
     preferences_set().par_iter().for_each(|prefs| {
         for src in generate_data() {
-            let mut comp_buf = Vec::new();
-            let mut decomp_buf = Vec::new();
+            let header = Vec::from("hello!".as_bytes());
+            let mut comp_buf = header.clone();
+            let mut decomp_buf = header.clone();
 
             assert_eq!(
                 lz4f::compress_to_vec(&src, &mut comp_buf, prefs)
                     .unwrap()
                     .dst_len(),
-                comp_buf.len()
+                comp_buf.len() - header.len()
             );
             assert_eq!(
-                lz4f::decompress_to_vec(&comp_buf, &mut decomp_buf)
+                lz4f::decompress_to_vec(&comp_buf[header.len()..], &mut decomp_buf)
                     .unwrap()
                     .dst_len(),
-                decomp_buf.len()
+                decomp_buf.len() - header.len()
             );
-            assert_eq!(decomp_buf, src);
+            assert_eq!(&decomp_buf[header.len()..], &src[..]);
         }
     });
 }
