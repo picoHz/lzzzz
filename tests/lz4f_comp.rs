@@ -205,3 +205,40 @@ mod write_compressor {
         });
     }
 }
+
+#[cfg(feature = "use-tokio")]
+mod async_write_compressor {
+    use super::*;
+    use futures::future::join_all;
+    use lzzzz::lz4f::{comp::AsyncWriteCompressor, CompressorBuilder};
+    use tokio::io::AsyncWriteExt;
+
+    #[tokio::test]
+    async fn normal() {
+        join_all(
+            preferences_set()
+                .into_iter()
+                .map(|p| generate_data().map(move |data| (data, p.clone())))
+                .flatten()
+                .map(|(src, prefs)| async move {
+                    let mut comp_buf = Vec::new();
+                    let mut decomp_buf = Vec::new();
+                    {
+                        let mut w = CompressorBuilder::new(&mut comp_buf)
+                            .preferences(prefs.clone())
+                            .build::<AsyncWriteCompressor<_>>()
+                            .unwrap();
+                        w.write_all(&src).await.unwrap();
+                    }
+                    assert_eq!(
+                        lz4f::decompress_to_vec(&comp_buf, &mut decomp_buf)
+                            .unwrap()
+                            .dst_len(),
+                        decomp_buf.len()
+                    );
+                    assert_eq!(decomp_buf, src);
+                }),
+        )
+        .await;
+    }
+}
