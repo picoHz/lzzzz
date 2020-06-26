@@ -1,6 +1,6 @@
+use futures::future::join_all;
 use lzzzz::{lz4f, lz4f::*};
 use rand::{distributions::Standard, rngs::SmallRng, Rng, SeedableRng};
-use rayon::prelude::*;
 use std::{i32, u32};
 
 fn generate_data() -> impl Iterator<Item = Vec<u8>> {
@@ -10,7 +10,7 @@ fn generate_data() -> impl Iterator<Item = Vec<u8>> {
     })
 }
 
-fn preferences_set() -> Vec<Preferences> {
+fn preferences_set() -> impl Iterator<Item = Preferences> {
     vec![
         PreferencesBuilder::new().build(),
         PreferencesBuilder::new()
@@ -54,125 +54,147 @@ fn preferences_set() -> Vec<Preferences> {
             .auto_flush(AutoFlush::Enabled)
             .build(),
     ]
+    .into_iter()
+}
+
+fn test_set() -> impl Iterator<Item = (Vec<u8>, Preferences)> {
+    generate_data()
+        .map(|data| preferences_set().map(move |prefs| (data.clone(), prefs)))
+        .flatten()
 }
 
 mod compress_to_vec {
     use super::*;
 
-    #[test]
-    fn normal() {
-        preferences_set().par_iter().for_each(|prefs| {
-            for src in generate_data() {
-                let header = Vec::from("hello!".as_bytes());
-                let mut comp_buf = header.clone();
-                let mut decomp_buf = header.clone();
+    #[tokio::test]
+    async fn normal() {
+        join_all(
+            test_set()
+                .map(|(src, prefs)| async move {
+                    let header = Vec::from("hello!".as_bytes());
+                    let mut comp_buf = header.clone();
+                    let mut decomp_buf = header.clone();
 
-                assert_eq!(
-                    lz4f::compress_to_vec(&src, &mut comp_buf, prefs)
-                        .unwrap()
-                        .dst_len(),
-                    comp_buf.len() - header.len()
-                );
-                assert_eq!(
-                    lz4f::decompress_to_vec(&comp_buf[header.len()..], &mut decomp_buf)
-                        .unwrap()
-                        .dst_len(),
-                    decomp_buf.len() - header.len()
-                );
-                assert_eq!(&decomp_buf[header.len()..], &src[..]);
-            }
-        });
+                    assert_eq!(
+                        lz4f::compress_to_vec(&src, &mut comp_buf, &prefs)
+                            .unwrap()
+                            .dst_len(),
+                        comp_buf.len() - header.len()
+                    );
+                    assert_eq!(
+                        lz4f::decompress_to_vec(&comp_buf[header.len()..], &mut decomp_buf)
+                            .unwrap()
+                            .dst_len(),
+                        decomp_buf.len() - header.len()
+                    );
+                    assert_eq!(&decomp_buf[header.len()..], &src[..]);
+                })
+                .map(|task| tokio::spawn(task)),
+        )
+        .await;
     }
 }
 
 mod compress {
     use super::*;
 
-    #[test]
-    fn normal() {
-        preferences_set().par_iter().for_each(|prefs| {
-            for src in generate_data() {
-                let mut comp_buf = Vec::new();
-                let mut decomp_buf = Vec::new();
+    #[tokio::test]
+    async fn normal() {
+        join_all(
+            test_set()
+                .map(|(src, prefs)| async move {
+                    let mut comp_buf = Vec::new();
+                    let mut decomp_buf = Vec::new();
 
-                comp_buf.resize_with(
-                    lz4f::max_compressed_size(src.len(), &prefs),
-                    Default::default,
-                );
-                let len = lz4f::compress(&src, &mut comp_buf, prefs)
-                    .unwrap()
-                    .dst_len();
-                comp_buf.resize_with(len, Default::default);
-                assert_eq!(
-                    lz4f::decompress_to_vec(&comp_buf, &mut decomp_buf)
+                    comp_buf.resize_with(
+                        lz4f::max_compressed_size(src.len(), &prefs),
+                        Default::default,
+                    );
+                    let len = lz4f::compress(&src, &mut comp_buf, &prefs)
                         .unwrap()
-                        .dst_len(),
-                    decomp_buf.len()
-                );
-                assert_eq!(decomp_buf, src);
-            }
-        });
+                        .dst_len();
+                    comp_buf.resize_with(len, Default::default);
+                    assert_eq!(
+                        lz4f::decompress_to_vec(&comp_buf, &mut decomp_buf)
+                            .unwrap()
+                            .dst_len(),
+                        decomp_buf.len()
+                    );
+                    assert_eq!(decomp_buf, src);
+                })
+                .map(|task| tokio::spawn(task)),
+        )
+        .await;
     }
 
-    #[test]
-    fn too_small_dst() {
-        preferences_set().par_iter().for_each(|prefs| {
-            for src in generate_data() {
-                let mut comp_buf = Vec::new();
-                assert_eq!(
-                    lz4f::compress(&src, &mut comp_buf, prefs),
-                    Err(Error::Lz4f(ErrorKind::DstMaxSizeTooSmall))
-                );
-            }
-        });
+    #[tokio::test]
+    async fn too_small_dts() {
+        join_all(
+            test_set()
+                .map(|(src, prefs)| async move {
+                    let mut comp_buf = Vec::new();
+                    assert_eq!(
+                        lz4f::compress(&src, &mut comp_buf, &prefs),
+                        Err(Error::Lz4f(ErrorKind::DstMaxSizeTooSmall))
+                    );
+                })
+                .map(|task| tokio::spawn(task)),
+        )
+        .await;
     }
 }
 
 mod decompress_to_vec {
     use super::*;
 
-    #[test]
-    fn invalid_header() {
-        preferences_set().par_iter().for_each(|prefs| {
-            for src in generate_data() {
-                let header = Vec::from("hello!".as_bytes());
-                let mut comp_buf = Vec::new();
-                let mut decomp_buf = header.clone();
-                assert_eq!(
-                    lz4f::compress_to_vec(&src, &mut comp_buf, prefs)
-                        .unwrap()
-                        .dst_len(),
-                    comp_buf.len()
-                );
-                assert_eq!(
-                    lz4f::decompress_to_vec(&comp_buf[1..], &mut decomp_buf),
-                    Err(Error::Lz4f(ErrorKind::FrameTypeUnknown))
-                );
-                assert_eq!(decomp_buf, header);
-            }
-        });
+    #[tokio::test]
+    async fn invalid_header() {
+        join_all(
+            test_set()
+                .map(|(src, prefs)| async move {
+                    let header = Vec::from("hello!".as_bytes());
+                    let mut comp_buf = Vec::new();
+                    let mut decomp_buf = header.clone();
+                    assert_eq!(
+                        lz4f::compress_to_vec(&src, &mut comp_buf, &prefs)
+                            .unwrap()
+                            .dst_len(),
+                        comp_buf.len()
+                    );
+                    assert_eq!(
+                        lz4f::decompress_to_vec(&comp_buf[1..], &mut decomp_buf),
+                        Err(Error::Lz4f(ErrorKind::FrameTypeUnknown))
+                    );
+                    assert_eq!(decomp_buf, header);
+                })
+                .map(|task| tokio::spawn(task)),
+        )
+        .await;
     }
 
-    #[test]
-    fn incomplete_src() {
-        preferences_set().par_iter().for_each(|prefs| {
-            for src in generate_data() {
-                let header = Vec::from("hello!".as_bytes());
-                let mut comp_buf = Vec::new();
-                let mut decomp_buf = header.clone();
-                assert_eq!(
-                    lz4f::compress_to_vec(&src, &mut comp_buf, prefs)
-                        .unwrap()
-                        .dst_len(),
-                    comp_buf.len()
-                );
-                assert_eq!(
-                    lz4f::decompress_to_vec(&comp_buf[..comp_buf.len() - 1], &mut decomp_buf),
-                    Err(Error::Common(lzzzz::ErrorKind::CompressedDataIncomplete))
-                );
-                assert_eq!(decomp_buf, header);
-            }
-        });
+    #[tokio::test]
+    async fn incomplete_src() {
+        join_all(
+            test_set()
+                .map(|(src, prefs)| async move {
+                    let header = Vec::from("hello!".as_bytes());
+                    let mut comp_buf = Vec::new();
+                    let mut decomp_buf = header.clone();
+                    assert_eq!(
+                        lz4f::compress_to_vec(&src, &mut comp_buf, &prefs)
+                            .unwrap()
+                            .dst_len(),
+                        comp_buf.len()
+                    );
+                    assert_eq!(
+                        lz4f::decompress_to_vec(&comp_buf[..comp_buf.len() - 1], &mut decomp_buf),
+                        Err(Error::Common(lzzzz::ErrorKind::CompressedDataIncomplete))
+                    );
+                    assert_eq!(decomp_buf, header);
+                })
+                .map(|task| tokio::spawn(task)),
+        )
+        .await;
     }
 }
 
@@ -181,32 +203,35 @@ mod write_compressor {
     use lzzzz::lz4f::{comp::WriteCompressor, CompressorBuilder};
     use std::io::prelude::*;
 
-    #[test]
-    fn normal() {
-        preferences_set().par_iter().for_each(|prefs| {
-            for src in generate_data() {
-                let mut comp_buf = Vec::new();
-                let mut decomp_buf = Vec::new();
-                {
-                    let mut w = CompressorBuilder::new(&mut comp_buf)
-                        .preferences(prefs.clone())
-                        .build::<WriteCompressor<_>>()
-                        .unwrap();
-                    w.write_all(&src).unwrap();
-                }
-                assert_eq!(
-                    lz4f::decompress_to_vec(&comp_buf, &mut decomp_buf)
-                        .unwrap()
-                        .dst_len(),
-                    decomp_buf.len()
-                );
-                assert_eq!(decomp_buf, src);
-            }
-        });
+    #[tokio::test]
+    async fn normal() {
+        join_all(
+            test_set()
+                .map(|(src, prefs)| async move {
+                    let mut comp_buf = Vec::new();
+                    let mut decomp_buf = Vec::new();
+                    {
+                        let mut w = CompressorBuilder::new(&mut comp_buf)
+                            .preferences(prefs)
+                            .build::<WriteCompressor<_>>()
+                            .unwrap();
+                        w.write_all(&src).unwrap();
+                    }
+                    assert_eq!(
+                        lz4f::decompress_to_vec(&comp_buf, &mut decomp_buf)
+                            .unwrap()
+                            .dst_len(),
+                        decomp_buf.len()
+                    );
+                    assert_eq!(decomp_buf, src);
+                })
+                .map(|task| tokio::spawn(task)),
+        )
+        .await;
     }
 }
 
-#[cfg(feature = "use-tokio")]
+#[cfg(feature = "use-tokiox")]
 mod async_write_compressor {
     use super::*;
     use futures::future::join_all;
@@ -216,10 +241,7 @@ mod async_write_compressor {
     #[tokio::test]
     async fn normal() {
         join_all(
-            preferences_set()
-                .into_iter()
-                .map(|p| generate_data().map(move |data| (data, p.clone())))
-                .flatten()
+            test_set()
                 .map(|(src, prefs)| async move {
                     let mut comp_buf = Vec::new();
                     let mut decomp_buf = Vec::new();
@@ -237,7 +259,8 @@ mod async_write_compressor {
                         decomp_buf.len()
                     );
                     assert_eq!(decomp_buf, src);
-                }),
+                })
+                .map(|task| tokio::spawn(task)),
         )
         .await;
     }
