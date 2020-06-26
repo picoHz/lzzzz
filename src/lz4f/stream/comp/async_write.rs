@@ -94,6 +94,8 @@ impl<W: AsyncWrite + Unpin> AsyncWrite for AsyncWriteCompressor<W> {
         if let State::None = me.state {
             me.inner.update(buf, false)?;
             me.state = State::Write;
+        } else if let State::Shutdown = me.state {
+            return Poll::Ready(Ok(0));
         }
         if let State::Write = me.state {
             if let Poll::Ready(_) = me.as_mut().write_buffer(cx)? {
@@ -109,6 +111,8 @@ impl<W: AsyncWrite + Unpin> AsyncWrite for AsyncWriteCompressor<W> {
         if let State::None = me.state {
             me.inner.flush(false)?;
             me.state = State::Flush;
+        } else if let State::Shutdown = me.state {
+            return Poll::Ready(Ok(()));
         }
         if let State::Flush = me.state {
             if let Poll::Ready(_) = me.as_mut().write_buffer(cx)? {
@@ -124,10 +128,11 @@ impl<W: AsyncWrite + Unpin> AsyncWrite for AsyncWriteCompressor<W> {
         if let State::None = me.state {
             me.inner.end(false)?;
             me.state = State::Shutdown;
+        } else if let State::Shutdown = me.state {
+            return Poll::Ready(Ok(()));
         }
         if let State::Shutdown = me.state {
             if let Poll::Ready(_) = me.as_mut().write_buffer(cx)? {
-                me.state = State::None;
                 return Poll::Ready(Ok(()));
             }
         }
