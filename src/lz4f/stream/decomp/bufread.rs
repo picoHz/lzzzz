@@ -120,32 +120,3 @@ impl<'a, R: BufRead> TryInto<BufReadDecompressor<'a, R>> for DecompressorBuilder
         BufReadDecompressor::from_builder(self.device, self.capacity)
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use crate::lz4f::decomp::BufReadDecompressor;
-    use assert_fs::prelude::*;
-    use std::{
-        fs::File,
-        io::{BufReader, Read},
-    };
-
-    #[test]
-    fn read() -> std::io::Result<()> {
-        {
-            let mut buf = Vec::new();
-            crate::lz4f::compress_to_vec(b"Hello world!", &mut buf, &Default::default())?;
-            let tmp_dir = assert_fs::TempDir::new().unwrap().into_persistent();
-            tmp_dir.child("foo.lz4").write_binary(&buf).unwrap();
-            std::env::set_current_dir(tmp_dir.path()).unwrap();
-
-            let mut file = BufReader::new(File::open("foo.lz4")?);
-            let mut file = BufReadDecompressor::new(&mut file)?;
-            let mut buf = Vec::new();
-            println!("@@@ {:?} {:?}", buf, file.read_frame_info());
-            file.read_to_end(&mut buf)?;
-            println!("@@@ {:?} {:?}", buf, file.read_frame_info());
-        }
-        Ok(())
-    }
-}
