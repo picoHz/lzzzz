@@ -231,7 +231,7 @@ mod write_compressor {
     }
 }
 
-#[cfg(feature = "use-tokiox")]
+#[cfg(feature = "use-tokio")]
 mod async_write_compressor {
     use super::*;
     use futures::future::join_all;
@@ -240,28 +240,25 @@ mod async_write_compressor {
 
     #[tokio::test]
     async fn normal() {
-        join_all(
-            test_set()
-                .map(|(src, prefs)| async move {
-                    let mut comp_buf = Vec::new();
-                    let mut decomp_buf = Vec::new();
-                    {
-                        let mut w = CompressorBuilder::new(&mut comp_buf)
-                            .preferences(prefs.clone())
-                            .build::<AsyncWriteCompressor<_>>()
-                            .unwrap();
-                        w.write_all(&src).await.unwrap();
-                    }
-                    assert_eq!(
-                        lz4f::decompress_to_vec(&comp_buf, &mut decomp_buf)
-                            .unwrap()
-                            .dst_len(),
-                        decomp_buf.len()
-                    );
-                    assert_eq!(decomp_buf, src);
-                })
-                .map(|task| tokio::spawn(task)),
-        )
+        join_all(test_set().map(|(src, prefs)| async move {
+            let mut comp_buf = Vec::new();
+            let mut decomp_buf = Vec::new();
+            {
+                let mut w = CompressorBuilder::new(&mut comp_buf)
+                    .preferences(prefs.clone())
+                    .build::<AsyncWriteCompressor<_>>()
+                    .unwrap();
+                w.write_all(&src).await.unwrap();
+                w.shutdown().await.unwrap();
+            }
+            assert_eq!(
+                lz4f::decompress_to_vec(&comp_buf, &mut decomp_buf)
+                    .unwrap()
+                    .dst_len(),
+                decomp_buf.len()
+            );
+            assert_eq!(decomp_buf, src);
+        }))
         .await;
     }
 }

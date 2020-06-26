@@ -30,6 +30,7 @@ use tokio::io::AsyncWrite;
 /// let mut w = AsyncWriteCompressor::new(&mut f)?;
 ///
 /// w.write_all(b"hello, world!").await?;
+/// w.shutdown().await?;
 /// # Ok::<(), tokio::io::Error>(())
 /// # }).unwrap();
 /// # tmp_dir.close().unwrap();
@@ -41,6 +42,15 @@ pub struct AsyncWriteCompressor<W: AsyncWrite + Unpin> {
     device: W,
     inner: Compressor,
     consumed: usize,
+    state: State,
+}
+
+#[derive(Copy, Clone)]
+enum State {
+    None,
+    Write,
+    Flush,
+    Shutdown,
 }
 
 impl<W: AsyncWrite + Unpin> AsyncWriteCompressor<W> {
@@ -53,12 +63,13 @@ impl<W: AsyncWrite + Unpin> AsyncWriteCompressor<W> {
             device: writer,
             inner: Compressor::new(pref, dict)?,
             consumed: 0,
+            state: State::None,
         })
     }
 
     fn write_buffer(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<tokio::io::Result<()>> {
         let me = self.project();
-        if let Poll::Ready(len) = me.device.poll_write(cx, &me.inner.buf()[..*me.consumed])? {
+        if let Poll::Ready(len) = me.device.poll_write(cx, &me.inner.buf()[*me.consumed..])? {
             *me.consumed += len;
             if *me.consumed >= me.inner.buf().len() {
                 *me.consumed = 0;
@@ -80,21 +91,47 @@ impl<W: AsyncWrite + Unpin> AsyncWrite for AsyncWriteCompressor<W> {
         buf: &[u8],
     ) -> Poll<tokio::io::Result<usize>> {
         let mut me = Pin::new(&mut *self);
-        me.inner.update(buf, false)?;
-        let _ = me.write_buffer(cx)?;
-        Poll::Ready(Ok(buf.len()))
+        if let State::None = me.state {
+            me.inner.update(buf, false)?;
+            me.state = State::Write;
+        }
+        if let State::Write = me.state {
+            if let Poll::Ready(_) = me.as_mut().write_buffer(cx)? {
+                me.state = State::None;
+                return Poll::Ready(Ok(buf.len()));
+            }
+        }
+        Poll::Pending
     }
 
     fn poll_flush(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<tokio::io::Result<()>> {
         let mut me = Pin::new(&mut *self);
-        me.inner.flush(false)?;
-        me.write_buffer(cx)
+        if let State::None = me.state {
+            me.inner.flush(false)?;
+            me.state = State::Flush;
+        }
+        if let State::Flush = me.state {
+            if let Poll::Ready(_) = me.as_mut().write_buffer(cx)? {
+                me.state = State::None;
+                return Poll::Ready(Ok(()));
+            }
+        }
+        Poll::Pending
     }
 
     fn poll_shutdown(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<tokio::io::Result<()>> {
         let mut me = Pin::new(&mut *self);
-        me.inner.end(false)?;
-        me.write_buffer(cx)
+        if let State::None = me.state {
+            me.inner.end(false)?;
+            me.state = State::Shutdown;
+        }
+        if let State::Shutdown = me.state {
+            if let Poll::Ready(_) = me.as_mut().write_buffer(cx)? {
+                me.state = State::None;
+                return Poll::Ready(Ok(()));
+            }
+        }
+        Poll::Pending
     }
 }
 
