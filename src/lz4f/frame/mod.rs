@@ -25,7 +25,7 @@ pub fn max_compressed_size(original_size: usize, prefs: &Preferences) -> usize {
 /// let mut buf = [0u8; 131_072];
 /// let prefs = lz4f::Preferences::default();
 ///
-/// // The slice should have enough space.
+/// // The slice should have enough capacity.
 /// assert!(buf.len() >= lz4f::max_compressed_size(data.len(), &prefs));
 ///
 /// let len = lz4f::compress(data, &mut buf, &prefs).unwrap().dst_len();

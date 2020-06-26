@@ -82,7 +82,7 @@ impl<'a> Compressor<'a> {
     /// let data = &b"As soon as they had strength, they arose, joined hands again, and went on."[..];
     /// let mut buf = [0u8; 2048];
     ///
-    /// // The slice should have enough space.
+    /// // The slice should have enough capacity.
     /// assert!(buf.len() >= lz4::max_compressed_size(data.len()));
     ///
     /// let len = stream

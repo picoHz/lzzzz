@@ -75,7 +75,7 @@ impl CompressionLevel {
 /// let data = "— Да, простите, — повторил он то же слово, которым закончил и весь рассказ.";
 /// let mut buf = [0u8; 2048];
 ///
-/// // The slice should have enough space.
+/// // The slice should have enough capacity.
 /// assert!(buf.len() >= lz4::max_compressed_size(data.len()));
 ///
 /// let len = lz4_hc::compress(

@@ -30,6 +30,8 @@ use tokio::io::AsyncWrite;
 /// let mut w = AsyncWriteCompressor::new(&mut f)?;
 ///
 /// w.write_all(b"hello, world!").await?;
+///
+/// // You have to call shutdown() to finalize the frame.
 /// w.shutdown().await?;
 /// # Ok::<(), tokio::io::Error>(())
 /// # }).unwrap();
@@ -45,7 +47,6 @@ pub struct AsyncWriteCompressor<W: AsyncWrite + Unpin> {
     state: State,
 }
 
-#[derive(Copy, Clone)]
 enum State {
     None,
     Write,
