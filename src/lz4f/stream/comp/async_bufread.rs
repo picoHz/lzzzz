@@ -47,6 +47,7 @@ pub struct AsyncBufReadCompressor<R: AsyncBufRead + Unpin> {
     device: R,
     inner: Compressor,
     consumed: usize,
+    closed: bool,
 }
 
 impl<R: AsyncBufRead + Unpin> AsyncBufReadCompressor<R> {
@@ -63,6 +64,7 @@ impl<R: AsyncBufRead + Unpin> AsyncBufReadCompressor<R> {
             device: reader,
             inner: Compressor::new(pref, dict)?,
             consumed: 0,
+            closed: false,
         })
     }
 
@@ -78,7 +80,14 @@ impl<R: AsyncBufRead + Unpin> AsyncBufReadCompressor<R> {
             }
             Poll::Ready(r) => r,
         }?;
-        me.inner.update(inner_buf, false)?;
+        if inner_buf.is_empty() {
+            if !*me.closed {
+                me.inner.end(false)?;
+                *me.closed = true;
+            }
+        } else {
+            me.inner.update(inner_buf, false)?;
+        }
         let len = inner_buf.len();
         me.device.as_mut().consume(len);
         Poll::Ready(Ok(()))
