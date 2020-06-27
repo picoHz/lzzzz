@@ -315,7 +315,7 @@ mod async_write_decompressor {
                     let src = &comp_buf[offset..][..rng.gen_range(0, comp_buf.len() - offset + 1)];
                     let len = w.write(src).await.unwrap();
                     assert!(src.len() == 0 || len > 0);
-                    offset += src.len();
+                    offset += len;
                 }
             }
             assert_eq!(decomp_buf.len(), src.len());
