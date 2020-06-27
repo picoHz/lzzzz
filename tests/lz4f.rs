@@ -286,9 +286,39 @@ mod async_write_decompressor {
                     .build::<AsyncWriteDecompressor<_>>()
                     .unwrap();
                 w.write_all(&comp_buf).await.unwrap();
-                w.shutdown().await.unwrap();
             }
             assert_eq!(decomp_buf, src);
+        }))
+        .await;
+    }
+
+    #[tokio::test]
+    async fn random_chunk() {
+        join_all(test_set().map(|(src, prefs)| async move {
+            let mut comp_buf = Vec::new();
+            let mut decomp_buf = Vec::new();
+            assert_eq!(
+                lz4f::compress_to_vec(&src, &mut comp_buf, &prefs)
+                    .unwrap()
+                    .dst_len(),
+                comp_buf.len()
+            );
+            {
+                let mut w = DecompressorBuilder::new(&mut decomp_buf)
+                    .build::<AsyncWriteDecompressor<_>>()
+                    .unwrap();
+
+                let mut offset = 0;
+                let mut rng = SmallRng::seed_from_u64(0);
+
+                while offset < comp_buf.len() {
+                    let src = &comp_buf[offset..][..rng.gen_range(0, comp_buf.len() - offset + 1)];
+                    let len = w.write(src).await.unwrap();
+                    assert!(src.len() == 0 || len > 0);
+                    offset += src.len();
+                }
+            }
+            assert_eq!(decomp_buf.len(), src.len());
         }))
         .await;
     }
@@ -309,7 +339,7 @@ mod async_write_decompressor {
                     .build::<AsyncWriteDecompressor<_>>()
                     .unwrap();
                 let err = w
-                    .write(&comp_buf[1..])
+                    .write_all(&comp_buf[1..])
                     .await
                     .unwrap_err()
                     .into_inner()
