@@ -262,3 +262,64 @@ mod async_write_compressor {
         .await;
     }
 }
+
+#[cfg(feature = "use-tokio")]
+mod async_write_decompressor {
+    use super::*;
+    use futures::future::join_all;
+    use lzzzz::lz4f::{decomp::AsyncWriteDecompressor, DecompressorBuilder};
+    use tokio::io::AsyncWriteExt;
+
+    #[tokio::test]
+    async fn normal() {
+        join_all(test_set().map(|(src, prefs)| async move {
+            let mut comp_buf = Vec::new();
+            let mut decomp_buf = Vec::new();
+            assert_eq!(
+                lz4f::compress_to_vec(&src, &mut comp_buf, &prefs)
+                    .unwrap()
+                    .dst_len(),
+                comp_buf.len()
+            );
+            {
+                let mut w = DecompressorBuilder::new(&mut decomp_buf)
+                    .build::<AsyncWriteDecompressor<_>>()
+                    .unwrap();
+                w.write_all(&comp_buf).await.unwrap();
+                w.shutdown().await.unwrap();
+            }
+            assert_eq!(decomp_buf, src);
+        }))
+        .await;
+    }
+
+    #[tokio::test]
+    async fn invalid_header() {
+        join_all(test_set().map(|(src, prefs)| async move {
+            let mut comp_buf = Vec::new();
+            let mut decomp_buf = Vec::new();
+            assert_eq!(
+                lz4f::compress_to_vec(&src, &mut comp_buf, &prefs)
+                    .unwrap()
+                    .dst_len(),
+                comp_buf.len()
+            );
+            {
+                let mut w = DecompressorBuilder::new(&mut decomp_buf)
+                    .build::<AsyncWriteDecompressor<_>>()
+                    .unwrap();
+                let err = w
+                    .write(&comp_buf[1..])
+                    .await
+                    .unwrap_err()
+                    .into_inner()
+                    .unwrap();
+                assert_eq!(
+                    err.downcast::<lz4f::Error>().unwrap(),
+                    Box::new(lz4f::Error::Common(lzzzz::ErrorKind::DecompressionFailed))
+                );
+            }
+        }))
+        .await;
+    }
+}
