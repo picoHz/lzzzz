@@ -231,6 +231,74 @@ mod write_compressor {
     }
 }
 
+mod read_compressor {
+    use super::*;
+    use lzzzz::lz4f::{comp::ReadCompressor, CompressorBuilder};
+    use std::io::prelude::*;
+
+    #[tokio::test]
+    async fn normal() {
+        join_all(
+            test_set()
+                .map(|(src, prefs)| async move {
+                    let mut comp_buf = Vec::new();
+                    let mut decomp_buf = Vec::new();
+                    {
+                        let mut src = src.as_slice();
+                        let mut r = CompressorBuilder::new(&mut src)
+                            .preferences(prefs)
+                            .build::<ReadCompressor<_>>()
+                            .unwrap();
+                        r.read_to_end(&mut comp_buf).unwrap();
+                    }
+                    assert_eq!(
+                        lz4f::decompress_to_vec(&comp_buf, &mut decomp_buf)
+                            .unwrap()
+                            .dst_len(),
+                        decomp_buf.len()
+                    );
+                    assert_eq!(decomp_buf, src);
+                })
+                .map(|task| tokio::spawn(task)),
+        )
+        .await;
+    }
+}
+
+mod bufread_compressor {
+    use super::*;
+    use lzzzz::lz4f::{comp::BufReadCompressor, CompressorBuilder};
+    use std::io::prelude::*;
+
+    #[tokio::test]
+    async fn normal() {
+        join_all(
+            test_set()
+                .map(|(src, prefs)| async move {
+                    let mut comp_buf = Vec::new();
+                    let mut decomp_buf = Vec::new();
+                    {
+                        let mut src = src.as_slice();
+                        let mut r = CompressorBuilder::new(&mut src)
+                            .preferences(prefs)
+                            .build::<BufReadCompressor<_>>()
+                            .unwrap();
+                        r.read_to_end(&mut comp_buf).unwrap();
+                    }
+                    assert_eq!(
+                        lz4f::decompress_to_vec(&comp_buf, &mut decomp_buf)
+                            .unwrap()
+                            .dst_len(),
+                        decomp_buf.len()
+                    );
+                    assert_eq!(decomp_buf, src);
+                })
+                .map(|task| tokio::spawn(task)),
+        )
+        .await;
+    }
+}
+
 mod write_decompressor {
     use super::*;
     use lzzzz::lz4f::{decomp::WriteDecompressor, DecompressorBuilder};
@@ -459,6 +527,168 @@ mod read_decompressor {
     }
 }
 
+mod bufread_decompressor {
+    use super::*;
+    use futures::future::join_all;
+    use lzzzz::lz4f::{decomp::BufReadDecompressor, DecompressorBuilder};
+    use std::io::Read;
+
+    #[tokio::test]
+    async fn normal() {
+        join_all(
+            test_set()
+                .map(|(src, prefs)| async move {
+                    let mut comp_buf = Vec::new();
+                    let mut decomp_buf = Vec::new();
+                    assert_eq!(
+                        lz4f::compress_to_vec(&src, &mut comp_buf, &prefs)
+                            .unwrap()
+                            .dst_len(),
+                        comp_buf.len()
+                    );
+                    {
+                        let mut src = comp_buf.as_slice();
+                        let mut r = DecompressorBuilder::new(&mut src)
+                            .build::<BufReadDecompressor<_>>()
+                            .unwrap();
+                        r.read_to_end(&mut decomp_buf).unwrap();
+                    }
+                    assert_eq!(decomp_buf, src);
+                })
+                .map(|task| tokio::spawn(task)),
+        )
+        .await;
+    }
+
+    #[tokio::test]
+    async fn small_buffer_capacity() {
+        join_all(
+            test_set()
+                .map(|(src, prefs)| async move {
+                    let mut comp_buf = Vec::new();
+                    let mut decomp_buf = Vec::new();
+                    assert_eq!(
+                        lz4f::compress_to_vec(&src, &mut comp_buf, &prefs)
+                            .unwrap()
+                            .dst_len(),
+                        comp_buf.len()
+                    );
+                    {
+                        let mut src = comp_buf.as_slice();
+                        let mut r = DecompressorBuilder::new(&mut src)
+                            .capacity(1)
+                            .build::<BufReadDecompressor<_>>()
+                            .unwrap();
+                        r.read_to_end(&mut decomp_buf).unwrap();
+                    }
+                    assert_eq!(decomp_buf, src);
+                })
+                .map(|task| tokio::spawn(task)),
+        )
+        .await;
+    }
+
+    #[tokio::test]
+    async fn random_chunk() {
+        join_all(
+            test_set()
+                .map(|(src, prefs)| async move {
+                    let mut comp_buf = Vec::new();
+                    let mut decomp_buf = vec![0; src.len()];
+                    assert_eq!(
+                        lz4f::compress_to_vec(&src, &mut comp_buf, &prefs)
+                            .unwrap()
+                            .dst_len(),
+                        comp_buf.len()
+                    );
+                    {
+                        let mut src = comp_buf.as_slice();
+                        let mut r = DecompressorBuilder::new(&mut src)
+                            .build::<BufReadDecompressor<_>>()
+                            .unwrap();
+
+                        let mut offset = 0;
+                        let mut rng = SmallRng::seed_from_u64(0);
+
+                        let dst_len = decomp_buf.len();
+                        while offset < dst_len {
+                            let dst =
+                                &mut decomp_buf[offset..][..rng.gen_range(0, dst_len - offset + 1)];
+                            let len = r.read(dst).unwrap();
+                            assert!(dst.len() == 0 || len > 0);
+                            offset += len;
+                        }
+                    }
+                    assert_eq!(decomp_buf.len(), src.len());
+                })
+                .map(|task| tokio::spawn(task)),
+        )
+        .await;
+    }
+}
+
+#[cfg(feature = "use-tokio")]
+mod async_read_compressor {
+    use super::*;
+    use lzzzz::lz4f::{comp::AsyncReadCompressor, CompressorBuilder};
+    use tokio::io::AsyncReadExt;
+
+    #[tokio::test]
+    async fn normal() {
+        join_all(test_set().map(|(src, prefs)| async move {
+            let mut comp_buf = Vec::new();
+            let mut decomp_buf = Vec::new();
+            {
+                let mut src = src.as_slice();
+                let mut r = CompressorBuilder::new(&mut src)
+                    .preferences(prefs)
+                    .build::<AsyncReadCompressor<_>>()
+                    .unwrap();
+                r.read_to_end(&mut comp_buf).await.unwrap();
+            }
+            assert_eq!(
+                lz4f::decompress_to_vec(&comp_buf, &mut decomp_buf)
+                    .unwrap()
+                    .dst_len(),
+                decomp_buf.len()
+            );
+            assert_eq!(decomp_buf, src);
+        }))
+        .await;
+    }
+}
+
+#[cfg(feature = "use-tokio")]
+mod async_bufread_compressor {
+    use super::*;
+    use lzzzz::lz4f::{comp::AsyncBufReadCompressor, CompressorBuilder};
+    use tokio::io::AsyncReadExt;
+
+    #[tokio::test]
+    async fn normal() {
+        join_all(test_set().map(|(src, prefs)| async move {
+            let mut comp_buf = Vec::new();
+            let mut decomp_buf = Vec::new();
+            {
+                let mut src = src.as_slice();
+                let mut r = CompressorBuilder::new(&mut src)
+                    .preferences(prefs)
+                    .build::<AsyncBufReadCompressor<_>>()
+                    .unwrap();
+                r.read_to_end(&mut comp_buf).await.unwrap();
+            }
+            assert_eq!(
+                lz4f::decompress_to_vec(&comp_buf, &mut decomp_buf)
+                    .unwrap()
+                    .dst_len(),
+                decomp_buf.len()
+            );
+            assert_eq!(decomp_buf, src);
+        }))
+        .await;
+    }
+}
+
 #[cfg(feature = "use-tokio")]
 mod async_write_compressor {
     use super::*;
@@ -560,6 +790,94 @@ mod async_read_decompressor {
                 let mut src = comp_buf.as_slice();
                 let mut r = DecompressorBuilder::new(&mut src)
                     .build::<AsyncReadDecompressor<_>>()
+                    .unwrap();
+
+                let mut offset = 0;
+                let mut rng = SmallRng::seed_from_u64(0);
+
+                let dst_len = decomp_buf.len();
+                while offset < dst_len {
+                    let dst = &mut decomp_buf[offset..][..rng.gen_range(0, dst_len - offset + 1)];
+                    let len = r.read(dst).await.unwrap();
+                    assert!(dst.len() == 0 || len > 0);
+                    offset += len;
+                }
+            }
+            assert_eq!(decomp_buf.len(), src.len());
+        }))
+        .await;
+    }
+}
+
+#[cfg(feature = "use-tokio")]
+mod async_bufread_decompressor {
+    use super::*;
+    use futures::future::join_all;
+    use lzzzz::lz4f::{decomp::AsyncBufReadDecompressor, DecompressorBuilder};
+    use tokio::io::AsyncReadExt;
+
+    #[tokio::test]
+    async fn normal() {
+        join_all(test_set().map(|(src, prefs)| async move {
+            let mut comp_buf = Vec::new();
+            let mut decomp_buf = Vec::new();
+            assert_eq!(
+                lz4f::compress_to_vec(&src, &mut comp_buf, &prefs)
+                    .unwrap()
+                    .dst_len(),
+                comp_buf.len()
+            );
+            {
+                let mut src = comp_buf.as_slice();
+                let mut r = DecompressorBuilder::new(&mut src)
+                    .build::<AsyncBufReadDecompressor<_>>()
+                    .unwrap();
+                r.read_to_end(&mut decomp_buf).await.unwrap();
+            }
+            assert_eq!(decomp_buf, src);
+        }))
+        .await;
+    }
+
+    #[tokio::test]
+    async fn small_buffer_capacity() {
+        join_all(test_set().map(|(src, prefs)| async move {
+            let mut comp_buf = Vec::new();
+            let mut decomp_buf = Vec::new();
+            assert_eq!(
+                lz4f::compress_to_vec(&src, &mut comp_buf, &prefs)
+                    .unwrap()
+                    .dst_len(),
+                comp_buf.len()
+            );
+            {
+                let mut src = comp_buf.as_slice();
+                let mut r = DecompressorBuilder::new(&mut src)
+                    .capacity(1)
+                    .build::<AsyncBufReadDecompressor<_>>()
+                    .unwrap();
+                r.read_to_end(&mut decomp_buf).await.unwrap();
+            }
+            assert_eq!(decomp_buf, src);
+        }))
+        .await;
+    }
+
+    #[tokio::test]
+    async fn random_chunk() {
+        join_all(test_set().map(|(src, prefs)| async move {
+            let mut comp_buf = Vec::new();
+            let mut decomp_buf = vec![0; src.len()];
+            assert_eq!(
+                lz4f::compress_to_vec(&src, &mut comp_buf, &prefs)
+                    .unwrap()
+                    .dst_len(),
+                comp_buf.len()
+            );
+            {
+                let mut src = comp_buf.as_slice();
+                let mut r = DecompressorBuilder::new(&mut src)
+                    .build::<AsyncBufReadDecompressor<_>>()
                     .unwrap();
 
                 let mut offset = 0;
