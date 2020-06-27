@@ -229,6 +229,42 @@ mod write_compressor {
         )
         .await;
     }
+
+    #[tokio::test]
+    async fn random_chunk() {
+        join_all(
+            test_set()
+                .map(|(src, prefs)| async move {
+                    let mut comp_buf = Vec::new();
+                    let mut decomp_buf = Vec::new();
+                    {
+                        let mut w = CompressorBuilder::new(&mut comp_buf)
+                            .preferences(prefs)
+                            .build::<WriteCompressor<_>>()
+                            .unwrap();
+
+                        let mut offset = 0;
+                        let mut rng = SmallRng::seed_from_u64(0);
+
+                        while offset < src.len() {
+                            let len = w
+                                .write(&src[offset..][..rng.gen_range(0, src.len() - offset + 1)])
+                                .unwrap();
+                            offset += len;
+                        }
+                    }
+                    assert_eq!(
+                        lz4f::decompress_to_vec(&comp_buf, &mut decomp_buf)
+                            .unwrap()
+                            .dst_len(),
+                        decomp_buf.len()
+                    );
+                    assert_eq!(decomp_buf, src);
+                })
+                .map(|task| tokio::spawn(task)),
+        )
+        .await;
+    }
 }
 
 mod read_compressor {
@@ -263,6 +299,47 @@ mod read_compressor {
         )
         .await;
     }
+
+    #[tokio::test]
+    async fn random_chunk() {
+        join_all(
+            test_set()
+                .map(|(src, prefs)| async move {
+                    let mut comp_buf = Vec::new();
+                    let mut decomp_buf = Vec::new();
+                    {
+                        let src_len = src.len();
+                        let mut src = src.as_slice();
+                        let mut r = CompressorBuilder::new(&mut src)
+                            .preferences(prefs)
+                            .build::<ReadCompressor<_>>()
+                            .unwrap();
+
+                        let mut offset = 0;
+                        let mut rng = SmallRng::seed_from_u64(0);
+
+                        loop {
+                            let dst =
+                                &mut comp_buf[offset..][..rng.gen_range(0, src_len - offset + 1)];
+                            let len = r.read(dst).unwrap();
+                            if dst.len() > 0 && len == 0 {
+                                break;
+                            }
+                            offset += len;
+                        }
+                    }
+                    assert_eq!(
+                        lz4f::decompress_to_vec(&comp_buf, &mut decomp_buf)
+                            .unwrap()
+                            .dst_len(),
+                        decomp_buf.len()
+                    );
+                    assert_eq!(decomp_buf, src);
+                })
+                .map(|task| tokio::spawn(task)),
+        )
+        .await;
+    }
 }
 
 mod bufread_compressor {
@@ -284,6 +361,47 @@ mod bufread_compressor {
                             .build::<BufReadCompressor<_>>()
                             .unwrap();
                         r.read_to_end(&mut comp_buf).unwrap();
+                    }
+                    assert_eq!(
+                        lz4f::decompress_to_vec(&comp_buf, &mut decomp_buf)
+                            .unwrap()
+                            .dst_len(),
+                        decomp_buf.len()
+                    );
+                    assert_eq!(decomp_buf, src);
+                })
+                .map(|task| tokio::spawn(task)),
+        )
+        .await;
+    }
+
+    #[tokio::test]
+    async fn random_chunk() {
+        join_all(
+            test_set()
+                .map(|(src, prefs)| async move {
+                    let mut comp_buf = vec![0; lz4f::max_compressed_size(src.len(), &prefs)];
+                    let mut decomp_buf = Vec::new();
+                    {
+                        let src_len = src.len();
+                        let mut src = src.as_slice();
+                        let mut r = CompressorBuilder::new(&mut src)
+                            .preferences(prefs)
+                            .build::<BufReadCompressor<_>>()
+                            .unwrap();
+
+                        let mut offset = 0;
+                        let mut rng = SmallRng::seed_from_u64(0);
+
+                        loop {
+                            let dst =
+                                &mut comp_buf[offset..][..rng.gen_range(0, src_len - offset + 1)];
+                            let len = r.read(dst).unwrap();
+                            if dst.len() > 0 && len == 0 {
+                                break;
+                            }
+                            offset += len;
+                        }
                     }
                     assert_eq!(
                         lz4f::decompress_to_vec(&comp_buf, &mut decomp_buf)
@@ -656,6 +774,42 @@ mod async_read_compressor {
         }))
         .await;
     }
+
+    #[tokio::test]
+    async fn random_chunk() {
+        join_all(test_set().map(|(src, prefs)| async move {
+            let mut comp_buf = vec![0; lz4f::max_compressed_size(src.len(), &prefs)];
+            let mut decomp_buf = Vec::new();
+            {
+                let src_len = src.len();
+                let mut src = src.as_slice();
+                let mut r = CompressorBuilder::new(&mut src)
+                    .preferences(prefs)
+                    .build::<AsyncReadCompressor<_>>()
+                    .unwrap();
+
+                let mut offset = 0;
+                let mut rng = SmallRng::seed_from_u64(0);
+
+                loop {
+                    let dst = &mut comp_buf[offset..][..rng.gen_range(0, src_len - offset + 1)];
+                    let len = r.read(dst).await.unwrap();
+                    if dst.len() > 0 && len == 0 {
+                        break;
+                    }
+                    offset += len;
+                }
+            }
+            assert_eq!(
+                lz4f::decompress_to_vec(&comp_buf, &mut decomp_buf)
+                    .unwrap()
+                    .dst_len(),
+                decomp_buf.len()
+            );
+            assert_eq!(decomp_buf, src);
+        }))
+        .await;
+    }
 }
 
 #[cfg(feature = "use-tokio")]
@@ -676,6 +830,42 @@ mod async_bufread_compressor {
                     .build::<AsyncBufReadCompressor<_>>()
                     .unwrap();
                 r.read_to_end(&mut comp_buf).await.unwrap();
+            }
+            assert_eq!(
+                lz4f::decompress_to_vec(&comp_buf, &mut decomp_buf)
+                    .unwrap()
+                    .dst_len(),
+                decomp_buf.len()
+            );
+            assert_eq!(decomp_buf, src);
+        }))
+        .await;
+    }
+
+    #[tokio::test]
+    async fn random_chunk() {
+        join_all(test_set().map(|(src, prefs)| async move {
+            let mut comp_buf = vec![0; lz4f::max_compressed_size(src.len(), &prefs)];
+            let mut decomp_buf = Vec::new();
+            {
+                let src_len = src.len();
+                let mut src = src.as_slice();
+                let mut r = CompressorBuilder::new(&mut src)
+                    .preferences(prefs)
+                    .build::<AsyncBufReadCompressor<_>>()
+                    .unwrap();
+
+                let mut offset = 0;
+                let mut rng = SmallRng::seed_from_u64(0);
+
+                loop {
+                    let dst = &mut comp_buf[offset..][..rng.gen_range(0, src_len - offset + 1)];
+                    let len = r.read(dst).await.unwrap();
+                    if dst.len() > 0 && len == 0 {
+                        break;
+                    }
+                    offset += len;
+                }
             }
             assert_eq!(
                 lz4f::decompress_to_vec(&comp_buf, &mut decomp_buf)
