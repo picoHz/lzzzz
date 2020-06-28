@@ -74,9 +74,21 @@ impl From<Box<[u8]>> for Buffer<'_> {
     }
 }
 
+impl<'a> From<&'a Box<[u8]>> for Buffer<'a> {
+    fn from(v: &'a Box<[u8]>) -> Self {
+        Self::Borrowed(&v)
+    }
+}
+
 impl From<Vec<u8>> for Buffer<'_> {
     fn from(v: Vec<u8>) -> Self {
         Self::Owned(v.into())
+    }
+}
+
+impl<'a> From<&'a Vec<u8>> for Buffer<'a> {
+    fn from(v: &'a Vec<u8>) -> Self {
+        Self::Borrowed(v)
     }
 }
 

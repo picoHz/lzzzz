@@ -419,7 +419,9 @@ mod bufread_compressor {
 
 mod write_decompressor {
     use super::*;
-    use lzzzz::lz4f::{decomp::WriteDecompressor, DecompressorBuilder};
+    use lzzzz::lz4f::{
+        comp::WriteCompressor, decomp::WriteDecompressor, DecompressorBuilder, Dictionary,
+    };
     use std::io::prelude::*;
 
     #[tokio::test]
@@ -439,6 +441,35 @@ mod write_decompressor {
                         let mut w = DecompressorBuilder::new(&mut decomp_buf)
                             .build::<WriteDecompressor<_>>()
                             .unwrap();
+                        w.write_all(&comp_buf).unwrap();
+                    }
+                    assert_eq!(decomp_buf, src);
+                })
+                .map(|task| tokio::spawn(task)),
+        )
+        .await;
+    }
+
+    #[tokio::test]
+    async fn dictionary() {
+        join_all(
+            test_set()
+                .map(|(src, prefs)| async move {
+                    let mut comp_buf = Vec::new();
+                    let mut decomp_buf = Vec::new();
+                    {
+                        let mut w = CompressorBuilder::new(&mut comp_buf)
+                            .preferences(prefs)
+                            .dict(Dictionary::new(&src).unwrap())
+                            .build::<WriteCompressor<_>>()
+                            .unwrap();
+                        w.write_all(&src).unwrap();
+                    }
+                    {
+                        let mut w = DecompressorBuilder::new(&mut decomp_buf)
+                            .build::<WriteDecompressor<_>>()
+                            .unwrap();
+                        w.set_dict(&src);
                         w.write_all(&comp_buf).unwrap();
                     }
                     assert_eq!(decomp_buf, src);
