@@ -305,10 +305,9 @@ mod read_compressor {
         join_all(
             test_set()
                 .map(|(src, prefs)| async move {
-                    let mut comp_buf = Vec::new();
+                    let mut comp_buf = vec![0; lz4f::max_compressed_size(src.len(), &prefs)];
                     let mut decomp_buf = Vec::new();
                     {
-                        let src_len = src.len();
                         let mut src = src.as_slice();
                         let mut r = CompressorBuilder::new(&mut src)
                             .preferences(prefs)
@@ -318,9 +317,10 @@ mod read_compressor {
                         let mut offset = 0;
                         let mut rng = SmallRng::seed_from_u64(0);
 
-                        loop {
+                        let buf_len = comp_buf.len();
+                        while offset < buf_len {
                             let dst =
-                                &mut comp_buf[offset..][..rng.gen_range(0, src_len - offset + 1)];
+                                &mut comp_buf[offset..][..rng.gen_range(0, buf_len - offset + 1)];
                             let len = r.read(dst).unwrap();
                             if dst.len() > 0 && len == 0 {
                                 break;
@@ -383,7 +383,6 @@ mod bufread_compressor {
                     let mut comp_buf = vec![0; lz4f::max_compressed_size(src.len(), &prefs)];
                     let mut decomp_buf = Vec::new();
                     {
-                        let src_len = src.len();
                         let mut src = src.as_slice();
                         let mut r = CompressorBuilder::new(&mut src)
                             .preferences(prefs)
@@ -393,9 +392,10 @@ mod bufread_compressor {
                         let mut offset = 0;
                         let mut rng = SmallRng::seed_from_u64(0);
 
-                        loop {
+                        let buf_len = comp_buf.len();
+                        while offset < buf_len {
                             let dst =
-                                &mut comp_buf[offset..][..rng.gen_range(0, src_len - offset + 1)];
+                                &mut comp_buf[offset..][..rng.gen_range(0, buf_len - offset + 1)];
                             let len = r.read(dst).unwrap();
                             if dst.len() > 0 && len == 0 {
                                 break;
@@ -821,7 +821,7 @@ mod async_read_compressor {
                 let mut offset = 0;
                 let mut rng = SmallRng::seed_from_u64(0);
 
-                loop {
+                while offset < comp_buf.len() {
                     let len = rng.gen_range(0, comp_buf.len() - offset + 1);
                     let dst = &mut comp_buf[offset..][..len];
                     let len = r.read(dst).await.unwrap();
@@ -830,6 +830,7 @@ mod async_read_compressor {
                     }
                     offset += len;
                 }
+                comp_buf.resize_with(offset, Default::default);
             }
             assert_eq!(
                 lz4f::decompress_to_vec(&comp_buf, &mut decomp_buf)
@@ -888,7 +889,7 @@ mod async_bufread_compressor {
                 let mut offset = 0;
                 let mut rng = SmallRng::seed_from_u64(0);
 
-                loop {
+                while offset < comp_buf.len() {
                     let len = rng.gen_range(0, comp_buf.len() - offset + 1);
                     let dst = &mut comp_buf[offset..][..len];
                     let len = r.read(dst).await.unwrap();
