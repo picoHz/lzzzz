@@ -48,6 +48,13 @@ pub struct AsyncBufReadCompressor<R: AsyncBufRead + Unpin> {
     inner: Compressor,
     consumed: usize,
     closed: bool,
+    state: State,
+}
+
+enum State {
+    None,
+    Read,
+    FillBuf,
 }
 
 impl<R: AsyncBufRead + Unpin> AsyncBufReadCompressor<R> {
@@ -65,6 +72,7 @@ impl<R: AsyncBufRead + Unpin> AsyncBufReadCompressor<R> {
             inner: Compressor::new(pref, dict)?,
             consumed: 0,
             closed: false,
+            state: State::None,
         })
     }
 
@@ -100,30 +108,44 @@ impl<R: AsyncBufRead + Unpin> AsyncRead for AsyncBufReadCompressor<R> {
         cx: &mut Context,
         buf: &mut [u8],
     ) -> Poll<tokio::io::Result<usize>> {
-        if let Poll::Pending = Pin::new(&mut *self).fill_buf(cx)? {
-            Poll::Pending
-        } else {
-            let me = self.project();
-            let len = cmp::min(buf.len(), me.inner.buf().len() - *me.consumed);
-            buf[..len].copy_from_slice(&me.inner.buf()[*me.consumed..][..len]);
-            *me.consumed += len;
-            if *me.consumed >= me.inner.buf().len() {
-                me.inner.clear_buf();
-                *me.consumed = 0;
-            }
-            Poll::Ready(Ok(len))
+        let mut me = Pin::new(&mut *self);
+        if let State::None = me.state {
+            me.state = State::Read;
         }
+        if let State::Read = me.state {
+            if let Poll::Ready(r) = me.fill_buf(cx) {
+                let me = self.project();
+                *me.state = State::None;
+                r?;
+                let len = cmp::min(buf.len(), me.inner.buf().len() - *me.consumed);
+                buf[..len].copy_from_slice(&me.inner.buf()[*me.consumed..][..len]);
+                *me.consumed += len;
+                if *me.consumed >= me.inner.buf().len() {
+                    me.inner.clear_buf();
+                    *me.consumed = 0;
+                }
+                return Poll::Ready(Ok(len));
+            }
+        }
+        Poll::Pending
     }
 }
 
 impl<R: AsyncBufRead + Unpin> AsyncBufRead for AsyncBufReadCompressor<R> {
     fn poll_fill_buf(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<tokio::io::Result<&[u8]>> {
-        if let Poll::Pending = Pin::new(&mut *self).fill_buf(cx)? {
-            Poll::Pending
-        } else {
-            let me = self.project();
-            Poll::Ready(Ok(&me.inner.buf()[*me.consumed..]))
+        let mut me = Pin::new(&mut *self);
+        if let State::None = me.state {
+            me.state = State::FillBuf;
         }
+        if let State::FillBuf = me.state {
+            if let Poll::Ready(r) = me.fill_buf(cx) {
+                let me = self.project();
+                *me.state = State::None;
+                r?;
+                return Poll::Ready(Ok(&me.inner.buf()[*me.consumed..]));
+            }
+        }
+        Poll::Pending
     }
 
     fn consume(self: Pin<&mut Self>, amt: usize) {
