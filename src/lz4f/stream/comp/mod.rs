@@ -18,7 +18,7 @@ use crate::lz4f::{
 };
 use std::mem::MaybeUninit;
 
-#[cfg(feature = "use-tokio")]
+#[cfg(feature = "tokio-io")]
 pub use {async_bufread::*, async_read::*, async_write::*};
 
 pub(crate) struct Compressor {

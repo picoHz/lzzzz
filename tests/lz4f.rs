@@ -776,7 +776,7 @@ mod bufread_decompressor {
     }
 }
 
-#[cfg(feature = "use-tokio")]
+#[cfg(feature = "tokio-io")]
 mod async_read_compressor {
     use super::*;
     use lzzzz::lz4f::{comp::AsyncReadCompressor, CompressorBuilder};
@@ -846,7 +846,7 @@ mod async_read_compressor {
     }
 }
 
-#[cfg(feature = "use-tokio")]
+#[cfg(feature = "tokio-io")]
 mod async_bufread_compressor {
     use super::*;
     use lzzzz::lz4f::{comp::AsyncBufReadCompressor, CompressorBuilder};
@@ -916,7 +916,7 @@ mod async_bufread_compressor {
     }
 }
 
-#[cfg(feature = "use-tokio")]
+#[cfg(feature = "tokio-io")]
 mod async_write_compressor {
     use super::*;
     use futures::future::join_all;
@@ -948,7 +948,7 @@ mod async_write_compressor {
     }
 }
 
-#[cfg(feature = "use-tokio")]
+#[cfg(feature = "tokio-io")]
 mod async_read_decompressor {
     use super::*;
     use futures::future::join_all;
@@ -1036,7 +1036,7 @@ mod async_read_decompressor {
     }
 }
 
-#[cfg(feature = "use-tokio")]
+#[cfg(feature = "tokio-io")]
 mod async_bufread_decompressor {
     use super::*;
     use futures::future::join_all;
@@ -1124,7 +1124,7 @@ mod async_bufread_decompressor {
     }
 }
 
-#[cfg(feature = "use-tokio")]
+#[cfg(feature = "tokio-io")]
 mod async_write_decompressor {
     use super::*;
     use futures::future::join_all;
