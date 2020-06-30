@@ -3,67 +3,9 @@
 use futures::future::join_all;
 use lzzzz::{lz4f, lz4f::*};
 use rand::{distributions::Standard, rngs::SmallRng, Rng, SeedableRng};
-use std::{i32, u32};
 
-fn generate_data() -> impl Iterator<Item = Vec<u8>> {
-    (0..20).map(|n| {
-        let rng = SmallRng::seed_from_u64(n as u64);
-        rng.sample_iter(Standard).take(16 << n).collect()
-    })
-}
-
-fn preferences_set() -> impl Iterator<Item = Preferences> {
-    vec![
-        PreferencesBuilder::new().build(),
-        PreferencesBuilder::new()
-            .block_size(BlockSize::Max64KB)
-            .build(),
-        PreferencesBuilder::new()
-            .block_size(BlockSize::Max256KB)
-            .build(),
-        PreferencesBuilder::new()
-            .block_size(BlockSize::Max1MB)
-            .build(),
-        PreferencesBuilder::new()
-            .block_size(BlockSize::Max4MB)
-            .build(),
-        PreferencesBuilder::new()
-            .block_mode(BlockMode::Independent)
-            .build(),
-        PreferencesBuilder::new()
-            .content_checksum(ContentChecksum::Enabled)
-            .build(),
-        PreferencesBuilder::new().dict_id(u32::MAX).build(),
-        PreferencesBuilder::new()
-            .block_checksum(BlockChecksum::Enabled)
-            .build(),
-        PreferencesBuilder::new()
-            .compression_level(CompressionLevel::High)
-            .build(),
-        PreferencesBuilder::new()
-            .compression_level(CompressionLevel::Max)
-            .build(),
-        PreferencesBuilder::new()
-            .compression_level(CompressionLevel::Custom(i32::MAX))
-            .build(),
-        PreferencesBuilder::new()
-            .compression_level(CompressionLevel::Custom(i32::MIN))
-            .build(),
-        PreferencesBuilder::new()
-            .favor_dec_speed(FavorDecSpeed::Enabled)
-            .build(),
-        PreferencesBuilder::new()
-            .auto_flush(AutoFlush::Enabled)
-            .build(),
-    ]
-    .into_iter()
-}
-
-fn test_set() -> impl Iterator<Item = (Vec<u8>, Preferences)> {
-    generate_data()
-        .map(|data| preferences_set().map(move |prefs| (data.clone(), prefs)))
-        .flatten()
-}
+mod common;
+use common::lz4f_test_set;
 
 mod async_read_compressor {
     use super::*;
@@ -72,7 +14,7 @@ mod async_read_compressor {
 
     #[tokio::test]
     async fn normal() {
-        join_all(test_set().map(|(src, prefs)| async move {
+        join_all(lz4f_test_set().map(|(src, prefs)| async move {
             let mut comp_buf = Vec::new();
             let mut decomp_buf = Vec::new();
             {
@@ -96,7 +38,7 @@ mod async_read_compressor {
 
     #[tokio::test]
     async fn random_chunk() {
-        join_all(test_set().map(|(src, prefs)| async move {
+        join_all(lz4f_test_set().map(|(src, prefs)| async move {
             let mut comp_buf = Vec::new();
             let mut decomp_buf = Vec::new();
             {
@@ -141,7 +83,7 @@ mod async_bufread_compressor {
 
     #[tokio::test]
     async fn normal() {
-        join_all(test_set().map(|(src, prefs)| async move {
+        join_all(lz4f_test_set().map(|(src, prefs)| async move {
             let mut comp_buf = Vec::new();
             let mut decomp_buf = Vec::new();
             {
@@ -165,7 +107,7 @@ mod async_bufread_compressor {
 
     #[tokio::test]
     async fn random_chunk() {
-        join_all(test_set().map(|(src, prefs)| async move {
+        join_all(lz4f_test_set().map(|(src, prefs)| async move {
             let mut comp_buf = Vec::new();
             let mut decomp_buf = Vec::new();
             {
@@ -211,7 +153,7 @@ mod async_write_compressor {
 
     #[tokio::test]
     async fn normal() {
-        join_all(test_set().map(|(src, prefs)| async move {
+        join_all(lz4f_test_set().map(|(src, prefs)| async move {
             let mut comp_buf = Vec::new();
             let mut decomp_buf = Vec::new();
             {
@@ -243,7 +185,7 @@ mod async_read_decompressor {
 
     #[tokio::test]
     async fn normal() {
-        join_all(test_set().map(|(src, prefs)| async move {
+        join_all(lz4f_test_set().map(|(src, prefs)| async move {
             let mut comp_buf = Vec::new();
             let mut decomp_buf = Vec::new();
             assert_eq!(
@@ -266,7 +208,7 @@ mod async_read_decompressor {
 
     #[tokio::test]
     async fn small_buffer_capacity() {
-        join_all(test_set().map(|(src, prefs)| async move {
+        join_all(lz4f_test_set().map(|(src, prefs)| async move {
             let mut comp_buf = Vec::new();
             let mut decomp_buf = Vec::new();
             assert_eq!(
@@ -290,7 +232,7 @@ mod async_read_decompressor {
 
     #[tokio::test]
     async fn dictionary() {
-        join_all(test_set().map(|(src, prefs)| async move {
+        join_all(lz4f_test_set().map(|(src, prefs)| async move {
             let mut comp_buf = Vec::new();
             let mut decomp_buf = Vec::new();
             let dict = SmallRng::seed_from_u64(0)
@@ -320,7 +262,7 @@ mod async_read_decompressor {
 
     #[tokio::test]
     async fn random_chunk() {
-        join_all(test_set().map(|(src, prefs)| async move {
+        join_all(lz4f_test_set().map(|(src, prefs)| async move {
             let mut comp_buf = Vec::new();
             let mut decomp_buf = vec![0; src.len()];
             assert_eq!(
@@ -363,7 +305,7 @@ mod async_bufread_decompressor {
 
     #[tokio::test]
     async fn normal() {
-        join_all(test_set().map(|(src, prefs)| async move {
+        join_all(lz4f_test_set().map(|(src, prefs)| async move {
             let mut comp_buf = Vec::new();
             let mut decomp_buf = Vec::new();
             assert_eq!(
@@ -386,7 +328,7 @@ mod async_bufread_decompressor {
 
     #[tokio::test]
     async fn small_buffer_capacity() {
-        join_all(test_set().map(|(src, prefs)| async move {
+        join_all(lz4f_test_set().map(|(src, prefs)| async move {
             let mut comp_buf = Vec::new();
             let mut decomp_buf = Vec::new();
             assert_eq!(
@@ -410,7 +352,7 @@ mod async_bufread_decompressor {
 
     #[tokio::test]
     async fn dictionary() {
-        join_all(test_set().map(|(src, prefs)| async move {
+        join_all(lz4f_test_set().map(|(src, prefs)| async move {
             let mut comp_buf = Vec::new();
             let mut decomp_buf = Vec::new();
             let dict = SmallRng::seed_from_u64(0)
@@ -440,7 +382,7 @@ mod async_bufread_decompressor {
 
     #[tokio::test]
     async fn random_chunk() {
-        join_all(test_set().map(|(src, prefs)| async move {
+        join_all(lz4f_test_set().map(|(src, prefs)| async move {
             let mut comp_buf = Vec::new();
             let mut decomp_buf = vec![0; src.len()];
             assert_eq!(
@@ -481,7 +423,7 @@ mod async_write_decompressor {
 
     #[tokio::test]
     async fn normal() {
-        join_all(test_set().map(|(src, prefs)| async move {
+        join_all(lz4f_test_set().map(|(src, prefs)| async move {
             let mut comp_buf = Vec::new();
             let mut decomp_buf = Vec::new();
             assert_eq!(
@@ -503,7 +445,7 @@ mod async_write_decompressor {
 
     #[tokio::test]
     async fn small_buffer_capacity() {
-        join_all(test_set().map(|(src, prefs)| async move {
+        join_all(lz4f_test_set().map(|(src, prefs)| async move {
             let mut comp_buf = Vec::new();
             let mut decomp_buf = Vec::new();
             assert_eq!(
@@ -526,7 +468,7 @@ mod async_write_decompressor {
 
     #[tokio::test]
     async fn dictionary() {
-        join_all(test_set().map(|(src, prefs)| async move {
+        join_all(lz4f_test_set().map(|(src, prefs)| async move {
             let mut comp_buf = Vec::new();
             let mut decomp_buf = Vec::new();
             let dict = SmallRng::seed_from_u64(0)
@@ -555,7 +497,7 @@ mod async_write_decompressor {
 
     #[tokio::test]
     async fn random_chunk() {
-        join_all(test_set().map(|(src, prefs)| async move {
+        join_all(lz4f_test_set().map(|(src, prefs)| async move {
             let mut comp_buf = Vec::new();
             let mut decomp_buf = Vec::new();
             assert_eq!(
@@ -586,7 +528,7 @@ mod async_write_decompressor {
 
     #[tokio::test]
     async fn invalid_header() {
-        join_all(test_set().map(|(src, prefs)| async move {
+        join_all(lz4f_test_set().map(|(src, prefs)| async move {
             let mut comp_buf = Vec::new();
             let mut decomp_buf = Vec::new();
             assert_eq!(
