@@ -10,8 +10,8 @@ use std::{
 pub enum Buffer<'a> {
     Borrowed(&'a [u8]),
     Owned(Box<[u8]>),
-    #[cfg(feature = "use-bytes")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "use-bytes")))]
+    #[cfg(feature = "bytes")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "bytes")))]
     Bytes(bytes::Bytes),
 }
 
@@ -35,7 +35,7 @@ impl<'a> Deref for Buffer<'a> {
         match self {
             Self::Borrowed(v) => v,
             Self::Owned(v) => v,
-            #[cfg(feature = "use-bytes")]
+            #[cfg(feature = "bytes")]
             Self::Bytes(v) => v,
         }
     }
@@ -98,14 +98,14 @@ impl FromIterator<u8> for Buffer<'_> {
     }
 }
 
-#[cfg(feature = "use-bytes")]
+#[cfg(feature = "bytes")]
 impl From<bytes::Bytes> for Buffer<'_> {
     fn from(v: bytes::Bytes) -> Self {
         Self::Bytes(v)
     }
 }
 
-#[cfg(feature = "use-bytes")]
+#[cfg(feature = "bytes")]
 impl From<bytes::BytesMut> for Buffer<'_> {
     fn from(v: bytes::BytesMut) -> Self {
         Self::Bytes(v.into())
@@ -160,28 +160,28 @@ impl PartialOrd<Buffer<'_>> for Vec<u8> {
     }
 }
 
-#[cfg(feature = "use-bytes")]
+#[cfg(feature = "bytes")]
 impl PartialEq<bytes::Bytes> for Buffer<'_> {
     fn eq(&self, other: &bytes::Bytes) -> bool {
         self.as_ref() == &other[..]
     }
 }
 
-#[cfg(feature = "use-bytes")]
+#[cfg(feature = "bytes")]
 impl PartialOrd<bytes::Bytes> for Buffer<'_> {
     fn partial_cmp(&self, other: &bytes::Bytes) -> Option<cmp::Ordering> {
         self.as_ref().partial_cmp(&other[..])
     }
 }
 
-#[cfg(feature = "use-bytes")]
+#[cfg(feature = "bytes")]
 impl PartialEq<Buffer<'_>> for bytes::Bytes {
     fn eq(&self, other: &Buffer<'_>) -> bool {
         *other == *self
     }
 }
 
-#[cfg(feature = "use-bytes")]
+#[cfg(feature = "bytes")]
 impl PartialOrd<Buffer<'_>> for bytes::Bytes {
     fn partial_cmp(&self, other: &Buffer<'_>) -> Option<cmp::Ordering> {
         <[u8] as PartialOrd<[u8]>>::partial_cmp(self, other)

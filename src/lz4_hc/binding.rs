@@ -59,10 +59,6 @@ extern "C" {
         src_size_ptr: *mut c_int,
         target_dst_size: c_int,
     ) -> c_int;
-
-    #[cfg(feature = "liblz4-experimental")]
     pub fn LZ4_setCompressionLevel(ptr: *mut LZ4StreamHC, compression_level: c_int);
-
-    #[cfg(feature = "liblz4-experimental")]
     pub fn LZ4_favorDecompressionSpeed(ptr: *mut LZ4StreamHC, favor: c_int);
 }

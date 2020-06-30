@@ -136,15 +136,7 @@ impl DecompressionCtx {
     where
         F: FnOnce(&RefCell<api::DecompressionContext>) -> R,
     {
-        #[cfg(feature = "use-tls")]
-        {
-            DECOMPRESSION_CTX.with(|state| (f)(state))
-        }
-
-        #[cfg(not(feature = "use-tls"))]
-        {
-            (f)(&Self::new())
-        }
+        DECOMPRESSION_CTX.with(|state| (f)(state))
     }
 }
 
@@ -156,5 +148,4 @@ impl Deref for DecompressionCtx {
     }
 }
 
-#[cfg(feature = "use-tls")]
 thread_local!(static DECOMPRESSION_CTX: DecompressionCtx = DecompressionCtx::new());

@@ -96,28 +96,20 @@ impl ExtState {
     where
         F: FnOnce(&Self, bool) -> R,
     {
-        #[cfg(feature = "use-tls")]
-        {
-            EXT_STATE.with(|state| {
-                let reset = {
-                    let mut state = state.borrow_mut();
-                    let last = state.len() - 1;
-                    if state[last] == 0 {
-                        state[last] = 1;
-                        false
-                    } else {
-                        true
-                    }
-                };
+        EXT_STATE.with(|state| {
+            let reset = {
+                let mut state = state.borrow_mut();
+                let last = state.len() - 1;
+                if state[last] == 0 {
+                    state[last] = 1;
+                    false
+                } else {
+                    true
+                }
+            };
 
-                (f)(state, reset)
-            })
-        }
-
-        #[cfg(not(feature = "use-tls"))]
-        {
-            (f)(&Self::new(), false)
-        }
+            (f)(state, reset)
+        })
     }
 }
 
@@ -129,5 +121,4 @@ impl Deref for ExtState {
     }
 }
 
-#[cfg(feature = "use-tls")]
 thread_local!(static EXT_STATE: ExtState = ExtState::new());

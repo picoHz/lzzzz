@@ -28,16 +28,13 @@ futures = "0.3.5"
 cc = { version = "1.0.55", features = ["parallel"] }
 
 [features]
-default = ["lz4", "lz4-hc", "lz4f", "use-tls", "tokio-io", "use-bytes"]
+default = ["lz4", "lz4-hc", "lz4f", "tokio-io", "bytes"]
 
 lz4 = []
 lz4-hc = ["lz4"]
 lz4f = []
 
 tokio-io = ["tokio/io-util", "pin-project"]
-use-bytes = ["bytes"]
-use-tls = []
-liblz4-experimental = []
 
 [package.metadata.docs.rs]
 all-features = true
