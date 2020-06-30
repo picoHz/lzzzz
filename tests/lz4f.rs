@@ -457,10 +457,14 @@ mod write_decompressor {
                 .map(|(src, prefs)| async move {
                     let mut comp_buf = Vec::new();
                     let mut decomp_buf = Vec::new();
+                    let dict = SmallRng::seed_from_u64(0)
+                        .sample_iter(Standard)
+                        .take(64_000)
+                        .collect::<Vec<_>>();
                     {
                         let mut w = CompressorBuilder::new(&mut comp_buf)
                             .preferences(prefs)
-                            .dict(Dictionary::new(&src).unwrap())
+                            .dict(Dictionary::new(&dict).unwrap())
                             .build::<WriteCompressor<_>>()
                             .unwrap();
                         w.write_all(&src).unwrap();
@@ -469,7 +473,7 @@ mod write_decompressor {
                         let mut w = DecompressorBuilder::new(&mut decomp_buf)
                             .build::<WriteDecompressor<_>>()
                             .unwrap();
-                        w.set_dict(&src);
+                        w.set_dict(&dict);
                         w.write_all(&comp_buf).unwrap();
                     }
                     assert_eq!(decomp_buf, src);
@@ -579,8 +583,8 @@ mod write_decompressor {
 mod read_decompressor {
     use super::*;
     use futures::future::join_all;
-    use lzzzz::lz4f::{decomp::ReadDecompressor, DecompressorBuilder};
-    use std::io::Read;
+    use lzzzz::lz4f::{comp::WriteCompressor, decomp::ReadDecompressor, DecompressorBuilder};
+    use std::io::{Read, Write};
 
     #[tokio::test]
     async fn normal() {
@@ -628,6 +632,40 @@ mod read_decompressor {
                             .capacity(1)
                             .build::<ReadDecompressor<_>>()
                             .unwrap();
+                        r.read_to_end(&mut decomp_buf).unwrap();
+                    }
+                    assert_eq!(decomp_buf, src);
+                })
+                .map(|task| tokio::spawn(task)),
+        )
+        .await;
+    }
+
+    #[tokio::test]
+    async fn dictionary() {
+        join_all(
+            test_set()
+                .map(|(src, prefs)| async move {
+                    let mut comp_buf = Vec::new();
+                    let mut decomp_buf = Vec::new();
+                    let dict = SmallRng::seed_from_u64(0)
+                        .sample_iter(Standard)
+                        .take(64_000)
+                        .collect::<Vec<_>>();
+                    {
+                        let mut w = CompressorBuilder::new(&mut comp_buf)
+                            .preferences(prefs)
+                            .dict(Dictionary::new(&dict).unwrap())
+                            .build::<WriteCompressor<_>>()
+                            .unwrap();
+                        w.write_all(&src).unwrap();
+                    }
+                    {
+                        let mut src = comp_buf.as_slice();
+                        let mut r = DecompressorBuilder::new(&mut src)
+                            .build::<ReadDecompressor<_>>()
+                            .unwrap();
+                        r.set_dict(&dict);
                         r.read_to_end(&mut decomp_buf).unwrap();
                     }
                     assert_eq!(decomp_buf, src);
@@ -679,8 +717,8 @@ mod read_decompressor {
 mod bufread_decompressor {
     use super::*;
     use futures::future::join_all;
-    use lzzzz::lz4f::{decomp::BufReadDecompressor, DecompressorBuilder};
-    use std::io::Read;
+    use lzzzz::lz4f::{comp::WriteCompressor, decomp::BufReadDecompressor, DecompressorBuilder};
+    use std::io::{Read, Write};
 
     #[tokio::test]
     async fn normal() {
@@ -728,6 +766,40 @@ mod bufread_decompressor {
                             .capacity(1)
                             .build::<BufReadDecompressor<_>>()
                             .unwrap();
+                        r.read_to_end(&mut decomp_buf).unwrap();
+                    }
+                    assert_eq!(decomp_buf, src);
+                })
+                .map(|task| tokio::spawn(task)),
+        )
+        .await;
+    }
+
+    #[tokio::test]
+    async fn dictionary() {
+        join_all(
+            test_set()
+                .map(|(src, prefs)| async move {
+                    let mut comp_buf = Vec::new();
+                    let mut decomp_buf = Vec::new();
+                    let dict = SmallRng::seed_from_u64(0)
+                        .sample_iter(Standard)
+                        .take(64_000)
+                        .collect::<Vec<_>>();
+                    {
+                        let mut w = CompressorBuilder::new(&mut comp_buf)
+                            .preferences(prefs)
+                            .dict(Dictionary::new(&dict).unwrap())
+                            .build::<WriteCompressor<_>>()
+                            .unwrap();
+                        w.write_all(&src).unwrap();
+                    }
+                    {
+                        let mut src = comp_buf.as_slice();
+                        let mut r = DecompressorBuilder::new(&mut src)
+                            .build::<BufReadDecompressor<_>>()
+                            .unwrap();
+                        r.set_dict(&dict);
                         r.read_to_end(&mut decomp_buf).unwrap();
                     }
                     assert_eq!(decomp_buf, src);
@@ -952,7 +1024,8 @@ mod async_write_compressor {
 mod async_read_decompressor {
     use super::*;
     use futures::future::join_all;
-    use lzzzz::lz4f::{decomp::AsyncReadDecompressor, DecompressorBuilder};
+    use lzzzz::lz4f::{comp::WriteCompressor, decomp::AsyncReadDecompressor, DecompressorBuilder};
+    use std::io::Write;
     use tokio::io::AsyncReadExt;
 
     #[tokio::test]
@@ -995,6 +1068,36 @@ mod async_read_decompressor {
                     .capacity(1)
                     .build::<AsyncReadDecompressor<_>>()
                     .unwrap();
+                r.read_to_end(&mut decomp_buf).await.unwrap();
+            }
+            assert_eq!(decomp_buf, src);
+        }))
+        .await;
+    }
+
+    #[tokio::test]
+    async fn dictionary() {
+        join_all(test_set().map(|(src, prefs)| async move {
+            let mut comp_buf = Vec::new();
+            let mut decomp_buf = Vec::new();
+            let dict = SmallRng::seed_from_u64(0)
+                .sample_iter(Standard)
+                .take(64_000)
+                .collect::<Vec<_>>();
+            {
+                let mut w = CompressorBuilder::new(&mut comp_buf)
+                    .preferences(prefs)
+                    .dict(Dictionary::new(&dict).unwrap())
+                    .build::<WriteCompressor<_>>()
+                    .unwrap();
+                w.write_all(&src).unwrap();
+            }
+            {
+                let mut src = comp_buf.as_slice();
+                let mut r = DecompressorBuilder::new(&mut src)
+                    .build::<AsyncReadDecompressor<_>>()
+                    .unwrap();
+                r.set_dict(&dict);
                 r.read_to_end(&mut decomp_buf).await.unwrap();
             }
             assert_eq!(decomp_buf, src);
@@ -1040,7 +1143,10 @@ mod async_read_decompressor {
 mod async_bufread_decompressor {
     use super::*;
     use futures::future::join_all;
-    use lzzzz::lz4f::{decomp::AsyncBufReadDecompressor, DecompressorBuilder};
+    use lzzzz::lz4f::{
+        comp::WriteCompressor, decomp::AsyncBufReadDecompressor, DecompressorBuilder,
+    };
+    use std::io::Write;
     use tokio::io::AsyncReadExt;
 
     #[tokio::test]
@@ -1091,6 +1197,36 @@ mod async_bufread_decompressor {
     }
 
     #[tokio::test]
+    async fn dictionary() {
+        join_all(test_set().map(|(src, prefs)| async move {
+            let mut comp_buf = Vec::new();
+            let mut decomp_buf = Vec::new();
+            let dict = SmallRng::seed_from_u64(0)
+                .sample_iter(Standard)
+                .take(64_000)
+                .collect::<Vec<_>>();
+            {
+                let mut w = CompressorBuilder::new(&mut comp_buf)
+                    .preferences(prefs)
+                    .dict(Dictionary::new(&dict).unwrap())
+                    .build::<WriteCompressor<_>>()
+                    .unwrap();
+                w.write_all(&src).unwrap();
+            }
+            {
+                let mut src = comp_buf.as_slice();
+                let mut r = DecompressorBuilder::new(&mut src)
+                    .build::<AsyncBufReadDecompressor<_>>()
+                    .unwrap();
+                r.set_dict(&dict);
+                r.read_to_end(&mut decomp_buf).await.unwrap();
+            }
+            assert_eq!(decomp_buf, src);
+        }))
+        .await;
+    }
+
+    #[tokio::test]
     async fn random_chunk() {
         join_all(test_set().map(|(src, prefs)| async move {
             let mut comp_buf = Vec::new();
@@ -1128,7 +1264,8 @@ mod async_bufread_decompressor {
 mod async_write_decompressor {
     use super::*;
     use futures::future::join_all;
-    use lzzzz::lz4f::{decomp::AsyncWriteDecompressor, DecompressorBuilder};
+    use lzzzz::lz4f::{comp::WriteCompressor, decomp::AsyncWriteDecompressor, DecompressorBuilder};
+    use std::io::Write;
     use tokio::io::AsyncWriteExt;
 
     #[tokio::test]
@@ -1169,6 +1306,35 @@ mod async_write_decompressor {
                     .capacity(1)
                     .build::<AsyncWriteDecompressor<_>>()
                     .unwrap();
+                w.write_all(&comp_buf).await.unwrap();
+            }
+            assert_eq!(decomp_buf, src);
+        }))
+        .await;
+    }
+
+    #[tokio::test]
+    async fn dictionary() {
+        join_all(test_set().map(|(src, prefs)| async move {
+            let mut comp_buf = Vec::new();
+            let mut decomp_buf = Vec::new();
+            let dict = SmallRng::seed_from_u64(0)
+                .sample_iter(Standard)
+                .take(64_000)
+                .collect::<Vec<_>>();
+            {
+                let mut w = CompressorBuilder::new(&mut comp_buf)
+                    .preferences(prefs)
+                    .dict(Dictionary::new(&dict).unwrap())
+                    .build::<WriteCompressor<_>>()
+                    .unwrap();
+                w.write_all(&src).unwrap();
+            }
+            {
+                let mut w = DecompressorBuilder::new(&mut decomp_buf)
+                    .build::<AsyncWriteDecompressor<_>>()
+                    .unwrap();
+                w.set_dict(&dict);
                 w.write_all(&comp_buf).await.unwrap();
             }
             assert_eq!(decomp_buf, src);
