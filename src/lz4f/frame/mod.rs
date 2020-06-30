@@ -5,6 +5,14 @@ use crate::{common::DEFAULT_BUF_SIZE, lz4f::Preferences, Error, ErrorKind, Repor
 use std::{cell::RefCell, mem::MaybeUninit, ops::Deref};
 
 /// Calculate the maximum size of the compressed data from the original size.
+///
+/// ## Pitfall
+/// Returned values are reliable only if you are using [`compress`] or [`compress_to_vec`].
+///
+/// [Streaming compressors](comp/index.html) may produce larger compressed frames.
+///
+/// [`compress`]: fn.compress.html
+/// [`compress_to_vec`]: fn.compress_to_vec.html
 pub fn max_compressed_size(original_size: usize, prefs: &Preferences) -> usize {
     api::compress_frame_bound(original_size, prefs)
 }
