@@ -61,3 +61,7 @@ pub fn lz4f_test_set() -> impl Iterator<Item = (Vec<u8>, Preferences)> {
         .map(|data| preferences_set().map(move |prefs| (data.clone(), prefs)))
         .flatten()
 }
+
+pub fn lz4_test_set() -> impl Iterator<Item = Vec<u8>> {
+    generate_data()
+}
