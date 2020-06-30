@@ -1,4 +1,4 @@
-# Lzzzz
+# Lz⁴
 Yet another liblz4 binding 😴
 
 [![Build Status](https://dev.azure.com/picoHz/lzzzz/_apis/build/status/lzzzz-CI?branchName=master)](https://dev.azure.com/picoHz/lzzzz/_build/latest?definitionId=2&branchName=master)
