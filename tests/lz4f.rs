@@ -103,13 +103,9 @@ mod compress {
         join_all(
             test_set()
                 .map(|(src, prefs)| async move {
-                    let mut comp_buf = Vec::new();
+                    let mut comp_buf = vec![0; lz4f::max_compressed_size(src.len(), &prefs)];
                     let mut decomp_buf = Vec::new();
 
-                    comp_buf.resize_with(
-                        lz4f::max_compressed_size(src.len(), &prefs),
-                        Default::default,
-                    );
                     let len = lz4f::compress(&src, &mut comp_buf, &prefs)
                         .unwrap()
                         .dst_len();
@@ -305,7 +301,7 @@ mod read_compressor {
         join_all(
             test_set()
                 .map(|(src, prefs)| async move {
-                    let mut comp_buf = vec![0; lz4f::max_compressed_size(src.len(), &prefs)];
+                    let mut comp_buf = Vec::new();
                     let mut decomp_buf = Vec::new();
                     {
                         let mut src = src.as_slice();
@@ -317,10 +313,12 @@ mod read_compressor {
                         let mut offset = 0;
                         let mut rng = SmallRng::seed_from_u64(0);
 
-                        let buf_len = comp_buf.len();
-                        while offset < buf_len {
-                            let dst =
-                                &mut comp_buf[offset..][..rng.gen_range(0, buf_len - offset + 1)];
+                        loop {
+                            if offset >= comp_buf.len() {
+                                comp_buf.resize_with(offset + 1024, Default::default);
+                            }
+                            let len = rng.gen_range(0, comp_buf.len() - offset + 1);
+                            let dst = &mut comp_buf[offset..][..len];
                             let len = r.read(dst).unwrap();
                             if dst.len() > 0 && len == 0 {
                                 break;
@@ -380,7 +378,7 @@ mod bufread_compressor {
         join_all(
             test_set()
                 .map(|(src, prefs)| async move {
-                    let mut comp_buf = vec![0; lz4f::max_compressed_size(src.len(), &prefs)];
+                    let mut comp_buf = Vec::new();
                     let mut decomp_buf = Vec::new();
                     {
                         let mut src = src.as_slice();
@@ -392,10 +390,12 @@ mod bufread_compressor {
                         let mut offset = 0;
                         let mut rng = SmallRng::seed_from_u64(0);
 
-                        let buf_len = comp_buf.len();
-                        while offset < buf_len {
-                            let dst =
-                                &mut comp_buf[offset..][..rng.gen_range(0, buf_len - offset + 1)];
+                        loop {
+                            if offset >= comp_buf.len() {
+                                comp_buf.resize_with(offset + 1024, Default::default);
+                            }
+                            let len = rng.gen_range(0, comp_buf.len() - offset + 1);
+                            let dst = &mut comp_buf[offset..][..len];
                             let len = r.read(dst).unwrap();
                             if dst.len() > 0 && len == 0 {
                                 break;
@@ -809,7 +809,7 @@ mod async_read_compressor {
     #[tokio::test]
     async fn random_chunk() {
         join_all(test_set().map(|(src, prefs)| async move {
-            let mut comp_buf = vec![0; lz4f::max_compressed_size(src.len(), &prefs)];
+            let mut comp_buf = Vec::new();
             let mut decomp_buf = Vec::new();
             {
                 let mut src = src.as_slice();
@@ -821,7 +821,10 @@ mod async_read_compressor {
                 let mut offset = 0;
                 let mut rng = SmallRng::seed_from_u64(0);
 
-                while offset < comp_buf.len() {
+                loop {
+                    if offset >= comp_buf.len() {
+                        comp_buf.resize_with(offset + 1024, Default::default);
+                    }
                     let len = rng.gen_range(0, comp_buf.len() - offset + 1);
                     let dst = &mut comp_buf[offset..][..len];
                     let len = r.read(dst).await.unwrap();
@@ -830,7 +833,6 @@ mod async_read_compressor {
                     }
                     offset += len;
                 }
-                comp_buf.resize_with(offset, Default::default);
             }
             assert_eq!(
                 lz4f::decompress_to_vec(&comp_buf, &mut decomp_buf)
@@ -877,7 +879,7 @@ mod async_bufread_compressor {
     #[tokio::test]
     async fn random_chunk() {
         join_all(test_set().map(|(src, prefs)| async move {
-            let mut comp_buf = vec![0; lz4f::max_compressed_size(src.len(), &prefs)];
+            let mut comp_buf = Vec::new();
             let mut decomp_buf = Vec::new();
             {
                 let mut src = src.as_slice();
@@ -889,7 +891,10 @@ mod async_bufread_compressor {
                 let mut offset = 0;
                 let mut rng = SmallRng::seed_from_u64(0);
 
-                while offset < comp_buf.len() {
+                loop {
+                    if offset >= comp_buf.len() {
+                        comp_buf.resize_with(offset + 1024, Default::default);
+                    }
                     let len = rng.gen_range(0, comp_buf.len() - offset + 1);
                     let dst = &mut comp_buf[offset..][..len];
                     let len = r.read(dst).await.unwrap();
