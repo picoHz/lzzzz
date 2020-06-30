@@ -28,7 +28,7 @@ futures = "0.3.5"
 cc = { version = "1.0.55", features = ["parallel"] }
 
 [features]
-default = ["lz4", "lz4-hc", "lz4f", "tokio-io", "bytes"]
+default = ["lz4", "lz4-hc", "lz4f"]
 
 lz4 = []
 lz4-hc = ["lz4"]
