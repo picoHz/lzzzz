@@ -6,7 +6,7 @@ trigger:
 pool:
   vmImage: 'vs2017-win2016'
 variables:
-  CARGO_CACHE_FOLDER: $(Pipeline.Workspace)/target
+  CARGO_CACHE_FOLDER: $(Build.SourcesDirectory)/target
 steps:
 - task: Cache@2
   inputs:
