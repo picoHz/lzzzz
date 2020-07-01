@@ -76,7 +76,7 @@ mod read_compressor {
             let mut comp_buf = Vec::new();
             let mut decomp_buf = Vec::new();
             {
-                let mut src = src.as_slice();
+                let mut src = src.as_ref();
                 let mut r = CompressorBuilder::new(&mut src)
                     .preferences(prefs)
                     .build::<ReadCompressor<_>>()
@@ -99,7 +99,7 @@ mod read_compressor {
             let mut comp_buf = Vec::new();
             let mut decomp_buf = Vec::new();
             {
-                let mut src = src.as_slice();
+                let mut src = src.as_ref();
                 let mut r = CompressorBuilder::new(&mut src)
                     .preferences(prefs)
                     .build::<ReadCompressor<_>>()
@@ -142,7 +142,7 @@ mod bufread_compressor {
             let mut comp_buf = Vec::new();
             let mut decomp_buf = Vec::new();
             {
-                let mut src = src.as_slice();
+                let mut src = src.as_ref();
                 let mut r = CompressorBuilder::new(&mut src)
                     .preferences(prefs)
                     .build::<BufReadCompressor<_>>()
@@ -165,7 +165,7 @@ mod bufread_compressor {
             let mut comp_buf = Vec::new();
             let mut decomp_buf = Vec::new();
             {
-                let mut src = src.as_slice();
+                let mut src = src.as_ref();
                 let mut r = CompressorBuilder::new(&mut src)
                     .preferences(prefs)
                     .build::<BufReadCompressor<_>>()

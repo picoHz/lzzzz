@@ -5,14 +5,7 @@ use lzzzz::lz4f::*;
 use rand::{distributions::Standard, rngs::SmallRng, Rng, SeedableRng};
 use std::{i32, u32};
 
-fn generate_data() -> impl Iterator<Item = Vec<u8>> {
-    (0..20).map(|n| {
-        let rng = SmallRng::seed_from_u64(n as u64);
-        rng.sample_iter(Standard).take(16 << n).collect()
-    })
-}
-
-fn generate_data2() -> impl Iterator<Item = Bytes> {
+fn generate_data() -> impl Iterator<Item = Bytes> {
     (0..20).map(|n| {
         let rng = SmallRng::seed_from_u64(n as u64);
         rng.sample_iter(Standard).take(16 << n).collect()
@@ -66,14 +59,8 @@ fn preferences_set() -> impl Iterator<Item = Preferences> {
     .into_iter()
 }
 
-pub fn lz4f_test_set() -> impl Iterator<Item = (Vec<u8>, Preferences)> {
+pub fn lz4f_test_set() -> impl Iterator<Item = (Bytes, Preferences)> {
     generate_data()
-        .map(|data| preferences_set().map(move |prefs| (data.clone(), prefs)))
-        .flatten()
-}
-
-pub fn lz4f_test_set2() -> impl Iterator<Item = (Bytes, Preferences)> {
-    generate_data2()
         .map(|data| preferences_set().map(move |prefs| (data.clone(), prefs)))
         .flatten()
 }
@@ -89,7 +76,7 @@ fn compression_mode_set() -> impl Iterator<Item = lz4::CompressionMode> {
     .into_iter()
 }
 
-pub fn lz4_test_set() -> impl Iterator<Item = (Vec<u8>, lz4::CompressionMode)> {
+pub fn lz4_test_set() -> impl Iterator<Item = (Bytes, lz4::CompressionMode)> {
     generate_data()
         .map(|data| compression_mode_set().map(move |mode| (data.clone(), mode)))
         .flatten()
@@ -107,7 +94,7 @@ fn compression_level_set() -> impl Iterator<Item = lz4_hc::CompressionLevel> {
     .into_iter()
 }
 
-pub fn lz4_hc_test_set() -> impl Iterator<Item = (Vec<u8>, lz4_hc::CompressionLevel)> {
+pub fn lz4_hc_test_set() -> impl Iterator<Item = (Bytes, lz4_hc::CompressionLevel)> {
     generate_data()
         .map(|data| compression_level_set().map(move |level| (data.clone(), level)))
         .flatten()

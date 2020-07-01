@@ -18,7 +18,7 @@ mod async_read_compressor {
             let mut comp_buf = Vec::new();
             let mut decomp_buf = Vec::new();
             {
-                let mut src = src.as_slice();
+                let mut src = src.as_ref();
                 let mut r = CompressorBuilder::new(&mut src)
                     .preferences(prefs)
                     .build::<AsyncReadCompressor<_>>()
@@ -42,7 +42,7 @@ mod async_read_compressor {
             let mut comp_buf = Vec::new();
             let mut decomp_buf = Vec::new();
             {
-                let mut src = src.as_slice();
+                let mut src = src.as_ref();
                 let mut r = CompressorBuilder::new(&mut src)
                     .preferences(prefs)
                     .build::<AsyncReadCompressor<_>>()
@@ -87,7 +87,7 @@ mod async_bufread_compressor {
             let mut comp_buf = Vec::new();
             let mut decomp_buf = Vec::new();
             {
-                let mut src = src.as_slice();
+                let mut src = src.as_ref();
                 let mut r = CompressorBuilder::new(&mut src)
                     .preferences(prefs)
                     .build::<AsyncBufReadCompressor<_>>()
@@ -111,7 +111,7 @@ mod async_bufread_compressor {
             let mut comp_buf = Vec::new();
             let mut decomp_buf = Vec::new();
             {
-                let mut src = src.as_slice();
+                let mut src = src.as_ref();
                 let mut r = CompressorBuilder::new(&mut src)
                     .preferences(prefs)
                     .build::<AsyncBufReadCompressor<_>>()
