@@ -1,3 +1,4 @@
+#![cfg(feature = "lz4f")]
 #![cfg(feature = "tokio-io")]
 
 use futures::future::join_all;
