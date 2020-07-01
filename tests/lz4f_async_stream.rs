@@ -1,5 +1,4 @@
-#![cfg(feature = "lz4f")]
-#![cfg(feature = "tokio-io")]
+#![cfg(all(feature = "lz4f", feature = "tokio-io"))]
 
 use futures::future::join_all;
 use lzzzz::{lz4f, lz4f::*};
@@ -14,7 +13,7 @@ mod async_read_compressor {
     use tokio::io::AsyncReadExt;
 
     #[tokio::test]
-    async fn normal() {
+    async fn default() {
         join_all(lz4f_test_set().map(|(src, prefs)| async move {
             let mut comp_buf = Vec::new();
             let mut decomp_buf = Vec::new();
@@ -83,7 +82,7 @@ mod async_bufread_compressor {
     use tokio::io::AsyncReadExt;
 
     #[tokio::test]
-    async fn normal() {
+    async fn default() {
         join_all(lz4f_test_set().map(|(src, prefs)| async move {
             let mut comp_buf = Vec::new();
             let mut decomp_buf = Vec::new();
@@ -153,7 +152,7 @@ mod async_write_compressor {
     use tokio::io::AsyncWriteExt;
 
     #[tokio::test]
-    async fn normal() {
+    async fn default() {
         join_all(lz4f_test_set().map(|(src, prefs)| async move {
             let mut comp_buf = Vec::new();
             let mut decomp_buf = Vec::new();
@@ -185,7 +184,7 @@ mod async_read_decompressor {
     use tokio::io::AsyncReadExt;
 
     #[tokio::test]
-    async fn normal() {
+    async fn default() {
         join_all(lz4f_test_set().map(|(src, prefs)| async move {
             let mut comp_buf = Vec::new();
             let mut decomp_buf = Vec::new();
@@ -305,7 +304,7 @@ mod async_bufread_decompressor {
     use tokio::io::AsyncReadExt;
 
     #[tokio::test]
-    async fn normal() {
+    async fn default() {
         join_all(lz4f_test_set().map(|(src, prefs)| async move {
             let mut comp_buf = Vec::new();
             let mut decomp_buf = Vec::new();
@@ -423,7 +422,7 @@ mod async_write_decompressor {
     use tokio::io::AsyncWriteExt;
 
     #[tokio::test]
-    async fn normal() {
+    async fn default() {
         join_all(lz4f_test_set().map(|(src, prefs)| async move {
             let mut comp_buf = Vec::new();
             let mut decomp_buf = Vec::new();

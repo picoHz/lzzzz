@@ -10,7 +10,7 @@ mod compress {
     use super::*;
 
     #[test]
-    fn normal() {
+    fn default() {
         lz4_test_set().par_bridge().for_each(|src| {
             let mut comp_buf = vec![0; lz4::max_compressed_size(src.len())];
             let mut decomp_buf = vec![0; src.len()];

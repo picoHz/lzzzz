@@ -10,7 +10,7 @@ mod compress_to_vec {
     use super::*;
 
     #[test]
-    fn normal() {
+    fn default() {
         lz4f_test_set().par_bridge().for_each(|(src, prefs)| {
             let header = Vec::from("hello!".as_bytes());
             let mut comp_buf = header.clone();
@@ -37,7 +37,7 @@ mod compress {
     use super::*;
 
     #[test]
-    fn normal() {
+    fn default() {
         lz4f_test_set().par_bridge().for_each(|(src, prefs)| {
             let mut comp_buf = vec![0; lz4f::max_compressed_size(src.len(), &prefs)];
             let mut decomp_buf = Vec::new();

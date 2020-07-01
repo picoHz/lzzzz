@@ -13,7 +13,7 @@ mod write_compressor {
     use lzzzz::lz4f::{comp::WriteCompressor, CompressorBuilder};
 
     #[test]
-    fn normal() {
+    fn default() {
         lz4f_test_set().par_bridge().for_each(|(src, prefs)| {
             let mut comp_buf = Vec::new();
             let mut decomp_buf = Vec::new();
@@ -71,7 +71,7 @@ mod read_compressor {
     use lzzzz::lz4f::{comp::ReadCompressor, CompressorBuilder};
 
     #[test]
-    fn normal() {
+    fn default() {
         lz4f_test_set().par_bridge().for_each(|(src, prefs)| {
             let mut comp_buf = Vec::new();
             let mut decomp_buf = Vec::new();
@@ -137,7 +137,7 @@ mod bufread_compressor {
     use lzzzz::lz4f::{comp::BufReadCompressor, CompressorBuilder};
 
     #[test]
-    fn normal() {
+    fn default() {
         lz4f_test_set().par_bridge().for_each(|(src, prefs)| {
             let mut comp_buf = Vec::new();
             let mut decomp_buf = Vec::new();
@@ -205,7 +205,7 @@ mod write_decompressor {
     };
 
     #[test]
-    fn normal() {
+    fn default() {
         lz4f_test_set().par_bridge().for_each(|(src, prefs)| {
             let mut comp_buf = Vec::new();
             let mut decomp_buf = Vec::new();
@@ -339,7 +339,7 @@ mod read_decompressor {
     use lzzzz::lz4f::{comp::WriteCompressor, decomp::ReadDecompressor, DecompressorBuilder};
 
     #[test]
-    fn normal() {
+    fn default() {
         lz4f_test_set().par_bridge().for_each(|(src, prefs)| {
             let mut comp_buf = Vec::new();
             let mut decomp_buf = Vec::new();
@@ -450,7 +450,7 @@ mod bufread_decompressor {
     use lzzzz::lz4f::{comp::WriteCompressor, decomp::BufReadDecompressor, DecompressorBuilder};
 
     #[test]
-    fn normal() {
+    fn default() {
         lz4f_test_set().par_bridge().for_each(|(src, prefs)| {
             let mut comp_buf = Vec::new();
             let mut decomp_buf = Vec::new();
