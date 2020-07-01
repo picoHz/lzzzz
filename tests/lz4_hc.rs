@@ -51,3 +51,30 @@ mod compress {
             });
     }
 }
+
+mod compress_to_vec {
+    use super::*;
+
+    #[test]
+    fn default() {
+        lz4_hc_test_set().par_bridge().for_each(|(src, level)| {
+            let mut comp_buf = Vec::new();
+            let mut decomp_buf = vec![0; src.len()];
+            let len = lz4_hc::compress_to_vec(
+                &src,
+                &mut comp_buf,
+                lz4_hc::CompressionMode::Default,
+                level,
+            )
+            .unwrap()
+            .dst_len();
+            lz4::decompress(
+                &comp_buf[..len],
+                &mut decomp_buf,
+                lz4::DecompressionMode::Default,
+            )
+            .unwrap();
+            assert_eq!(decomp_buf, src);
+        });
+    }
+}
