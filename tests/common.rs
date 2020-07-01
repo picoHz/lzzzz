@@ -1,3 +1,4 @@
+use bytes::Bytes;
 use lzzzz::lz4;
 use lzzzz::lz4_hc;
 use lzzzz::lz4f::*;
@@ -5,6 +6,13 @@ use rand::{distributions::Standard, rngs::SmallRng, Rng, SeedableRng};
 use std::{i32, u32};
 
 fn generate_data() -> impl Iterator<Item = Vec<u8>> {
+    (0..20).map(|n| {
+        let rng = SmallRng::seed_from_u64(n as u64);
+        rng.sample_iter(Standard).take(16 << n).collect()
+    })
+}
+
+fn generate_data2() -> impl Iterator<Item = Bytes> {
     (0..20).map(|n| {
         let rng = SmallRng::seed_from_u64(n as u64);
         rng.sample_iter(Standard).take(16 << n).collect()
@@ -60,6 +68,12 @@ fn preferences_set() -> impl Iterator<Item = Preferences> {
 
 pub fn lz4f_test_set() -> impl Iterator<Item = (Vec<u8>, Preferences)> {
     generate_data()
+        .map(|data| preferences_set().map(move |prefs| (data.clone(), prefs)))
+        .flatten()
+}
+
+pub fn lz4f_test_set2() -> impl Iterator<Item = (Bytes, Preferences)> {
+    generate_data2()
         .map(|data| preferences_set().map(move |prefs| (data.clone(), prefs)))
         .flatten()
 }

@@ -4,14 +4,14 @@ use lzzzz::{lz4f, lz4f::*};
 use rayon::{iter::ParallelBridge, prelude::*};
 
 mod common;
-use common::lz4f_test_set;
+use common::lz4f_test_set2;
 
 mod compress_to_vec {
     use super::*;
 
     #[test]
     fn default() {
-        lz4f_test_set().par_bridge().for_each(|(src, prefs)| {
+        lz4f_test_set2().par_bridge().for_each(|(src, prefs)| {
             let header = Vec::from("hello!".as_bytes());
             let mut comp_buf = header.clone();
             let mut decomp_buf = header.clone();
@@ -38,7 +38,7 @@ mod compress {
 
     #[test]
     fn default() {
-        lz4f_test_set().par_bridge().for_each(|(src, prefs)| {
+        lz4f_test_set2().par_bridge().for_each(|(src, prefs)| {
             let mut comp_buf = vec![0; lz4f::max_compressed_size(src.len(), &prefs)];
             let mut decomp_buf = Vec::new();
 
@@ -58,7 +58,7 @@ mod compress {
 
     #[test]
     fn too_small_dst() {
-        lz4f_test_set().par_bridge().for_each(|(src, prefs)| {
+        lz4f_test_set2().par_bridge().for_each(|(src, prefs)| {
             let mut comp_buf = Vec::new();
             assert_eq!(
                 lz4f::compress(&src, &mut comp_buf, &prefs),
@@ -73,7 +73,7 @@ mod decompress_to_vec {
 
     #[test]
     fn invalid_header() {
-        lz4f_test_set().par_bridge().for_each(|(src, prefs)| {
+        lz4f_test_set2().par_bridge().for_each(|(src, prefs)| {
             let header = Vec::from("hello!".as_bytes());
             let mut comp_buf = Vec::new();
             let mut decomp_buf = header.clone();
@@ -93,7 +93,7 @@ mod decompress_to_vec {
 
     #[test]
     fn incomplete_src() {
-        lz4f_test_set().par_bridge().for_each(|(src, prefs)| {
+        lz4f_test_set2().par_bridge().for_each(|(src, prefs)| {
             let header = Vec::from("hello!".as_bytes());
             let mut comp_buf = Vec::new();
             let mut decomp_buf = header.clone();

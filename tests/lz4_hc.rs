@@ -27,4 +27,27 @@ mod compress {
             assert_eq!(decomp_buf, src);
         });
     }
+
+    #[test]
+    fn partial() {
+        lz4_hc_test_set()
+            .map(|(src, level)| (0..20).map(move |n| (src.clone(), level.clone(), 16 << n)))
+            .flatten()
+            .par_bridge()
+            .for_each(|(src, level, len)| {
+                let mut comp_buf = vec![0; len];
+                let mut decomp_buf = Vec::new();
+                let report =
+                    lz4_hc::compress(&src, &mut comp_buf, lz4_hc::CompressionMode::Partial, level)
+                        .unwrap();
+                decomp_buf.resize(report.src_len().unwrap(), 0);
+                lz4::decompress(
+                    &comp_buf[..report.dst_len()],
+                    &mut decomp_buf,
+                    lz4::DecompressionMode::Default,
+                )
+                .unwrap();
+                assert!(src.starts_with(&decomp_buf));
+            });
+    }
 }

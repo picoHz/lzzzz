@@ -19,6 +19,7 @@ bytes = { version = "0.5.5", optional = true }
 [dev-dependencies]
 rand = { version = "0.7.3", features = ["small_rng"] }
 tokio = { version = "0.2.21", features = ["fs", "rt-core", "rt-threaded", "macros"] }
+bytes = "0.5.5"
 static_assertions = "1.1.0"
 assert_fs = "1.0.0"
 criterion = "0.3.3"
