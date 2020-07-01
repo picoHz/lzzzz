@@ -1,3 +1,4 @@
+use lzzzz::lz4;
 use lzzzz::lz4_hc;
 use lzzzz::lz4f::*;
 use rand::{distributions::Standard, rngs::SmallRng, Rng, SeedableRng};
@@ -63,8 +64,21 @@ pub fn lz4f_test_set() -> impl Iterator<Item = (Vec<u8>, Preferences)> {
         .flatten()
 }
 
-pub fn lz4_test_set() -> impl Iterator<Item = Vec<u8>> {
+fn compression_mode_set() -> impl Iterator<Item = lz4::CompressionMode> {
+    vec![
+        lz4::CompressionMode::Default,
+        lz4::CompressionMode::Acceleration { factor: 0 },
+        lz4::CompressionMode::Acceleration { factor: i32::MIN },
+        // TODO
+        // lz4::CompressionMode::Acceleration { factor: i32::MAX },
+    ]
+    .into_iter()
+}
+
+pub fn lz4_test_set() -> impl Iterator<Item = (Vec<u8>, lz4::CompressionMode)> {
     generate_data()
+        .map(|data| compression_mode_set().map(move |mode| (data.clone(), mode)))
+        .flatten()
 }
 
 fn compression_level_set() -> impl Iterator<Item = lz4_hc::CompressionLevel> {
