@@ -1,15 +1,22 @@
 use bytes::Bytes;
-use lzzzz::lz4;
-use lzzzz::lz4_hc;
-use lzzzz::lz4f::*;
+use lazy_static::lazy_static;
+use lzzzz::{lz4, lz4_hc, lz4f::*};
 use rand::{distributions::Standard, rngs::SmallRng, Rng, SeedableRng};
 use std::{i32, u32};
 
+lazy_static! {
+    static ref DATA_SET: Vec<Bytes> = {
+        (0..20)
+            .map(|n| {
+                let rng = SmallRng::seed_from_u64(n as u64);
+                rng.sample_iter(Standard).take(16 << n).collect()
+            })
+            .collect()
+    };
+}
+
 fn generate_data() -> impl Iterator<Item = Bytes> {
-    (0..20).map(|n| {
-        let rng = SmallRng::seed_from_u64(n as u64);
-        rng.sample_iter(Standard).take(16 << n).collect()
-    })
+    DATA_SET.clone().into_iter()
 }
 
 fn preferences_set() -> impl Iterator<Item = Preferences> {
@@ -70,8 +77,8 @@ fn compression_mode_set() -> impl Iterator<Item = lz4::CompressionMode> {
         lz4::CompressionMode::Default,
         lz4::CompressionMode::Acceleration { factor: 0 },
         lz4::CompressionMode::Acceleration { factor: i32::MIN },
-        // TODO
-        // lz4::CompressionMode::Acceleration { factor: i32::MAX },
+        /* TODO
+         * lz4::CompressionMode::Acceleration { factor: i32::MAX }, */
     ]
     .into_iter()
 }
