@@ -10,7 +10,7 @@ variables:
 steps:
 - task: Cache@2
   inputs:
-    key: 'cargo | "$(Agent.OS)" | Cargo.lock'
+    key: 'cargo | "$(Agent.OS)" | Cargo.toml'
     restoreKeys: |
        cargo | "$(Agent.OS)"
        cargo
