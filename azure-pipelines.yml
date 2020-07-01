@@ -24,5 +24,3 @@ steps:
     cargoCommand: 'test --release --all-features'
     verbose: true
   displayName: Cargo
-  env:
-    LZZZZ_FUZZER_ITERATION: 100000
