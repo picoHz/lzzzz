@@ -110,3 +110,7 @@ pub fn lz4_hc_test_set() -> impl Iterator<Item = (Bytes, lz4_hc::CompressionLeve
         .map(|data| compression_level_set().map(move |level| (data.clone(), level)))
         .flatten()
 }
+
+pub fn lz4_hc_stream_test_set() -> impl Iterator<Item = (Vec<Bytes>, lz4_hc::CompressionLevel)> {
+    compression_level_set().map(|level| (generate_data().collect(), level))
+}

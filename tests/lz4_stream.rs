@@ -14,13 +14,13 @@ mod compressor {
         lz4_stream_test_set()
             .par_bridge()
             .for_each(|(src_set, mode)| {
+                let mut stream = lz4::Compressor::new().unwrap();
                 for src in src_set {
                     let mut comp_buf = vec![0; lz4::max_compressed_size(src.len())];
                     let mut decomp_buf = vec![0; src.len()];
 
-                    let mut stream = lz4::Compressor::new().unwrap();
                     let len = stream
-                        .next(src.as_ref(), &mut comp_buf, mode)
+                        .next(Vec::from(src.as_ref()), &mut comp_buf, mode)
                         .unwrap()
                         .dst_len();
 
