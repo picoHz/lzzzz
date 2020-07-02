@@ -17,6 +17,10 @@ mod compressor {
                 let mut stream = lz4_hc::Compressor::new().unwrap();
                 stream.set_compression_level(level);
                 for src in src_set {
+                    // TODO
+                    if src.len() >= 4194304 {
+                        continue;
+                    }
                     let mut comp_buf = vec![0; lz4::max_compressed_size(src.len())];
                     let mut decomp_buf = vec![0; src.len()];
 
