@@ -2,6 +2,7 @@
 
 use lzzzz::lz4;
 use rayon::{iter::ParallelBridge, prelude::*};
+use std::cmp;
 
 mod common;
 use common::lz4_test_set;
@@ -52,7 +53,7 @@ mod decompress {
             .par_bridge()
             .for_each(|(src, mode, len)| {
                 let mut comp_buf = Vec::new();
-                let mut decomp_buf = vec![0; len];
+                let mut decomp_buf = vec![0; cmp::min(src.len(), len)];
                 lz4::compress_to_vec(&src, &mut comp_buf, mode).unwrap();
                 lz4::decompress(
                     &comp_buf,
