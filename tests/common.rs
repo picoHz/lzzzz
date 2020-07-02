@@ -89,6 +89,10 @@ pub fn lz4_test_set() -> impl Iterator<Item = (Bytes, lz4::CompressionMode)> {
         .flatten()
 }
 
+pub fn lz4_stream_test_set() -> impl Iterator<Item = (Vec<Bytes>, lz4::CompressionMode)> {
+    compression_mode_set().map(|mode| (generate_data().collect(), mode))
+}
+
 fn compression_level_set() -> impl Iterator<Item = lz4_hc::CompressionLevel> {
     vec![
         lz4_hc::CompressionLevel::Default,
