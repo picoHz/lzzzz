@@ -77,8 +77,7 @@ fn compression_mode_set() -> impl Iterator<Item = lz4::CompressionMode> {
         lz4::CompressionMode::Default,
         lz4::CompressionMode::Acceleration { factor: 0 },
         lz4::CompressionMode::Acceleration { factor: i32::MIN },
-        /* TODO
-         * lz4::CompressionMode::Acceleration { factor: i32::MAX }, */
+        lz4::CompressionMode::Acceleration { factor: i32::MAX },
     ]
     .into_iter()
 }

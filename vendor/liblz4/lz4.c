@@ -872,7 +872,7 @@ LZ4_FORCE_INLINE int LZ4_compress_generic(
         if (tableType == byPtr) {
             const BYTE* forwardIp = ip;
             int step = 1;
-            int searchMatchNb = acceleration << LZ4_skipTrigger;
+            U32 searchMatchNb = acceleration << LZ4_skipTrigger;
             do {
                 U32 const h = forwardH;
                 ip = forwardIp;
@@ -893,7 +893,7 @@ LZ4_FORCE_INLINE int LZ4_compress_generic(
 
             const BYTE* forwardIp = ip;
             int step = 1;
-            int searchMatchNb = acceleration << LZ4_skipTrigger;
+            U32 searchMatchNb = acceleration << LZ4_skipTrigger;
             do {
                 U32 const h = forwardH;
                 U32 const current = (U32)(forwardIp - base);
