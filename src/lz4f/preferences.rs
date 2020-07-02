@@ -120,9 +120,7 @@ impl Preferences {
     }
 
     pub(super) fn set_compression_level(&mut self, level: CompressionLevel) {
-        // Workaround for the integer overflow bug in liblz4.
-        const MIN_COMPRESSION_LEVEL: i32 = -33_554_430;
-        self.compression_level = cmp::max(level.as_i32(), MIN_COMPRESSION_LEVEL) as c_int;
+        self.compression_level = level.as_i32() as c_int;
     }
 
     pub(super) fn set_favor_dec_speed(&mut self, dec_speed: FavorDecSpeed) {
@@ -319,7 +317,7 @@ mod tests {
                 .compression_level(CompressionLevel::Custom(i32::MIN))
                 .build()
                 .compression_level,
-            -33_554_430
+            i32::MIN
         );
         assert_eq!(
             PreferencesBuilder::new()
