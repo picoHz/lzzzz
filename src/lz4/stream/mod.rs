@@ -49,7 +49,7 @@ impl<'a> Compressor<'a> {
         })
     }
 
-    pub fn with_dict<B>(&mut self, dict: B) -> Result<Self>
+    pub fn with_dict<B>(dict: B) -> Result<Self>
     where
         B: Into<Buffer<'a>>,
     {
@@ -187,7 +187,7 @@ impl<'a> Decompressor<'a> {
         })
     }
 
-    pub fn with_dict<B>(&mut self, dict: B) -> Result<Self>
+    pub fn with_dict<B>(dict: B) -> Result<Self>
     where
         B: Into<Buffer<'a>>,
     {

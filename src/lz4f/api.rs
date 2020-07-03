@@ -201,6 +201,7 @@ impl Drop for DecompressionContext {
         }
     }
 }
+
 pub fn compress_frame_bound(src_size: usize, prefs: &Preferences) -> usize {
     unsafe { binding::LZ4F_compressFrameBound(src_size as usize, prefs as *const Preferences) }
 }
