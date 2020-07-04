@@ -1,6 +1,7 @@
 #![cfg(feature = "lz4-hc")]
 
 use lzzzz::{lz4, lz4_hc};
+use rand::{distributions::Standard, rngs::SmallRng, Rng, SeedableRng};
 use rayon::{iter::ParallelBridge, prelude::*};
 
 mod common;
@@ -40,6 +41,42 @@ mod compressor {
                     )
                     .unwrap();
                     assert_eq!(decomp_buf, src);
+                }
+            });
+    }
+
+    #[test]
+    fn dictionary() {
+        lz4_hc_stream_test_set()
+            .par_bridge()
+            .for_each(|(src_set, level)| {
+                let dict = SmallRng::seed_from_u64(0)
+                    .sample_iter(Standard)
+                    .take(64_000)
+                    .collect::<Vec<_>>();
+                let mut stream = lz4_hc::Compressor::with_dict(&dict).unwrap();
+                stream.set_compression_level(level);
+                for src in src_set {
+                    // TODO
+                    if src.len() >= 4194304 {
+                        continue;
+                    }
+                    let mut comp_buf = vec![0; lz4::max_compressed_size(src.len())];
+                    let len = stream
+                        .next(Vec::from(src.as_ref()), &mut comp_buf, Default::default())
+                        .unwrap()
+                        .dst_len();
+
+                    let mut decomp_buf = vec![0; src.len()];
+                    lz4::decompress(
+                        &comp_buf[..len],
+                        &mut decomp_buf,
+                        lz4::DecompressionMode::Dictionary {
+                            data: (&dict).into(),
+                        },
+                    )
+                    .unwrap();
+                    assert_eq!(src, decomp_buf);
                 }
             });
     }
