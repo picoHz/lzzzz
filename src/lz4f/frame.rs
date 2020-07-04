@@ -70,11 +70,10 @@ pub fn compress(src: &[u8], dst: &mut [u8], prefs: &Preferences) -> Result<Repor
 /// ```
 pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, prefs: &Preferences) -> Result<Report> {
     let orig_len = dst.len();
-    let frame_len = max_compressed_size(src.len(), prefs);
-    dst.reserve(frame_len);
+    dst.reserve(max_compressed_size(src.len(), prefs));
     #[allow(unsafe_code)]
     unsafe {
-        dst.set_len(dst.len() + frame_len);
+        dst.set_len(dst.capacity());
     }
     let result = compress(src, &mut dst[orig_len..], prefs);
     dst.resize_with(
@@ -96,7 +95,7 @@ pub fn decompress_to_vec(src: &[u8], dst: &mut Vec<u8>) -> Result<Report> {
             dst.reserve(DEFAULT_BUF_SIZE);
             #[allow(unsafe_code)]
             unsafe {
-                dst.set_len(dst.len() + DEFAULT_BUF_SIZE);
+                dst.set_len(dst.capacity());
             }
             match ctx.decompress_dict(&src[src_offset..], &mut dst[dst_offset..], &[], false) {
                 Ok((result, expected)) => {
