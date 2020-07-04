@@ -128,11 +128,10 @@ impl<'a> Compressor<'a> {
     {
         let src = src.into();
         let orig_len = dst.len();
-        let frame_len = lz4::max_compressed_size(src.len());
-        dst.reserve(frame_len);
+        dst.reserve(lz4::max_compressed_size(src.len()));
         #[allow(unsafe_code)]
         unsafe {
-            dst.set_len(dst.len() + frame_len);
+            dst.set_len(dst.capacity());
         }
         let result = self.next(src, &mut dst[orig_len..], mode);
         dst.resize_with(
