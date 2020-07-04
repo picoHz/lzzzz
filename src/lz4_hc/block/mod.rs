@@ -2,7 +2,7 @@ mod api;
 
 use crate::{lz4, Error, ErrorKind, Report, Result};
 use api::ExtState;
-use std::{cmp::Ordering, mem::MaybeUninit};
+use std::cmp::Ordering;
 
 /// Compression mode specifier
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
@@ -243,12 +243,10 @@ pub fn compress_to_vec(
         return Err(Error::new(ErrorKind::CompressionModeInvalid));
     }
     let orig_len = dst.len();
+    dst.reserve(lz4::max_compressed_size(src.len()));
     #[allow(unsafe_code)]
     unsafe {
-        dst.resize(
-            orig_len + lz4::max_compressed_size(src.len()),
-            MaybeUninit::uninit().assume_init(),
-        );
+        dst.set_len(dst.capacity());
     }
     let result = compress(src, &mut dst[orig_len..], mode, compression_level);
     dst.resize_with(
