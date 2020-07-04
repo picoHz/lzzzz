@@ -5,7 +5,6 @@ use crate::Report;
 
 use std::{
     cell::RefCell,
-    mem::MaybeUninit,
     ops::Deref,
     os::raw::{c_char, c_int, c_void},
 };

@@ -29,7 +29,7 @@ use crate::{
     common::DEFAULT_BUF_SIZE, lz4, lz4::CompressionMode, Buffer, Error, ErrorKind, Report, Result,
 };
 use api::{CompressionContext, DecompressionContext};
-use std::{cmp, collections::LinkedList, mem::MaybeUninit};
+use std::{cmp, collections::LinkedList};
 
 /// Streaming compressor
 pub struct Compressor<'a> {
@@ -151,12 +151,11 @@ impl<'a> Compressor<'a> {
     {
         let src = src.into();
         let orig_len = dst.len();
+        let frame_len = lz4::max_compressed_size(src.len());
+        dst.reserve(frame_len);
         #[allow(unsafe_code)]
         unsafe {
-            dst.resize(
-                orig_len + lz4::max_compressed_size(src.len()),
-                MaybeUninit::uninit().assume_init(),
-            );
+            dst.set_len(dst.len() + frame_len);
         }
         let result = self.next(src, &mut dst[orig_len..], mode);
         dst.resize_with(

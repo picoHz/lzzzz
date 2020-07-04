@@ -2,7 +2,7 @@
 
 use super::{api, Result};
 use crate::{common::DEFAULT_BUF_SIZE, lz4f::Preferences, Error, ErrorKind, Report};
-use std::{cell::RefCell, mem::MaybeUninit, ops::Deref};
+use std::{cell::RefCell, ops::Deref};
 
 /// Calculate the maximum size of the compressed data from the original size.
 ///
@@ -70,12 +70,11 @@ pub fn compress(src: &[u8], dst: &mut [u8], prefs: &Preferences) -> Result<Repor
 /// ```
 pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, prefs: &Preferences) -> Result<Report> {
     let orig_len = dst.len();
+    let frame_len = max_compressed_size(src.len(), prefs);
+    dst.reserve(frame_len);
     #[allow(unsafe_code)]
     unsafe {
-        dst.resize(
-            orig_len + max_compressed_size(src.len(), prefs),
-            MaybeUninit::uninit().assume_init(),
-        );
+        dst.set_len(dst.len() + frame_len);
     }
     let result = compress(src, &mut dst[orig_len..], prefs);
     dst.resize_with(
@@ -94,12 +93,10 @@ pub fn decompress_to_vec(src: &[u8], dst: &mut Vec<u8>) -> Result<Report> {
         let mut ctx = ctx.borrow_mut();
         ctx.reset();
         loop {
+            dst.reserve(DEFAULT_BUF_SIZE);
             #[allow(unsafe_code)]
             unsafe {
-                dst.resize(
-                    dst.len() + DEFAULT_BUF_SIZE,
-                    MaybeUninit::uninit().assume_init(),
-                );
+                dst.set_len(dst.len() + DEFAULT_BUF_SIZE);
             }
             match ctx.decompress_dict(&src[src_offset..], &mut dst[dst_offset..], &[], false) {
                 Ok((result, expected)) => {
