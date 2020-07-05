@@ -66,4 +66,30 @@ mod compressor {
                 }
             });
     }
+
+    #[test]
+    fn pseudo_contiguous_region() {
+        let mut comp = lz4::Compressor::new().unwrap();
+        let mut region = vec![0; 1000];
+        for i in 0..10 {
+            for b in region.iter_mut() {
+                *b = i as u8;
+            }
+            let mut comp_buf = Vec::new();
+            let region = &region[(i * 100)..][..100];
+            comp.next_to_vec(
+                #[allow(unsafe_code)]
+                unsafe {
+                    std::slice::from_raw_parts(region.as_ptr(), region.len())
+                },
+                &mut comp_buf,
+                lz4::CompressionMode::Default,
+            )
+            .unwrap();
+
+            let mut decomp_buf = vec![0; region.len()];
+            lz4::decompress(&comp_buf, &mut decomp_buf, lz4::DecompressionMode::Default).unwrap();
+            assert_eq!(decomp_buf.as_slice(), region);
+        }
+    }
 }
