@@ -23,7 +23,7 @@ use crate::{
     },
     Buffer, Error, ErrorKind, Report,
 };
-use std::{cmp, mem, mem::MaybeUninit};
+use std::{cmp, mem, mem::MaybeUninit, ptr};
 
 enum State {
     Header {
@@ -109,7 +109,7 @@ impl<'a> Decompressor<'a> {
 
                     self.state = State::Body {
                         frame_info: frame,
-                        comp_dict: self.dict.as_ptr(),
+                        comp_dict: self.dict_ptr(),
                     }
                 }
             }
@@ -127,7 +127,7 @@ impl<'a> Decompressor<'a> {
 
         let src = &src[header_consumed..];
         if let State::Body { comp_dict, .. } = self.state {
-            if self.dict.as_ptr() != comp_dict {
+            if self.dict_ptr() != comp_dict {
                 return Err(Error::new(ErrorKind::DictionaryChangedDuringDecompression).into());
             }
 
@@ -150,6 +150,14 @@ impl<'a> Decompressor<'a> {
                 src_len: Some(header_consumed),
                 ..Default::default()
             })
+        }
+    }
+
+    fn dict_ptr(&self) -> *const u8 {
+        if self.dict.is_empty() {
+            ptr::null()
+        } else {
+            self.dict.as_ptr()
         }
     }
 
