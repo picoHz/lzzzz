@@ -13,6 +13,7 @@ use std::{cell::RefCell, ops::Deref};
 ///
 /// [`compress`]: fn.compress.html
 /// [`compress_to_vec`]: fn.compress_to_vec.html
+#[must_use]
 pub fn max_compressed_size(original_size: usize, prefs: &Preferences) -> usize {
     api::compress_frame_bound(original_size, prefs)
 }
