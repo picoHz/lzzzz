@@ -20,6 +20,7 @@ impl fmt::Display for ErrorKind {
     }
 }
 
+/// The error type for compression/decompression operations
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct Error {
     kind: ErrorKind,

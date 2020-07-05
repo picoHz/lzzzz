@@ -32,6 +32,7 @@ impl fmt::Display for ErrorKind {
     }
 }
 
+/// The error type for compression/decompression operations
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum Error {
     Lz4f(ErrorKind),
