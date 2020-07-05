@@ -6,11 +6,16 @@ use std::{convert, fmt, io};
 pub enum ErrorKind {
     CompressionFailed,
     DecompressionFailed,
+    /// The reset operation of the stream failed.
     StreamResetFailed,
     CompressedDataIncomplete,
+    /// The underlying liblz4 constructor function returned a NULL pointer.
     NullPointerUnexpected,
+    /// The specified compression mode was not valid.
     CompressionModeInvalid,
+    /// The specified decompression mode was not valid.
     DecompressionModeInvalid,
+    /// The dictionary data was not consistent during the decompression.
     DictionaryChangedDuringDecompression,
 }
 
