@@ -141,16 +141,3 @@ impl<'a> Compressor<'a> {
         result
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use crate::lz4_hc::{CompressionMode, Compressor};
-
-    #[test]
-    fn empty_dst() {
-        assert!(Compressor::new()
-            .unwrap()
-            .next(&b"hello"[..], &mut [], CompressionMode::Default)
-            .is_err());
-    }
-}

@@ -147,16 +147,3 @@ impl<W: AsyncWrite + Unpin> TryInto<AsyncWriteCompressor<W>> for CompressorBuild
         AsyncWriteCompressor::from_builder(self.device, self.pref, self.dict)
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use crate::lz4f::{comp::AsyncWriteCompressor, CompressorBuilder};
-    use tokio::{fs::File, prelude::*};
-
-    #[tokio::test]
-    async fn async_write() -> std::io::Result<()> {
-        let mut file = File::create("foo").await?;
-        let mut file = CompressorBuilder::new(&mut file).build::<AsyncWriteCompressor<_>>()?;
-        file.write_all(b"hello, world!").await
-    }
-}
