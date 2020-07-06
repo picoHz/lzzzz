@@ -23,7 +23,7 @@ use std::{
 /// use std::{fs::File, io::prelude::*};
 ///
 /// let mut f = File::open("foo.txt")?;
-/// let mut r = ReadCompressor::new(&mut f)?;
+/// let mut r = ReadCompressor::new(&mut f, Default::default())?;
 ///
 /// let mut buf = Vec::new();
 /// r.read_to_end(&mut buf)?;
@@ -34,8 +34,16 @@ pub struct ReadCompressor<R: Read> {
 }
 
 impl<R: Read> ReadCompressor<R> {
-    pub fn new(reader: R) -> Result<Self> {
-        CompressorBuilder::new(reader).build()
+    pub fn new(reader: R, prefs: Preferences) -> Result<Self> {
+        Ok(Self {
+            inner: BufReadCompressor::from_builder(BufReader::new(reader), prefs, None)?,
+        })
+    }
+
+    pub fn with_dict(reader: R, prefs: Preferences, dict: Dictionary) -> Result<Self> {
+        Ok(Self {
+            inner: BufReadCompressor::from_builder(BufReader::new(reader), prefs, Some(dict))?,
+        })
     }
 
     fn from_builder(device: R, pref: Preferences, dict: Option<Dictionary>) -> Result<Self> {

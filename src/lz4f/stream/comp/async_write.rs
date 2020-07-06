@@ -27,7 +27,7 @@ use tokio::io::AsyncWrite;
 /// use tokio::{fs::File, prelude::*};
 ///
 /// let mut f = File::create("foo.lz4").await?;
-/// let mut w = AsyncWriteCompressor::new(&mut f)?;
+/// let mut w = AsyncWriteCompressor::new(&mut f, Default::default())?;
 ///
 /// w.write_all(b"hello, world!").await?;
 ///
@@ -55,8 +55,22 @@ enum State {
 }
 
 impl<W: AsyncWrite + Unpin> AsyncWriteCompressor<W> {
-    pub fn new(writer: W) -> Result<Self> {
-        CompressorBuilder::new(writer).build()
+    pub fn new(writer: W, prefs: Preferences) -> Result<Self> {
+        Ok(Self {
+            device: writer,
+            inner: Compressor::new(prefs, None)?,
+            consumed: 0,
+            state: State::None,
+        })
+    }
+
+    pub fn with_dict(writer: W, prefs: Preferences, dict: Dictionary) -> Result<Self> {
+        Ok(Self {
+            device: writer,
+            inner: Compressor::new(prefs, Some(dict))?,
+            consumed: 0,
+            state: State::None,
+        })
     }
 
     fn from_builder(writer: W, pref: Preferences, dict: Option<Dictionary>) -> Result<Self> {

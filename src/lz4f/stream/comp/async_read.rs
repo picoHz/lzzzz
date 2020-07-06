@@ -30,7 +30,7 @@ use tokio::io::{AsyncRead, BufReader};
 /// use tokio::{fs::File, prelude::*};
 ///
 /// let mut f = File::open("foo.txt").await?;
-/// let mut r = AsyncReadCompressor::new(&mut f)?;
+/// let mut r = AsyncReadCompressor::new(&mut f, Default::default())?;
 ///
 /// let mut buf = Vec::new();
 /// r.read_to_end(&mut buf).await?;
@@ -46,8 +46,16 @@ pub struct AsyncReadCompressor<R: AsyncRead + Unpin> {
 }
 
 impl<R: AsyncRead + Unpin> AsyncReadCompressor<R> {
-    pub fn new(reader: R) -> Result<Self> {
-        CompressorBuilder::new(reader).build()
+    pub fn new(reader: R, prefs: Preferences) -> Result<Self> {
+        Ok(Self {
+            inner: AsyncBufReadCompressor::from_builder(BufReader::new(reader), prefs, None)?,
+        })
+    }
+
+    pub fn with_dict(reader: R, prefs: Preferences, dict: Dictionary) -> Result<Self> {
+        Ok(Self {
+            inner: AsyncBufReadCompressor::from_builder(BufReader::new(reader), prefs, Some(dict))?,
+        })
     }
 
     fn from_builder(reader: R, pref: Preferences, dict: Option<Dictionary>) -> Result<Self> {

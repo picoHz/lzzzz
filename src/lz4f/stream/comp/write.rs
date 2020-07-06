@@ -17,7 +17,7 @@ use std::{convert::TryInto, io::Write};
 /// use std::{fs::File, io::prelude::*};
 ///
 /// let mut f = File::create("foo.lz4")?;
-/// let mut w = WriteCompressor::new(&mut f)?;
+/// let mut w = WriteCompressor::new(&mut f, Default::default())?;
 ///
 /// w.write_all(b"hello, world!")?;
 /// # Ok::<(), std::io::Error>(())
@@ -28,8 +28,18 @@ pub struct WriteCompressor<W: Write> {
 }
 
 impl<W: Write> WriteCompressor<W> {
-    pub fn new(writer: W) -> Result<Self> {
-        CompressorBuilder::new(writer).build()
+    pub fn new(writer: W, prefs: Preferences) -> Result<Self> {
+        Ok(Self {
+            device: writer,
+            inner: Compressor::new(prefs, None)?,
+        })
+    }
+
+    pub fn with_dict(writer: W, prefs: Preferences, dict: Dictionary) -> Result<Self> {
+        Ok(Self {
+            device: writer,
+            inner: Compressor::new(prefs, Some(dict))?,
+        })
     }
 
     fn from_builder(writer: W, pref: Preferences, dict: Option<Dictionary>) -> Result<Self> {

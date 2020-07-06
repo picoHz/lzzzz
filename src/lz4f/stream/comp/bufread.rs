@@ -27,7 +27,7 @@ use std::{
 ///
 /// let mut f = File::open("foo.txt")?;
 /// let mut b = BufReader::new(f);
-/// let mut r = BufReadCompressor::new(&mut b)?;
+/// let mut r = BufReadCompressor::new(&mut b, Default::default())?;
 ///
 /// let mut buf = Vec::new();
 /// r.read_to_end(&mut buf)?;
@@ -40,8 +40,20 @@ pub struct BufReadCompressor<R: BufRead> {
 }
 
 impl<R: BufRead> BufReadCompressor<R> {
-    pub fn new(reader: R) -> Result<Self> {
-        CompressorBuilder::new(reader).build()
+    pub fn new(reader: R, prefs: Preferences) -> Result<Self> {
+        Ok(Self {
+            device: reader,
+            inner: Compressor::new(prefs, None)?,
+            consumed: 0,
+        })
+    }
+
+    pub fn with_dict(reader: R, prefs: Preferences, dict: Dictionary) -> Result<Self> {
+        Ok(Self {
+            device: reader,
+            inner: Compressor::new(prefs, Some(dict))?,
+            consumed: 0,
+        })
     }
 
     pub(super) fn from_builder(
