@@ -1,8 +1,8 @@
 use crate::{
-    lz4f::{decomp::Decompressor, DecompressorBuilder, Error, FrameInfo, Result},
+    lz4f::{decomp::Decompressor, FrameInfo, Result},
     Buffer,
 };
-use std::{convert::TryInto, io::Write};
+use std::io::Write;
 
 /// Write-based streaming decompressor
 ///
@@ -34,13 +34,9 @@ pub struct WriteDecompressor<'a, W: Write> {
 
 impl<'a, W: Write> WriteDecompressor<'a, W> {
     pub fn new(writer: W) -> Result<Self> {
-        DecompressorBuilder::new(writer).build()
-    }
-
-    fn from_builder(device: W, capacity: usize) -> Result<Self> {
         Ok(Self {
-            device,
-            inner: Decompressor::new(capacity)?,
+            device: writer,
+            inner: Decompressor::new()?,
         })
     }
 
@@ -70,12 +66,5 @@ impl<W: Write> Write for WriteDecompressor<'_, W> {
 
     fn flush(&mut self) -> std::io::Result<()> {
         self.device.flush()
-    }
-}
-
-impl<'a, W: Write> TryInto<WriteDecompressor<'a, W>> for DecompressorBuilder<W> {
-    type Error = Error;
-    fn try_into(self) -> Result<WriteDecompressor<'a, W>> {
-        WriteDecompressor::from_builder(self.device, self.capacity)
     }
 }

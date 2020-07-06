@@ -200,9 +200,7 @@ mod bufread_compressor {
 
 mod write_decompressor {
     use super::*;
-    use lzzzz::lz4f::{
-        comp::WriteCompressor, decomp::WriteDecompressor, DecompressorBuilder, Dictionary,
-    };
+    use lzzzz::lz4f::{comp::WriteCompressor, decomp::WriteDecompressor, Dictionary};
 
     #[test]
     fn default() {
@@ -216,9 +214,7 @@ mod write_decompressor {
                 comp_buf.len()
             );
             {
-                let mut w = DecompressorBuilder::new(&mut decomp_buf)
-                    .build::<WriteDecompressor<_>>()
-                    .unwrap();
+                let mut w = WriteDecompressor::new(&mut decomp_buf).unwrap();
                 w.write_all(&comp_buf).unwrap();
             }
             assert_eq!(decomp_buf, src);
@@ -243,9 +239,7 @@ mod write_decompressor {
                 w.write_all(&src).unwrap();
             }
             {
-                let mut w = DecompressorBuilder::new(&mut decomp_buf)
-                    .build::<WriteDecompressor<_>>()
-                    .unwrap();
+                let mut w = WriteDecompressor::new(&mut decomp_buf).unwrap();
                 w.set_dict(&dict);
                 w.write_all(&comp_buf).unwrap();
             }
@@ -265,9 +259,7 @@ mod write_decompressor {
                 comp_buf.len()
             );
             {
-                let mut w = DecompressorBuilder::new(&mut decomp_buf)
-                    .build::<WriteDecompressor<_>>()
-                    .unwrap();
+                let mut w = WriteDecompressor::new(&mut decomp_buf).unwrap();
 
                 let mut offset = 0;
                 let mut rng = SmallRng::seed_from_u64(0);
@@ -295,9 +287,7 @@ mod write_decompressor {
                 comp_buf.len()
             );
             {
-                let mut w = DecompressorBuilder::new(&mut decomp_buf)
-                    .build::<WriteDecompressor<_>>()
-                    .unwrap();
+                let mut w = WriteDecompressor::new(&mut decomp_buf).unwrap();
                 let err = w
                     .write_all(&comp_buf[1..])
                     .unwrap_err()
@@ -314,7 +304,7 @@ mod write_decompressor {
 
 mod read_decompressor {
     use super::*;
-    use lzzzz::lz4f::{comp::WriteCompressor, decomp::ReadDecompressor, DecompressorBuilder};
+    use lzzzz::lz4f::{comp::WriteCompressor, decomp::ReadDecompressor};
 
     #[test]
     fn default() {
@@ -329,9 +319,7 @@ mod read_decompressor {
             );
             {
                 let mut src = comp_buf.as_slice();
-                let mut r = DecompressorBuilder::new(&mut src)
-                    .build::<ReadDecompressor<_>>()
-                    .unwrap();
+                let mut r = ReadDecompressor::new(&mut src).unwrap();
                 r.read_to_end(&mut decomp_buf).unwrap();
             }
             assert_eq!(decomp_buf, src);
@@ -357,9 +345,7 @@ mod read_decompressor {
             }
             {
                 let mut src = comp_buf.as_slice();
-                let mut r = DecompressorBuilder::new(&mut src)
-                    .build::<ReadDecompressor<_>>()
-                    .unwrap();
+                let mut r = ReadDecompressor::new(&mut src).unwrap();
                 r.set_dict(&dict);
                 r.read_to_end(&mut decomp_buf).unwrap();
             }
@@ -380,9 +366,7 @@ mod read_decompressor {
             );
             {
                 let mut src = comp_buf.as_slice();
-                let mut r = DecompressorBuilder::new(&mut src)
-                    .build::<ReadDecompressor<_>>()
-                    .unwrap();
+                let mut r = ReadDecompressor::new(&mut src).unwrap();
 
                 let mut offset = 0;
                 let mut rng = SmallRng::seed_from_u64(0);
@@ -402,7 +386,7 @@ mod read_decompressor {
 
 mod bufread_decompressor {
     use super::*;
-    use lzzzz::lz4f::{comp::WriteCompressor, decomp::BufReadDecompressor, DecompressorBuilder};
+    use lzzzz::lz4f::{comp::WriteCompressor, decomp::BufReadDecompressor};
 
     #[test]
     fn default() {
@@ -417,9 +401,7 @@ mod bufread_decompressor {
             );
             {
                 let mut src = comp_buf.as_slice();
-                let mut r = DecompressorBuilder::new(&mut src)
-                    .build::<BufReadDecompressor<_>>()
-                    .unwrap();
+                let mut r = BufReadDecompressor::new(&mut src).unwrap();
                 r.read_to_end(&mut decomp_buf).unwrap();
             }
             assert_eq!(decomp_buf, src);
@@ -445,9 +427,7 @@ mod bufread_decompressor {
             }
             {
                 let mut src = comp_buf.as_slice();
-                let mut r = DecompressorBuilder::new(&mut src)
-                    .build::<BufReadDecompressor<_>>()
-                    .unwrap();
+                let mut r = BufReadDecompressor::new(&mut src).unwrap();
                 r.set_dict(&dict);
                 r.read_to_end(&mut decomp_buf).unwrap();
             }
@@ -468,9 +448,7 @@ mod bufread_decompressor {
             );
             {
                 let mut src = comp_buf.as_slice();
-                let mut r = DecompressorBuilder::new(&mut src)
-                    .build::<BufReadDecompressor<_>>()
-                    .unwrap();
+                let mut r = BufReadDecompressor::new(&mut src).unwrap();
 
                 let mut offset = 0;
                 let mut rng = SmallRng::seed_from_u64(0);

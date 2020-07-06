@@ -14,6 +14,7 @@ pub use write::*;
 pub use {async_bufread::*, async_read::*, async_write::*};
 
 use crate::{
+    common::DEFAULT_BUF_SIZE,
     lz4f::{
         api::{
             header_size, DecompressionContext, LZ4F_HEADER_SIZE_MAX,
@@ -45,7 +46,7 @@ pub(crate) struct Decompressor<'a> {
 }
 
 impl<'a> Decompressor<'a> {
-    pub fn new(capacity: usize) -> Result<Self> {
+    pub fn new() -> Result<Self> {
         let header = MaybeUninit::<[MaybeUninit<u8>; LZ4F_HEADER_SIZE_MAX]>::uninit();
         #[allow(unsafe_code)]
         let header = unsafe { mem::transmute(header.assume_init()) };
@@ -55,7 +56,7 @@ impl<'a> Decompressor<'a> {
                 header,
                 header_len: 0,
             },
-            buffer: Vec::with_capacity(capacity),
+            buffer: Vec::with_capacity(DEFAULT_BUF_SIZE),
             dict: Buffer::new(),
             header_only: false,
         })

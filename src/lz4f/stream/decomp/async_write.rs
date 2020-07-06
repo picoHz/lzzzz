@@ -2,12 +2,11 @@
 
 use super::Decompressor;
 use crate::{
-    lz4f::{DecompressorBuilder, Error, FrameInfo, Result},
+    lz4f::{FrameInfo, Result},
     Buffer,
 };
 use pin_project::pin_project;
 use std::{
-    convert::TryInto,
     marker::Unpin,
     pin::Pin,
     task::{Context, Poll},
@@ -59,13 +58,9 @@ enum State {
 
 impl<'a, W: AsyncWrite + Unpin> AsyncWriteDecompressor<'a, W> {
     pub fn new(writer: W) -> Result<Self> {
-        DecompressorBuilder::new(writer).build()
-    }
-
-    fn from_builder(writer: W, capacity: usize) -> Result<Self> {
         Ok(Self {
             device: writer,
-            inner: Decompressor::new(capacity)?,
+            inner: Decompressor::new()?,
             consumed: 0,
             state: State::None,
         })
@@ -156,12 +151,5 @@ impl<W: AsyncWrite + Unpin> AsyncWrite for AsyncWriteDecompressor<'_, W> {
             }
         }
         Poll::Pending
-    }
-}
-
-impl<'a, W: AsyncWrite + Unpin> TryInto<AsyncWriteDecompressor<'a, W>> for DecompressorBuilder<W> {
-    type Error = Error;
-    fn try_into(self) -> Result<AsyncWriteDecompressor<'a, W>> {
-        AsyncWriteDecompressor::from_builder(self.device, self.capacity)
     }
 }

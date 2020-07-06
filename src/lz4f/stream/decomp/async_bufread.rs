@@ -2,12 +2,11 @@
 
 use super::Decompressor;
 use crate::{
-    lz4f::{DecompressorBuilder, Error, FrameInfo, Result},
+    lz4f::{FrameInfo, Result},
     Buffer,
 };
 use pin_project::pin_project;
 use std::{
-    convert::TryInto,
     pin::Pin,
     task::{Context, Poll},
 };
@@ -56,13 +55,9 @@ pub struct AsyncBufReadDecompressor<'a, R: AsyncBufRead + Unpin> {
 
 impl<'a, R: AsyncBufRead + Unpin> AsyncBufReadDecompressor<'a, R> {
     pub fn new(reader: R) -> Result<Self> {
-        DecompressorBuilder::new(reader).build()
-    }
-
-    pub(super) fn from_builder(device: R, capacity: usize) -> Result<Self> {
         Ok(Self {
-            device,
-            inner: Decompressor::new(capacity)?,
+            device: reader,
+            inner: Decompressor::new()?,
             consumed: 0,
         })
     }
@@ -143,14 +138,5 @@ impl<'a, R: AsyncBufRead + Unpin> AsyncBufRead for AsyncBufReadDecompressor<'a, 
             me.inner.clear_buf();
             *me.consumed = 0;
         }
-    }
-}
-
-impl<'a, R: AsyncBufRead + Unpin> TryInto<AsyncBufReadDecompressor<'a, R>>
-    for DecompressorBuilder<R>
-{
-    type Error = Error;
-    fn try_into(self) -> Result<AsyncBufReadDecompressor<'a, R>> {
-        AsyncBufReadDecompressor::from_builder(self.device, self.capacity)
     }
 }

@@ -179,7 +179,7 @@ mod async_write_compressor {
 mod async_read_decompressor {
     use super::*;
     use futures::future::join_all;
-    use lzzzz::lz4f::{comp::WriteCompressor, decomp::AsyncReadDecompressor, DecompressorBuilder};
+    use lzzzz::lz4f::{comp::WriteCompressor, decomp::AsyncReadDecompressor};
     use std::io::Write;
     use tokio::io::AsyncReadExt;
 
@@ -196,9 +196,7 @@ mod async_read_decompressor {
             );
             {
                 let mut src = comp_buf.as_slice();
-                let mut r = DecompressorBuilder::new(&mut src)
-                    .build::<AsyncReadDecompressor<_>>()
-                    .unwrap();
+                let mut r = AsyncReadDecompressor::new(&mut src).unwrap();
                 r.read_to_end(&mut decomp_buf).await.unwrap();
             }
             assert_eq!(decomp_buf, src);
@@ -225,9 +223,7 @@ mod async_read_decompressor {
             }
             {
                 let mut src = comp_buf.as_slice();
-                let mut r = DecompressorBuilder::new(&mut src)
-                    .build::<AsyncReadDecompressor<_>>()
-                    .unwrap();
+                let mut r = AsyncReadDecompressor::new(&mut src).unwrap();
                 r.set_dict(&dict);
                 r.read_to_end(&mut decomp_buf).await.unwrap();
             }
@@ -249,9 +245,7 @@ mod async_read_decompressor {
             );
             {
                 let mut src = comp_buf.as_slice();
-                let mut r = DecompressorBuilder::new(&mut src)
-                    .build::<AsyncReadDecompressor<_>>()
-                    .unwrap();
+                let mut r = AsyncReadDecompressor::new(&mut src).unwrap();
 
                 let mut offset = 0;
                 let mut rng = SmallRng::seed_from_u64(0);
@@ -273,9 +267,7 @@ mod async_read_decompressor {
 mod async_bufread_decompressor {
     use super::*;
     use futures::future::join_all;
-    use lzzzz::lz4f::{
-        comp::WriteCompressor, decomp::AsyncBufReadDecompressor, DecompressorBuilder,
-    };
+    use lzzzz::lz4f::{comp::WriteCompressor, decomp::AsyncBufReadDecompressor};
     use std::io::Write;
     use tokio::io::AsyncReadExt;
 
@@ -292,9 +284,7 @@ mod async_bufread_decompressor {
             );
             {
                 let mut src = comp_buf.as_slice();
-                let mut r = DecompressorBuilder::new(&mut src)
-                    .build::<AsyncBufReadDecompressor<_>>()
-                    .unwrap();
+                let mut r = AsyncBufReadDecompressor::new(&mut src).unwrap();
                 r.read_to_end(&mut decomp_buf).await.unwrap();
             }
             assert_eq!(decomp_buf, src);
@@ -321,9 +311,7 @@ mod async_bufread_decompressor {
             }
             {
                 let mut src = comp_buf.as_slice();
-                let mut r = DecompressorBuilder::new(&mut src)
-                    .build::<AsyncBufReadDecompressor<_>>()
-                    .unwrap();
+                let mut r = AsyncBufReadDecompressor::new(&mut src).unwrap();
                 r.set_dict(&dict);
                 r.read_to_end(&mut decomp_buf).await.unwrap();
             }
@@ -345,9 +333,7 @@ mod async_bufread_decompressor {
             );
             {
                 let mut src = comp_buf.as_slice();
-                let mut r = DecompressorBuilder::new(&mut src)
-                    .build::<AsyncBufReadDecompressor<_>>()
-                    .unwrap();
+                let mut r = AsyncBufReadDecompressor::new(&mut src).unwrap();
 
                 let mut offset = 0;
                 let mut rng = SmallRng::seed_from_u64(0);
@@ -369,7 +355,7 @@ mod async_bufread_decompressor {
 mod async_write_decompressor {
     use super::*;
     use futures::future::join_all;
-    use lzzzz::lz4f::{comp::WriteCompressor, decomp::AsyncWriteDecompressor, DecompressorBuilder};
+    use lzzzz::lz4f::{comp::WriteCompressor, decomp::AsyncWriteDecompressor};
     use std::io::Write;
     use tokio::io::AsyncWriteExt;
 
@@ -385,9 +371,7 @@ mod async_write_decompressor {
                 comp_buf.len()
             );
             {
-                let mut w = DecompressorBuilder::new(&mut decomp_buf)
-                    .build::<AsyncWriteDecompressor<_>>()
-                    .unwrap();
+                let mut w = AsyncWriteDecompressor::new(&mut decomp_buf).unwrap();
                 w.write_all(&comp_buf).await.unwrap();
             }
             assert_eq!(decomp_buf, src);
@@ -413,9 +397,7 @@ mod async_write_decompressor {
                 w.write_all(&src).unwrap();
             }
             {
-                let mut w = DecompressorBuilder::new(&mut decomp_buf)
-                    .build::<AsyncWriteDecompressor<_>>()
-                    .unwrap();
+                let mut w = AsyncWriteDecompressor::new(&mut decomp_buf).unwrap();
                 w.set_dict(&dict);
                 w.write_all(&comp_buf).await.unwrap();
             }
@@ -436,9 +418,7 @@ mod async_write_decompressor {
                 comp_buf.len()
             );
             {
-                let mut w = DecompressorBuilder::new(&mut decomp_buf)
-                    .build::<AsyncWriteDecompressor<_>>()
-                    .unwrap();
+                let mut w = AsyncWriteDecompressor::new(&mut decomp_buf).unwrap();
 
                 let mut offset = 0;
                 let mut rng = SmallRng::seed_from_u64(0);
@@ -467,9 +447,7 @@ mod async_write_decompressor {
                 comp_buf.len()
             );
             {
-                let mut w = DecompressorBuilder::new(&mut decomp_buf)
-                    .build::<AsyncWriteDecompressor<_>>()
-                    .unwrap();
+                let mut w = AsyncWriteDecompressor::new(&mut decomp_buf).unwrap();
                 let err = w
                     .write_all(&comp_buf[1..])
                     .await

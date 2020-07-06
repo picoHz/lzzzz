@@ -2,12 +2,11 @@
 
 use super::AsyncBufReadDecompressor;
 use crate::{
-    lz4f::{DecompressorBuilder, Error, FrameInfo, Result},
+    lz4f::{FrameInfo, Result},
     Buffer,
 };
 use pin_project::pin_project;
 use std::{
-    convert::TryInto,
     pin::Pin,
     task::{Context, Poll},
 };
@@ -52,12 +51,8 @@ pub struct AsyncReadDecompressor<'a, R: AsyncRead + Unpin> {
 
 impl<'a, R: AsyncRead + Unpin> AsyncReadDecompressor<'a, R> {
     pub fn new(reader: R) -> Result<Self> {
-        DecompressorBuilder::new(reader).build()
-    }
-
-    fn from_builder(device: R, capacity: usize) -> Result<Self> {
         Ok(Self {
-            inner: AsyncBufReadDecompressor::from_builder(BufReader::new(device), capacity)?,
+            inner: AsyncBufReadDecompressor::new(BufReader::new(reader))?,
         })
     }
 
@@ -80,12 +75,5 @@ impl<'a, R: AsyncRead + Unpin> AsyncRead for AsyncReadDecompressor<'a, R> {
         buf: &mut [u8],
     ) -> Poll<tokio::io::Result<usize>> {
         self.project().inner.poll_read(cx, buf)
-    }
-}
-
-impl<'a, R: AsyncRead + Unpin> TryInto<AsyncReadDecompressor<'a, R>> for DecompressorBuilder<R> {
-    type Error = Error;
-    fn try_into(self) -> Result<AsyncReadDecompressor<'a, R>> {
-        AsyncReadDecompressor::from_builder(self.device, self.capacity)
     }
 }

@@ -1,12 +1,9 @@
 use super::BufReadDecompressor;
 use crate::{
-    lz4f::{DecompressorBuilder, Error, FrameInfo, Result},
+    lz4f::{FrameInfo, Result},
     Buffer,
 };
-use std::{
-    convert::TryInto,
-    io::{BufReader, Read},
-};
+use std::io::{BufReader, Read};
 
 /// Read-based streaming decompressor
 /// # Examples
@@ -40,12 +37,8 @@ pub struct ReadDecompressor<'a, R: Read> {
 impl<'a, R: Read> ReadDecompressor<'a, R> {
     /// Create a new `ReadDecompressor`.
     pub fn new(reader: R) -> Result<Self> {
-        DecompressorBuilder::new(reader).build()
-    }
-
-    fn from_builder(device: R, capacity: usize) -> Result<Self> {
         Ok(Self {
-            inner: BufReadDecompressor::from_builder(BufReader::new(device), capacity)?,
+            inner: BufReadDecompressor::new(BufReader::new(reader))?,
         })
     }
 
@@ -65,12 +58,5 @@ impl<'a, R: Read> ReadDecompressor<'a, R> {
 impl<R: Read> Read for ReadDecompressor<'_, R> {
     fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
         self.inner.read(buf)
-    }
-}
-
-impl<'a, R: Read> TryInto<ReadDecompressor<'a, R>> for DecompressorBuilder<R> {
-    type Error = Error;
-    fn try_into(self) -> Result<ReadDecompressor<'a, R>> {
-        ReadDecompressor::from_builder(self.device, self.capacity)
     }
 }

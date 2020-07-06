@@ -3,12 +3,9 @@
 pub mod comp;
 pub mod decomp;
 
-use crate::{
-    common::DEFAULT_BUF_SIZE,
-    lz4f::{
-        AutoFlush, BlockChecksum, BlockMode, BlockSize, CompressionLevel, ContentChecksum,
-        Dictionary, Error, FavorDecSpeed, Preferences, Result,
-    },
+use crate::lz4f::{
+    AutoFlush, BlockChecksum, BlockMode, BlockSize, CompressionLevel, ContentChecksum, Dictionary,
+    Error, FavorDecSpeed, Preferences, Result,
 };
 use std::convert::TryInto;
 
@@ -85,34 +82,6 @@ impl<D> CompressorBuilder<D> {
     /// Set the compression dictionary.
     pub fn dict(mut self, dict: Dictionary) -> Self {
         self.dict = Some(dict);
-        self
-    }
-
-    pub fn build<T>(self) -> Result<T>
-    where
-        Self: TryInto<T, Error = Error>,
-    {
-        self.try_into()
-    }
-}
-
-/// A builder struct to create a streaming decompressor
-pub struct DecompressorBuilder<D> {
-    device: D,
-    capacity: usize,
-}
-
-impl<D> DecompressorBuilder<D> {
-    pub const fn new(device: D) -> Self {
-        Self {
-            device,
-            capacity: DEFAULT_BUF_SIZE,
-        }
-    }
-
-    /// Set the capacity of the internal buffer.
-    pub fn capacity(mut self, capacity: usize) -> Self {
-        self.capacity = capacity;
         self
     }
 
