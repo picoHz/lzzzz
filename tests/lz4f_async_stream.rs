@@ -207,30 +207,6 @@ mod async_read_decompressor {
     }
 
     #[tokio::test]
-    async fn small_buffer_capacity() {
-        join_all(lz4f_test_set().map(|(src, prefs)| async move {
-            let mut comp_buf = Vec::new();
-            let mut decomp_buf = Vec::new();
-            assert_eq!(
-                lz4f::compress_to_vec(&src, &mut comp_buf, &prefs)
-                    .unwrap()
-                    .dst_len(),
-                comp_buf.len()
-            );
-            {
-                let mut src = comp_buf.as_slice();
-                let mut r = DecompressorBuilder::new(&mut src)
-                    .capacity(1)
-                    .build::<AsyncReadDecompressor<_>>()
-                    .unwrap();
-                r.read_to_end(&mut decomp_buf).await.unwrap();
-            }
-            assert_eq!(decomp_buf, src);
-        }))
-        .await;
-    }
-
-    #[tokio::test]
     async fn dictionary() {
         join_all(lz4f_test_set().map(|(src, prefs)| async move {
             let mut comp_buf = Vec::new();
@@ -327,30 +303,6 @@ mod async_bufread_decompressor {
     }
 
     #[tokio::test]
-    async fn small_buffer_capacity() {
-        join_all(lz4f_test_set().map(|(src, prefs)| async move {
-            let mut comp_buf = Vec::new();
-            let mut decomp_buf = Vec::new();
-            assert_eq!(
-                lz4f::compress_to_vec(&src, &mut comp_buf, &prefs)
-                    .unwrap()
-                    .dst_len(),
-                comp_buf.len()
-            );
-            {
-                let mut src = comp_buf.as_slice();
-                let mut r = DecompressorBuilder::new(&mut src)
-                    .capacity(1)
-                    .build::<AsyncBufReadDecompressor<_>>()
-                    .unwrap();
-                r.read_to_end(&mut decomp_buf).await.unwrap();
-            }
-            assert_eq!(decomp_buf, src);
-        }))
-        .await;
-    }
-
-    #[tokio::test]
     async fn dictionary() {
         join_all(lz4f_test_set().map(|(src, prefs)| async move {
             let mut comp_buf = Vec::new();
@@ -434,29 +386,6 @@ mod async_write_decompressor {
             );
             {
                 let mut w = DecompressorBuilder::new(&mut decomp_buf)
-                    .build::<AsyncWriteDecompressor<_>>()
-                    .unwrap();
-                w.write_all(&comp_buf).await.unwrap();
-            }
-            assert_eq!(decomp_buf, src);
-        }))
-        .await;
-    }
-
-    #[tokio::test]
-    async fn small_buffer_capacity() {
-        join_all(lz4f_test_set().map(|(src, prefs)| async move {
-            let mut comp_buf = Vec::new();
-            let mut decomp_buf = Vec::new();
-            assert_eq!(
-                lz4f::compress_to_vec(&src, &mut comp_buf, &prefs)
-                    .unwrap()
-                    .dst_len(),
-                comp_buf.len()
-            );
-            {
-                let mut w = DecompressorBuilder::new(&mut decomp_buf)
-                    .capacity(1)
                     .build::<AsyncWriteDecompressor<_>>()
                     .unwrap();
                 w.write_all(&comp_buf).await.unwrap();

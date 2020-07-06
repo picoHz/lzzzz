@@ -254,28 +254,6 @@ mod write_decompressor {
     }
 
     #[test]
-    fn small_buffer_capacity() {
-        lz4f_test_set().par_bridge().for_each(|(src, prefs)| {
-            let mut comp_buf = Vec::new();
-            let mut decomp_buf = Vec::new();
-            assert_eq!(
-                lz4f::compress_to_vec(&src, &mut comp_buf, &prefs)
-                    .unwrap()
-                    .dst_len(),
-                comp_buf.len()
-            );
-            {
-                let mut w = DecompressorBuilder::new(&mut decomp_buf)
-                    .capacity(1)
-                    .build::<WriteDecompressor<_>>()
-                    .unwrap();
-                w.write_all(&comp_buf).unwrap();
-            }
-            assert_eq!(decomp_buf, src);
-        });
-    }
-
-    #[test]
     fn random_chunk() {
         lz4f_test_set().par_bridge().for_each(|(src, prefs)| {
             let mut comp_buf = Vec::new();
@@ -352,29 +330,6 @@ mod read_decompressor {
             {
                 let mut src = comp_buf.as_slice();
                 let mut r = DecompressorBuilder::new(&mut src)
-                    .build::<ReadDecompressor<_>>()
-                    .unwrap();
-                r.read_to_end(&mut decomp_buf).unwrap();
-            }
-            assert_eq!(decomp_buf, src);
-        });
-    }
-
-    #[test]
-    fn small_buffer_capacity() {
-        lz4f_test_set().par_bridge().for_each(|(src, prefs)| {
-            let mut comp_buf = Vec::new();
-            let mut decomp_buf = Vec::new();
-            assert_eq!(
-                lz4f::compress_to_vec(&src, &mut comp_buf, &prefs)
-                    .unwrap()
-                    .dst_len(),
-                comp_buf.len()
-            );
-            {
-                let mut src = comp_buf.as_slice();
-                let mut r = DecompressorBuilder::new(&mut src)
-                    .capacity(1)
                     .build::<ReadDecompressor<_>>()
                     .unwrap();
                 r.read_to_end(&mut decomp_buf).unwrap();
@@ -463,29 +418,6 @@ mod bufread_decompressor {
             {
                 let mut src = comp_buf.as_slice();
                 let mut r = DecompressorBuilder::new(&mut src)
-                    .build::<BufReadDecompressor<_>>()
-                    .unwrap();
-                r.read_to_end(&mut decomp_buf).unwrap();
-            }
-            assert_eq!(decomp_buf, src);
-        });
-    }
-
-    #[test]
-    fn small_buffer_capacity() {
-        lz4f_test_set().par_bridge().for_each(|(src, prefs)| {
-            let mut comp_buf = Vec::new();
-            let mut decomp_buf = Vec::new();
-            assert_eq!(
-                lz4f::compress_to_vec(&src, &mut comp_buf, &prefs)
-                    .unwrap()
-                    .dst_len(),
-                comp_buf.len()
-            );
-            {
-                let mut src = comp_buf.as_slice();
-                let mut r = DecompressorBuilder::new(&mut src)
-                    .capacity(1)
                     .build::<BufReadDecompressor<_>>()
                     .unwrap();
                 r.read_to_end(&mut decomp_buf).unwrap();
