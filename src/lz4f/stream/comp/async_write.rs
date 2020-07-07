@@ -1,7 +1,7 @@
 #![cfg(feature = "tokio-io")]
 
 use super::{Compressor, Dictionary, Preferences};
-use crate::lz4f::{CompressorBuilder, Error, Result};
+use crate::lz4f::{Error, Result};
 use pin_project::pin_project;
 use std::{
     convert::TryInto,
@@ -68,15 +68,6 @@ impl<W: AsyncWrite + Unpin> AsyncWriteCompressor<W> {
         Ok(Self {
             device: writer,
             inner: Compressor::new(prefs, Some(dict))?,
-            consumed: 0,
-            state: State::None,
-        })
-    }
-
-    fn from_builder(writer: W, pref: Preferences, dict: Option<Dictionary>) -> Result<Self> {
-        Ok(Self {
-            device: writer,
-            inner: Compressor::new(pref, dict)?,
             consumed: 0,
             state: State::None,
         })
@@ -152,12 +143,5 @@ impl<W: AsyncWrite + Unpin> AsyncWrite for AsyncWriteCompressor<W> {
             }
         }
         Poll::Pending
-    }
-}
-
-impl<W: AsyncWrite + Unpin> TryInto<AsyncWriteCompressor<W>> for CompressorBuilder<W> {
-    type Error = Error;
-    fn try_into(self) -> Result<AsyncWriteCompressor<W>> {
-        AsyncWriteCompressor::from_builder(self.device, self.pref, self.dict)
     }
 }

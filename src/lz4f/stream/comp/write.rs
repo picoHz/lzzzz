@@ -1,6 +1,6 @@
 use super::{Compressor, Dictionary, Preferences};
-use crate::lz4f::{CompressorBuilder, Error, Result};
-use std::{convert::TryInto, io::Write};
+use crate::lz4f::Result;
+use std::io::Write;
 
 /// Write-based streaming compressor
 ///
@@ -42,13 +42,6 @@ impl<W: Write> WriteCompressor<W> {
         })
     }
 
-    fn from_builder(writer: W, pref: Preferences, dict: Option<Dictionary>) -> Result<Self> {
-        Ok(Self {
-            device: writer,
-            inner: Compressor::new(pref, dict)?,
-        })
-    }
-
     fn end(&mut self) -> std::io::Result<()> {
         self.inner.end(false)?;
         self.device.write_all(self.inner.buf())?;
@@ -75,12 +68,5 @@ impl<W: Write> Write for WriteCompressor<W> {
 impl<W: Write> Drop for WriteCompressor<W> {
     fn drop(&mut self) {
         let _ = self.end();
-    }
-}
-
-impl<W: Write> TryInto<WriteCompressor<W>> for CompressorBuilder<W> {
-    type Error = Error;
-    fn try_into(self) -> Result<WriteCompressor<W>> {
-        WriteCompressor::from_builder(self.device, self.pref, self.dict)
     }
 }

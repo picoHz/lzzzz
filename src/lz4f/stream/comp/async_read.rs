@@ -1,7 +1,7 @@
 #![cfg(feature = "tokio-io")]
 
 use super::{AsyncBufReadCompressor, Dictionary, Preferences};
-use crate::lz4f::{CompressorBuilder, Error, Result};
+use crate::lz4f::{Error, Result};
 use pin_project::pin_project;
 use std::{
     convert::TryInto,
@@ -48,19 +48,13 @@ pub struct AsyncReadCompressor<R: AsyncRead + Unpin> {
 impl<R: AsyncRead + Unpin> AsyncReadCompressor<R> {
     pub fn new(reader: R, prefs: Preferences) -> Result<Self> {
         Ok(Self {
-            inner: AsyncBufReadCompressor::from_builder(BufReader::new(reader), prefs, None)?,
+            inner: AsyncBufReadCompressor::new(BufReader::new(reader), prefs)?,
         })
     }
 
     pub fn with_dict(reader: R, prefs: Preferences, dict: Dictionary) -> Result<Self> {
         Ok(Self {
-            inner: AsyncBufReadCompressor::from_builder(BufReader::new(reader), prefs, Some(dict))?,
-        })
-    }
-
-    fn from_builder(reader: R, pref: Preferences, dict: Option<Dictionary>) -> Result<Self> {
-        Ok(Self {
-            inner: AsyncBufReadCompressor::from_builder(BufReader::new(reader), pref, dict)?,
+            inner: AsyncBufReadCompressor::with_dict(BufReader::new(reader), prefs, dict)?,
         })
     }
 }
@@ -72,12 +66,5 @@ impl<R: AsyncRead + Unpin> AsyncRead for AsyncReadCompressor<R> {
         buf: &mut [u8],
     ) -> Poll<tokio::io::Result<usize>> {
         self.project().inner.poll_read(cx, buf)
-    }
-}
-
-impl<R: AsyncRead + Unpin> TryInto<AsyncReadCompressor<R>> for CompressorBuilder<R> {
-    type Error = Error;
-    fn try_into(self) -> Result<AsyncReadCompressor<R>> {
-        AsyncReadCompressor::from_builder(self.device, self.pref, self.dict)
     }
 }

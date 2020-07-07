@@ -10,7 +10,7 @@ use common::lz4f_test_set;
 
 mod write_compressor {
     use super::*;
-    use lzzzz::lz4f::{comp::WriteCompressor, CompressorBuilder};
+    use lzzzz::lz4f::comp::WriteCompressor;
 
     #[test]
     fn default() {
@@ -18,10 +18,7 @@ mod write_compressor {
             let mut comp_buf = Vec::new();
             let mut decomp_buf = Vec::new();
             {
-                let mut w = CompressorBuilder::new(&mut comp_buf)
-                    .preferences(prefs)
-                    .build::<WriteCompressor<_>>()
-                    .unwrap();
+                let mut w = WriteCompressor::new(&mut comp_buf, prefs).unwrap();
                 w.write_all(&src).unwrap();
             }
             assert_eq!(
@@ -40,10 +37,7 @@ mod write_compressor {
             let mut comp_buf = Vec::new();
             let mut decomp_buf = Vec::new();
             {
-                let mut w = CompressorBuilder::new(&mut comp_buf)
-                    .preferences(prefs)
-                    .build::<WriteCompressor<_>>()
-                    .unwrap();
+                let mut w = WriteCompressor::new(&mut comp_buf, prefs).unwrap();
 
                 let mut offset = 0;
                 let mut rng = SmallRng::seed_from_u64(0);
@@ -68,7 +62,7 @@ mod write_compressor {
 
 mod read_compressor {
     use super::*;
-    use lzzzz::lz4f::{comp::ReadCompressor, CompressorBuilder};
+    use lzzzz::lz4f::comp::ReadCompressor;
 
     #[test]
     fn default() {
@@ -77,10 +71,7 @@ mod read_compressor {
             let mut decomp_buf = Vec::new();
             {
                 let mut src = src.as_ref();
-                let mut r = CompressorBuilder::new(&mut src)
-                    .preferences(prefs)
-                    .build::<ReadCompressor<_>>()
-                    .unwrap();
+                let mut r = ReadCompressor::new(&mut src, prefs).unwrap();
                 r.read_to_end(&mut comp_buf).unwrap();
             }
             assert_eq!(
@@ -100,10 +91,7 @@ mod read_compressor {
             let mut decomp_buf = Vec::new();
             {
                 let mut src = src.as_ref();
-                let mut r = CompressorBuilder::new(&mut src)
-                    .preferences(prefs)
-                    .build::<ReadCompressor<_>>()
-                    .unwrap();
+                let mut r = ReadCompressor::new(&mut src, prefs).unwrap();
 
                 let mut offset = 0;
                 let mut rng = SmallRng::seed_from_u64(0);
@@ -134,7 +122,7 @@ mod read_compressor {
 
 mod bufread_compressor {
     use super::*;
-    use lzzzz::lz4f::{comp::BufReadCompressor, CompressorBuilder};
+    use lzzzz::lz4f::comp::BufReadCompressor;
 
     #[test]
     fn default() {
@@ -143,10 +131,7 @@ mod bufread_compressor {
             let mut decomp_buf = Vec::new();
             {
                 let mut src = src.as_ref();
-                let mut r = CompressorBuilder::new(&mut src)
-                    .preferences(prefs)
-                    .build::<BufReadCompressor<_>>()
-                    .unwrap();
+                let mut r = BufReadCompressor::new(&mut src, prefs).unwrap();
                 r.read_to_end(&mut comp_buf).unwrap();
             }
             assert_eq!(
@@ -166,10 +151,7 @@ mod bufread_compressor {
             let mut decomp_buf = Vec::new();
             {
                 let mut src = src.as_ref();
-                let mut r = CompressorBuilder::new(&mut src)
-                    .preferences(prefs)
-                    .build::<BufReadCompressor<_>>()
-                    .unwrap();
+                let mut r = BufReadCompressor::new(&mut src, prefs).unwrap();
 
                 let mut offset = 0;
                 let mut rng = SmallRng::seed_from_u64(0);
@@ -231,11 +213,12 @@ mod write_decompressor {
                 .take(64_000)
                 .collect::<Vec<_>>();
             {
-                let mut w = CompressorBuilder::new(&mut comp_buf)
-                    .preferences(prefs)
-                    .dict(Dictionary::new(&dict).unwrap())
-                    .build::<WriteCompressor<_>>()
-                    .unwrap();
+                let mut w = WriteCompressor::with_dict(
+                    &mut comp_buf,
+                    prefs,
+                    Dictionary::new(&dict).unwrap(),
+                )
+                .unwrap();
                 w.write_all(&src).unwrap();
             }
             {
@@ -336,11 +319,12 @@ mod read_decompressor {
                 .take(64_000)
                 .collect::<Vec<_>>();
             {
-                let mut w = CompressorBuilder::new(&mut comp_buf)
-                    .preferences(prefs)
-                    .dict(Dictionary::new(&dict).unwrap())
-                    .build::<WriteCompressor<_>>()
-                    .unwrap();
+                let mut w = WriteCompressor::with_dict(
+                    &mut comp_buf,
+                    prefs,
+                    Dictionary::new(&dict).unwrap(),
+                )
+                .unwrap();
                 w.write_all(&src).unwrap();
             }
             {
@@ -418,11 +402,12 @@ mod bufread_decompressor {
                 .take(64_000)
                 .collect::<Vec<_>>();
             {
-                let mut w = CompressorBuilder::new(&mut comp_buf)
-                    .preferences(prefs)
-                    .dict(Dictionary::new(&dict).unwrap())
-                    .build::<WriteCompressor<_>>()
-                    .unwrap();
+                let mut w = WriteCompressor::with_dict(
+                    &mut comp_buf,
+                    prefs,
+                    Dictionary::new(&dict).unwrap(),
+                )
+                .unwrap();
                 w.write_all(&src).unwrap();
             }
             {

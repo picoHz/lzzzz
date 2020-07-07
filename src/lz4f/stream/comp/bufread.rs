@@ -1,9 +1,6 @@
 use super::{Compressor, Dictionary, Preferences};
-use crate::lz4f::{CompressorBuilder, Error, Result};
-use std::{
-    convert::TryInto,
-    io::{BufRead, Read},
-};
+use crate::lz4f::Result;
+use std::io::{BufRead, Read};
 
 /// BufRead-based streaming compressor
 ///
@@ -55,18 +52,6 @@ impl<R: BufRead> BufReadCompressor<R> {
             consumed: 0,
         })
     }
-
-    pub(super) fn from_builder(
-        device: R,
-        pref: Preferences,
-        dict: Option<Dictionary>,
-    ) -> Result<Self> {
-        Ok(Self {
-            device,
-            inner: Compressor::new(pref, dict)?,
-            consumed: 0,
-        })
-    }
 }
 
 impl<R: BufRead> Read for BufReadCompressor<R> {
@@ -109,12 +94,5 @@ impl<R: BufRead> BufRead for BufReadCompressor<R> {
             self.inner.clear_buf();
             self.consumed = 0;
         }
-    }
-}
-
-impl<R: BufRead> TryInto<BufReadCompressor<R>> for CompressorBuilder<R> {
-    type Error = Error;
-    fn try_into(self) -> Result<BufReadCompressor<R>> {
-        BufReadCompressor::from_builder(self.device, self.pref, self.dict)
     }
 }

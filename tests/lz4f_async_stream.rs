@@ -9,7 +9,7 @@ use common::lz4f_test_set;
 
 mod async_read_compressor {
     use super::*;
-    use lzzzz::lz4f::{comp::AsyncReadCompressor, CompressorBuilder};
+    use lzzzz::lz4f::comp::AsyncReadCompressor;
     use tokio::io::AsyncReadExt;
 
     #[tokio::test]
@@ -19,10 +19,7 @@ mod async_read_compressor {
             let mut decomp_buf = Vec::new();
             {
                 let mut src = src.as_ref();
-                let mut r = CompressorBuilder::new(&mut src)
-                    .preferences(prefs)
-                    .build::<AsyncReadCompressor<_>>()
-                    .unwrap();
+                let mut r = AsyncReadCompressor::new(&mut src, prefs).unwrap();
                 r.read_to_end(&mut comp_buf).await.unwrap();
             }
             assert_eq!(
@@ -43,10 +40,7 @@ mod async_read_compressor {
             let mut decomp_buf = Vec::new();
             {
                 let mut src = src.as_ref();
-                let mut r = CompressorBuilder::new(&mut src)
-                    .preferences(prefs)
-                    .build::<AsyncReadCompressor<_>>()
-                    .unwrap();
+                let mut r = AsyncReadCompressor::new(&mut src, prefs).unwrap();
 
                 let mut offset = 0;
                 let mut rng = SmallRng::seed_from_u64(0);
@@ -78,7 +72,7 @@ mod async_read_compressor {
 
 mod async_bufread_compressor {
     use super::*;
-    use lzzzz::lz4f::{comp::AsyncBufReadCompressor, CompressorBuilder};
+    use lzzzz::lz4f::comp::AsyncBufReadCompressor;
     use tokio::io::AsyncReadExt;
 
     #[tokio::test]
@@ -88,10 +82,7 @@ mod async_bufread_compressor {
             let mut decomp_buf = Vec::new();
             {
                 let mut src = src.as_ref();
-                let mut r = CompressorBuilder::new(&mut src)
-                    .preferences(prefs)
-                    .build::<AsyncBufReadCompressor<_>>()
-                    .unwrap();
+                let mut r = AsyncBufReadCompressor::new(&mut src, prefs).unwrap();
                 r.read_to_end(&mut comp_buf).await.unwrap();
             }
             assert_eq!(
@@ -112,10 +103,7 @@ mod async_bufread_compressor {
             let mut decomp_buf = Vec::new();
             {
                 let mut src = src.as_ref();
-                let mut r = CompressorBuilder::new(&mut src)
-                    .preferences(prefs)
-                    .build::<AsyncBufReadCompressor<_>>()
-                    .unwrap();
+                let mut r = AsyncBufReadCompressor::new(&mut src, prefs).unwrap();
 
                 let mut offset = 0;
                 let mut rng = SmallRng::seed_from_u64(0);
@@ -148,7 +136,7 @@ mod async_bufread_compressor {
 mod async_write_compressor {
     use super::*;
     use futures::future::join_all;
-    use lzzzz::lz4f::{comp::AsyncWriteCompressor, CompressorBuilder};
+    use lzzzz::lz4f::comp::AsyncWriteCompressor;
     use tokio::io::AsyncWriteExt;
 
     #[tokio::test]
@@ -157,10 +145,7 @@ mod async_write_compressor {
             let mut comp_buf = Vec::new();
             let mut decomp_buf = Vec::new();
             {
-                let mut w = CompressorBuilder::new(&mut comp_buf)
-                    .preferences(prefs.clone())
-                    .build::<AsyncWriteCompressor<_>>()
-                    .unwrap();
+                let mut w = AsyncWriteCompressor::new(&mut comp_buf, prefs).unwrap();
                 w.write_all(&src).await.unwrap();
                 w.shutdown().await.unwrap();
             }
@@ -214,11 +199,12 @@ mod async_read_decompressor {
                 .take(64_000)
                 .collect::<Vec<_>>();
             {
-                let mut w = CompressorBuilder::new(&mut comp_buf)
-                    .preferences(prefs)
-                    .dict(Dictionary::new(&dict).unwrap())
-                    .build::<WriteCompressor<_>>()
-                    .unwrap();
+                let mut w = WriteCompressor::with_dict(
+                    &mut comp_buf,
+                    prefs,
+                    Dictionary::new(&dict).unwrap(),
+                )
+                .unwrap();
                 w.write_all(&src).unwrap();
             }
             {
@@ -302,11 +288,12 @@ mod async_bufread_decompressor {
                 .take(64_000)
                 .collect::<Vec<_>>();
             {
-                let mut w = CompressorBuilder::new(&mut comp_buf)
-                    .preferences(prefs)
-                    .dict(Dictionary::new(&dict).unwrap())
-                    .build::<WriteCompressor<_>>()
-                    .unwrap();
+                let mut w = WriteCompressor::with_dict(
+                    &mut comp_buf,
+                    prefs,
+                    Dictionary::new(&dict).unwrap(),
+                )
+                .unwrap();
                 w.write_all(&src).unwrap();
             }
             {
@@ -389,11 +376,12 @@ mod async_write_decompressor {
                 .take(64_000)
                 .collect::<Vec<_>>();
             {
-                let mut w = CompressorBuilder::new(&mut comp_buf)
-                    .preferences(prefs)
-                    .dict(Dictionary::new(&dict).unwrap())
-                    .build::<WriteCompressor<_>>()
-                    .unwrap();
+                let mut w = WriteCompressor::with_dict(
+                    &mut comp_buf,
+                    prefs,
+                    Dictionary::new(&dict).unwrap(),
+                )
+                .unwrap();
                 w.write_all(&src).unwrap();
             }
             {

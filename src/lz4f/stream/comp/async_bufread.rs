@@ -1,7 +1,7 @@
 #![cfg(feature = "tokio-io")]
 
 use super::{Compressor, Dictionary, Preferences};
-use crate::lz4f::{CompressorBuilder, Error, Result};
+use crate::lz4f::{Error, Result};
 use pin_project::pin_project;
 use std::{
     cmp,
@@ -72,20 +72,6 @@ impl<R: AsyncBufRead + Unpin> AsyncBufReadCompressor<R> {
         Ok(Self {
             device: reader,
             inner: Compressor::new(prefs, Some(dict))?,
-            consumed: 0,
-            closed: false,
-            state: State::None,
-        })
-    }
-
-    pub(crate) fn from_builder(
-        reader: R,
-        pref: Preferences,
-        dict: Option<Dictionary>,
-    ) -> Result<Self> {
-        Ok(Self {
-            device: reader,
-            inner: Compressor::new(pref, dict)?,
             consumed: 0,
             closed: false,
             state: State::None,
@@ -171,12 +157,5 @@ impl<R: AsyncBufRead + Unpin> AsyncBufRead for AsyncBufReadCompressor<R> {
             me.inner.clear_buf();
             *me.consumed = 0;
         }
-    }
-}
-
-impl<R: AsyncBufRead + Unpin> TryInto<AsyncBufReadCompressor<R>> for CompressorBuilder<R> {
-    type Error = Error;
-    fn try_into(self) -> Result<AsyncBufReadCompressor<R>> {
-        AsyncBufReadCompressor::from_builder(self.device, self.pref, self.dict)
     }
 }
