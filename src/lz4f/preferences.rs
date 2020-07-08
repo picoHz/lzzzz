@@ -156,9 +156,9 @@ impl Default for Preferences {
 ///     .compression_level(CompressionLevel::Max)
 ///     .build();
 /// ```
-#[derive(Default, Clone)]
+#[derive(Default, Debug, Copy, Clone, PartialEq, Eq)]
 pub struct PreferencesBuilder {
-    pref: Preferences,
+    prefs: Preferences,
 }
 
 impl PreferencesBuilder {
@@ -170,49 +170,49 @@ impl PreferencesBuilder {
 
     /// Set the block size.
     pub fn block_size(&mut self, block_size: BlockSize) -> &mut Self {
-        self.pref.set_block_size(block_size);
+        self.prefs.set_block_size(block_size);
         self
     }
 
     /// Set the block mode.
     pub fn block_mode(&mut self, block_mode: BlockMode) -> &mut Self {
-        self.pref.set_block_mode(block_mode);
+        self.prefs.set_block_mode(block_mode);
         self
     }
 
     /// Set the content checksum.
     pub fn content_checksum(&mut self, checksum: ContentChecksum) -> &mut Self {
-        self.pref.set_content_checksum(checksum);
+        self.prefs.set_content_checksum(checksum);
         self
     }
 
     /// Set the dict id.
     pub fn dict_id(&mut self, dict_id: u32) -> &mut Self {
-        self.pref.set_dict_id(dict_id);
+        self.prefs.set_dict_id(dict_id);
         self
     }
 
     /// Set the block checksum.
     pub fn block_checksum(&mut self, checksum: BlockChecksum) -> &mut Self {
-        self.pref.set_block_checksum(checksum);
+        self.prefs.set_block_checksum(checksum);
         self
     }
 
     /// Set the compression level.
     pub fn compression_level(&mut self, level: CompressionLevel) -> &mut Self {
-        self.pref.set_compression_level(level);
+        self.prefs.set_compression_level(level);
         self
     }
 
     /// Set the decompression speed mode flag.
     pub fn favor_dec_speed(&mut self, dec_speed: FavorDecSpeed) -> &mut Self {
-        self.pref.set_favor_dec_speed(dec_speed);
+        self.prefs.set_favor_dec_speed(dec_speed);
         self
     }
 
     /// Set the auto flush flag.
     pub fn auto_flush(&mut self, auto_flush: AutoFlush) -> &mut Self {
-        self.pref.set_auto_flush(auto_flush);
+        self.prefs.set_auto_flush(auto_flush);
         self
     }
 
@@ -221,7 +221,7 @@ impl PreferencesBuilder {
     /// To make I/O operations to the returned `Compressor<D>`,
     /// the `device` should implement `Read`, `BufRead` or `Write`.
     pub const fn build(&self) -> Preferences {
-        self.pref
+        self.prefs
     }
 }
 
