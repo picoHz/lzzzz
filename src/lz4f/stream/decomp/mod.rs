@@ -33,7 +33,7 @@ enum State {
     },
     Body {
         frame_info: FrameInfo,
-        comp_dict: *const u8,
+        comp_dict: Option<*const u8>,
     },
 }
 
@@ -110,7 +110,7 @@ impl<'a> Decompressor<'a> {
 
                     self.state = State::Body {
                         frame_info: frame,
-                        comp_dict: self.dict_ptr(),
+                        comp_dict: None,
                     }
                 }
             }
@@ -127,8 +127,9 @@ impl<'a> Decompressor<'a> {
         }
 
         let src = &src[header_consumed..];
-        if let State::Body { comp_dict, .. } = self.state {
-            if self.dict_ptr() != comp_dict {
+        let dict_ptr = self.dict_ptr();
+        if let State::Body { comp_dict, .. } = &mut self.state {
+            if dict_ptr != *comp_dict.get_or_insert(dict_ptr) {
                 return Err(Error::new(ErrorKind::DictionaryChangedDuringDecompression).into());
             }
 

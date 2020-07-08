@@ -210,6 +210,10 @@ mod async_read_decompressor {
             {
                 let mut src = comp_buf.as_slice();
                 let mut r = AsyncReadDecompressor::new(&mut src).unwrap();
+                assert_eq!(
+                    r.read_frame_info().await.unwrap().dict_id(),
+                    prefs.frame_info().dict_id()
+                );
                 r.set_dict(&dict);
                 r.read_to_end(&mut decomp_buf).await.unwrap();
             }
@@ -271,6 +275,10 @@ mod async_bufread_decompressor {
             {
                 let mut src = comp_buf.as_slice();
                 let mut r = AsyncBufReadDecompressor::new(&mut src).unwrap();
+                assert_eq!(
+                    r.read_frame_info().await.unwrap().dict_id(),
+                    prefs.frame_info().dict_id()
+                );
                 r.read_to_end(&mut decomp_buf).await.unwrap();
             }
             assert_eq!(decomp_buf, src);
@@ -299,6 +307,10 @@ mod async_bufread_decompressor {
             {
                 let mut src = comp_buf.as_slice();
                 let mut r = AsyncBufReadDecompressor::new(&mut src).unwrap();
+                assert_eq!(
+                    r.read_frame_info().await.unwrap().dict_id(),
+                    prefs.frame_info().dict_id()
+                );
                 r.set_dict(&dict);
                 r.read_to_end(&mut decomp_buf).await.unwrap();
             }

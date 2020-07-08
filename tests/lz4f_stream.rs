@@ -303,6 +303,10 @@ mod read_decompressor {
             {
                 let mut src = comp_buf.as_slice();
                 let mut r = ReadDecompressor::new(&mut src).unwrap();
+                assert_eq!(
+                    r.read_frame_info().unwrap().dict_id(),
+                    prefs.frame_info().dict_id()
+                );
                 r.read_to_end(&mut decomp_buf).unwrap();
             }
             assert_eq!(decomp_buf, src);
@@ -330,6 +334,10 @@ mod read_decompressor {
             {
                 let mut src = comp_buf.as_slice();
                 let mut r = ReadDecompressor::new(&mut src).unwrap();
+                assert_eq!(
+                    r.read_frame_info().unwrap().dict_id(),
+                    prefs.frame_info().dict_id()
+                );
                 r.set_dict(&dict);
                 r.read_to_end(&mut decomp_buf).unwrap();
             }
@@ -386,6 +394,10 @@ mod bufread_decompressor {
             {
                 let mut src = comp_buf.as_slice();
                 let mut r = BufReadDecompressor::new(&mut src).unwrap();
+                assert_eq!(
+                    r.read_frame_info().unwrap().dict_id(),
+                    prefs.frame_info().dict_id()
+                );
                 r.read_to_end(&mut decomp_buf).unwrap();
             }
             assert_eq!(decomp_buf, src);
@@ -413,6 +425,10 @@ mod bufread_decompressor {
             {
                 let mut src = comp_buf.as_slice();
                 let mut r = BufReadDecompressor::new(&mut src).unwrap();
+                assert_eq!(
+                    r.read_frame_info().unwrap().dict_id(),
+                    prefs.frame_info().dict_id()
+                );
                 r.set_dict(&dict);
                 r.read_to_end(&mut decomp_buf).unwrap();
             }
