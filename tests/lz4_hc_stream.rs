@@ -95,7 +95,11 @@ mod compressor {
                     let mut decomp_buf = vec![0; src.len()];
 
                     stream.set_compression_level(lz4_hc::CompressionLevel::Custom(rng.gen()));
-                    stream.set_favor_dec_speed(rng.gen_bool(0.5));
+                    stream.set_favor_dec_speed(if rng.gen_bool(0.5) {
+                        lz4_hc::FavorDecSpeed::Enabled
+                    } else {
+                        lz4_hc::FavorDecSpeed::Disabled
+                    });
 
                     let len = stream
                         .next(

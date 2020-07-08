@@ -57,6 +57,20 @@ impl CompressionLevel {
     }
 }
 
+/// Decompression speed flag
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum FavorDecSpeed {
+    /// Default value
+    Disabled,
+    Enabled,
+}
+
+impl Default for FavorDecSpeed {
+    fn default() -> Self {
+        Self::Disabled
+    }
+}
+
 /// Read data from a slice and write compressed data into another slice.
 ///
 /// Ensure that the destination slice have enough capacity.

@@ -33,7 +33,7 @@ mod api;
 
 use crate::{
     lz4,
-    lz4_hc::{CompressionLevel, CompressionMode},
+    lz4_hc::{CompressionLevel, CompressionMode, FavorDecSpeed},
     Buffer, Report, Result,
 };
 use api::CompressionContext;
@@ -86,8 +86,9 @@ impl<'a> Compressor<'a> {
         self.ctx.set_compression_level(level.as_i32());
     }
 
-    pub fn set_favor_dec_speed(&mut self, flag: bool) {
-        self.ctx.set_favor_dec_speed(flag);
+    pub fn set_favor_dec_speed(&mut self, dec_speed: FavorDecSpeed) {
+        self.ctx
+            .set_favor_dec_speed(dec_speed == FavorDecSpeed::Enabled);
     }
 
     pub fn next<B>(&mut self, src: B, dst: &mut [u8], mode: CompressionMode) -> Result<Report>
