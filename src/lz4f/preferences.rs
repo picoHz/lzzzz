@@ -1,8 +1,5 @@
 use super::frame_info::{BlockChecksum, BlockMode, BlockSize, ContentChecksum, FrameInfo};
-use std::{
-    cmp,
-    os::raw::{c_int, c_uint},
-};
+use std::os::raw::{c_int, c_uint};
 
 /// Auto flush flag
 ///
@@ -14,6 +11,12 @@ pub enum AutoFlush {
     /// Default value
     Disabled,
     Enabled,
+}
+
+impl Default for AutoFlush {
+    fn default() -> Self {
+        Self::Disabled
+    }
 }
 
 /// Decompression speed flag
@@ -29,8 +32,14 @@ pub enum FavorDecSpeed {
     Enabled,
 }
 
+impl Default for FavorDecSpeed {
+    fn default() -> Self {
+        Self::Disabled
+    }
+}
+
 /// Compression level specifier
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Ord, Hash)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum CompressionLevel {
     /// Custom compression level.
     /// Values larger then 12 are same as 12. Minus values trigger fast
@@ -42,12 +51,6 @@ pub enum CompressionLevel {
     High,
     /// `Max` is same as `Custom(12)`
     Max,
-}
-
-impl PartialOrd for CompressionLevel {
-    fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
-        Some(self.as_i32().cmp(&other.as_i32()))
-    }
 }
 
 impl CompressionLevel {
@@ -68,7 +71,7 @@ impl Default for CompressionLevel {
 }
 
 /// Compression preferences
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
 #[repr(C)]
 pub struct Preferences {
     frame_info: FrameInfo,
@@ -129,18 +132,6 @@ impl Preferences {
 
     pub(super) fn set_auto_flush(&mut self, auto_flush: AutoFlush) {
         self.auto_flush = auto_flush;
-    }
-}
-
-impl Default for Preferences {
-    fn default() -> Self {
-        Self {
-            frame_info: FrameInfo::default(),
-            compression_level: 0,
-            auto_flush: AutoFlush::Disabled,
-            favor_dec_speed: FavorDecSpeed::Disabled,
-            _reserved: [0; 3],
-        }
     }
 }
 
@@ -359,25 +350,6 @@ mod tests {
         assert_eq!(
             CompressionLevel::Max.as_i32(),
             CompressionLevel::Custom(12).as_i32()
-        );
-
-        let mut sorted = vec![
-            CompressionLevel::Custom(i32::MAX),
-            CompressionLevel::Max,
-            CompressionLevel::High,
-            CompressionLevel::Default,
-            CompressionLevel::Custom(i32::MIN),
-        ];
-        sorted.sort_unstable();
-        assert_eq!(
-            sorted,
-            vec![
-                CompressionLevel::Custom(i32::MIN),
-                CompressionLevel::Default,
-                CompressionLevel::High,
-                CompressionLevel::Max,
-                CompressionLevel::Custom(i32::MAX),
-            ]
         );
     }
 }
