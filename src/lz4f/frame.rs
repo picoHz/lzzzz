@@ -37,8 +37,9 @@ pub fn max_compressed_size(original_size: usize, prefs: &Preferences) -> usize {
 /// // The slice should have enough capacity.
 /// assert!(buf.len() >= lz4f::max_compressed_size(data.len(), &prefs));
 ///
-/// let len = lz4f::compress(data, &mut buf, &prefs).unwrap().dst_len();
+/// let len = lz4f::compress(data, &mut buf, &prefs)?.dst_len();
 /// let compressed = &buf[..len];
+/// # Ok::<(), std::io::Error>(())
 /// ```
 pub fn compress(src: &[u8], dst: &mut [u8], prefs: &Preferences) -> Result<Report> {
     api::compress(src, dst, prefs)
@@ -56,8 +57,9 @@ pub fn compress(src: &[u8], dst: &mut [u8], prefs: &Preferences) -> Result<Repor
 /// lz4f::compress_to_vec(b"Hello world!", &mut buf, &lz4f::Preferences::default());
 ///
 /// let mut buf2 = vec![b'x'];
-/// lz4f::decompress_to_vec(&buf, &mut buf2);
+/// lz4f::decompress_to_vec(&buf, &mut buf2)?;
 /// assert_eq!(buf2.as_slice(), &b"xHello world!"[..]);
+/// # Ok::<(), std::io::Error>(())
 /// ```
 ///
 /// This function doesn't clear the content of `Vec<u8>`:
@@ -66,8 +68,9 @@ pub fn compress(src: &[u8], dst: &mut [u8], prefs: &Preferences) -> Result<Repor
 ///
 /// let header = &b"Compressed data:"[..];
 /// let mut buf = Vec::from(header);
-/// lz4f::compress_to_vec(b"Hello world!", &mut buf, &lz4f::Preferences::default());
+/// lz4f::compress_to_vec(b"Hello world!", &mut buf, &lz4f::Preferences::default())?;
 /// assert!(buf.starts_with(header));
+/// # Ok::<(), std::io::Error>(())
 /// ```
 pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, prefs: &Preferences) -> Result<Report> {
     let orig_len = dst.len();

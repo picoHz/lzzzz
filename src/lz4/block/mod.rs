@@ -95,13 +95,14 @@ pub fn compress(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> Result<Rep
 /// let data = "En vérité, ne ferait-on pas, pour moins que cela, le Tour du Monde ?";
 /// let mut buf = Vec::new();
 ///
-/// lz4::compress_to_vec(data.as_bytes(), &mut buf, lz4::CompressionMode::Default);
+/// lz4::compress_to_vec(data.as_bytes(), &mut buf, lz4::CompressionMode::Default)?;
 /// # let compressed = &buf;
 /// # let mut buf = [0u8; 2048];
 /// # let len = lz4::decompress(compressed,
 /// #    &mut buf[..data.len()],
-/// #    lz4::DecompressionMode::Default).unwrap().dst_len();
+/// #    lz4::DecompressionMode::Default)?.dst_len();
 /// # assert_eq!(&buf[..len], data.as_bytes());
+/// # Ok::<(), std::io::Error>(())
 /// ```
 ///
 /// ### Preserving header
@@ -115,15 +116,16 @@ pub fn compress(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> Result<Rep
 /// let mut buf = Vec::from(&header[..]);
 ///
 /// let data = b"Cito et velociter!";
-/// lz4::compress_to_vec(data, &mut buf, lz4::CompressionMode::Default);
+/// lz4::compress_to_vec(data, &mut buf, lz4::CompressionMode::Default)?;
 /// assert!(buf.starts_with(header) && buf.len() > header.len());
 ///
 /// # let compressed = &buf[header.len()..];
 /// # let mut buf = [0u8; 2048];
 /// # let len = lz4::decompress(compressed,
 /// #    &mut buf[..data.len()],
-/// #    lz4::DecompressionMode::Default).unwrap().dst_len();
+/// #    lz4::DecompressionMode::Default)?.dst_len();
 /// # assert_eq!(&buf[..len], &data[..]);
+/// # Ok::<(), std::io::Error>(())
 /// ```
 ///
 /// ### Accelerated compression mode
@@ -144,14 +146,15 @@ pub fn compress(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> Result<Rep
 ///     data,
 ///     &mut buf,
 ///     lz4::CompressionMode::Acceleration { factor: 20 },
-/// );
+/// )?;
 ///
 /// # let compressed = &buf;
 /// # let mut buf = [0u8; 2048];
 /// # let len = lz4::decompress(compressed,
 /// #    &mut buf[..data.len()],
-/// #    lz4::DecompressionMode::Default).unwrap().dst_len();
+/// #    lz4::DecompressionMode::Default)?.dst_len();
 /// # assert_eq!(&buf[..len], &data[..]);
+/// # Ok::<(), std::io::Error>(())
 /// ```
 pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, mode: CompressionMode) -> Result<Report> {
     let orig_len = dst.len();
@@ -209,12 +212,13 @@ impl<'a> Default for DecompressionMode<'a> {
 /// ];
 ///
 /// let mut buf = [0u8; ORIGINAL_SIZE];
-/// lz4::decompress(&data[..], &mut buf[..], lz4::DecompressionMode::Default);
+/// lz4::decompress(&data[..], &mut buf[..], lz4::DecompressionMode::Default)?;
 ///
 /// assert_eq!(
 ///     &buf[..],
 ///     &b"South-south-west, south, south-east, east. ... "[..]
 /// );
+/// # Ok::<(), std::io::Error>(())
 /// ```
 ///
 /// ### Partial decompression
@@ -239,9 +243,10 @@ impl<'a> Default for DecompressionMode<'a> {
 ///     lz4::DecompressionMode::Partial {
 ///         original_size: ORIGINAL_SIZE,
 ///     },
-/// );
+/// )?;
 ///
 /// assert_eq!(&buf[..], b"Alb. The weight of this sad ti");
+/// # Ok::<(), std::io::Error>(())
 /// ```
 pub fn decompress(src: &[u8], dst: &mut [u8], mode: DecompressionMode) -> Result<Report> {
     match mode {

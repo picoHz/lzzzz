@@ -83,8 +83,8 @@ impl CompressionLevel {
 ///     &mut buf,
 ///     lz4_hc::CompressionMode::Default,
 ///     lz4_hc::CompressionLevel::Default,
-/// )
-/// .unwrap().dst_len();
+/// )?.dst_len();
+///
 /// let compressed = &buf[..len];
 ///
 /// # let mut buf = [0u8; 2048];
@@ -92,9 +92,9 @@ impl CompressionLevel {
 /// #     compressed,
 /// #     &mut buf[..data.len()],
 /// #     lz4::DecompressionMode::Default,
-/// # )
-/// # .unwrap().dst_len();
+/// # )?.dst_len();
 /// # assert_eq!(&buf[..len], data.as_bytes());
+/// # Ok::<(), std::io::Error>(())
 /// ```
 ///
 /// ### Partial compression
@@ -110,8 +110,7 @@ impl CompressionLevel {
 ///     &mut buf,
 ///     lz4_hc::CompressionMode::Partial,
 ///     lz4_hc::CompressionLevel::Default,
-/// )
-/// .unwrap();
+/// )?;
 ///
 /// let compressed = &buf[..result.dst_len()];
 /// let comsumed = result.src_len().unwrap();
@@ -123,10 +122,10 @@ impl CompressionLevel {
 /// #     compressed,
 /// #     &mut buf[..comsumed],
 /// #     lz4::DecompressionMode::Default,
-/// # )
-/// # .unwrap().dst_len();
+/// # )?.dst_len();
 /// # let compressed = &buf[..len];
 /// # assert!(data.as_bytes().starts_with(compressed));
+/// # Ok::<(), std::io::Error>(())
 /// ```
 pub fn compress(
     src: &[u8],
@@ -193,7 +192,7 @@ pub fn compress(
 ///     &mut buf,
 ///     lz4_hc::CompressionMode::Default,
 ///     lz4_hc::CompressionLevel::Default,
-/// );
+/// )?;
 ///
 /// # use lzzzz::lz4;
 /// # let compressed = &buf;
@@ -202,9 +201,9 @@ pub fn compress(
 /// #     compressed,
 /// #     &mut buf[..data.len()],
 /// #     lz4::DecompressionMode::Default,
-/// # )
-/// # .unwrap().dst_len();
+/// # )?.dst_len();
 /// # assert_eq!(&buf[..len], data.as_bytes());
+/// # Ok::<(), std::io::Error>(())
 /// ```
 ///
 /// ### Higher compression level
@@ -220,7 +219,7 @@ pub fn compress(
 ///     &mut buf,
 ///     lz4_hc::CompressionMode::Default,
 ///     lz4_hc::CompressionLevel::Max,
-/// );
+/// )?;
 ///
 /// # use lzzzz::lz4;
 /// # let compressed = &buf;
@@ -229,9 +228,9 @@ pub fn compress(
 /// #     compressed,
 /// #     &mut buf[..data.len()],
 /// #     lz4::DecompressionMode::Default,
-/// # )
-/// # .unwrap().dst_len();
+/// # )?.dst_len();
 /// # assert_eq!(&buf[..len], data.as_bytes());
+/// # Ok::<(), std::io::Error>(())
 /// ```
 pub fn compress_to_vec(
     src: &[u8],
