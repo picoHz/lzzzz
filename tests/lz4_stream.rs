@@ -57,9 +57,7 @@ mod compressor {
                     lz4::decompress(
                         &comp_buf[..len],
                         &mut decomp_buf,
-                        lz4::DecompressionMode::Dictionary {
-                            data: (&dict).into(),
-                        },
+                        lz4::DecompressionMode::Dictionary { data: &dict },
                     )
                     .unwrap();
                     assert_eq!(src, decomp_buf);

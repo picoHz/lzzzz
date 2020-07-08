@@ -184,7 +184,7 @@ pub enum DecompressionMode<'a> {
         original_size: usize,
     },
     Dictionary {
-        data: Buffer<'a>,
+        data: &'a [u8],
     },
 }
 
@@ -250,6 +250,6 @@ pub fn decompress(src: &[u8], dst: &mut [u8], mode: DecompressionMode) -> Result
         DecompressionMode::Partial { original_size } => {
             api::decompress_safe_partial(src, dst, original_size)
         }
-        DecompressionMode::Dictionary { data } => api::decompress_safe_using_dict(src, dst, &data),
+        DecompressionMode::Dictionary { data } => api::decompress_safe_using_dict(src, dst, data),
     }
 }
