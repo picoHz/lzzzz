@@ -52,7 +52,7 @@ mod async_read_compressor {
                     let len = rng.gen_range(0, comp_buf.len() - offset + 1);
                     let dst = &mut comp_buf[offset..][..len];
                     let len = r.read(dst).await.unwrap();
-                    if dst.len() > 0 && len == 0 {
+                    if !dst.is_empty() && len == 0 {
                         break;
                     }
                     offset += len;
@@ -115,7 +115,7 @@ mod async_bufread_compressor {
                     let len = rng.gen_range(0, comp_buf.len() - offset + 1);
                     let dst = &mut comp_buf[offset..][..len];
                     let len = r.read(dst).await.unwrap();
-                    if dst.len() > 0 && len == 0 {
+                    if !dst.is_empty() && len == 0 {
                         break;
                     }
                     offset += len;
@@ -240,7 +240,7 @@ mod async_read_decompressor {
                 while offset < dst_len {
                     let dst = &mut decomp_buf[offset..][..rng.gen_range(0, dst_len - offset + 1)];
                     let len = r.read(dst).await.unwrap();
-                    assert!(dst.len() == 0 || len > 0);
+                    assert!(dst.is_empty() || len > 0);
                     offset += len;
                 }
             }
@@ -329,7 +329,7 @@ mod async_bufread_decompressor {
                 while offset < dst_len {
                     let dst = &mut decomp_buf[offset..][..rng.gen_range(0, dst_len - offset + 1)];
                     let len = r.read(dst).await.unwrap();
-                    assert!(dst.len() == 0 || len > 0);
+                    assert!(dst.is_empty() || len > 0);
                     offset += len;
                 }
             }
@@ -414,7 +414,7 @@ mod async_write_decompressor {
                 while offset < comp_buf.len() {
                     let src = &comp_buf[offset..][..rng.gen_range(0, comp_buf.len() - offset + 1)];
                     let len = w.write(src).await.unwrap();
-                    assert!(src.len() == 0 || len > 0);
+                    assert!(src.is_empty() || len > 0);
                     offset += len;
                 }
             }

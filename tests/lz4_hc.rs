@@ -31,7 +31,7 @@ mod compress {
     #[test]
     fn partial() {
         lz4_hc_test_set()
-            .map(|(src, level)| (0..20).map(move |n| (src.clone(), level.clone(), 16 << n)))
+            .map(|(src, level)| (0..20).map(move |n| (src.clone(), level, 16 << n)))
             .flatten()
             .par_bridge()
             .for_each(|(src, level, len)| {

@@ -12,7 +12,7 @@ mod compress_to_vec {
     #[test]
     fn default() {
         lz4f_test_set().par_bridge().for_each(|(src, prefs)| {
-            let header = Vec::from("hello!".as_bytes());
+            let header = Vec::from(&b"hello!"[..]);
             let mut comp_buf = header.clone();
             let mut decomp_buf = header.clone();
 
@@ -74,7 +74,7 @@ mod decompress_to_vec {
     #[test]
     fn invalid_header() {
         lz4f_test_set().par_bridge().for_each(|(src, prefs)| {
-            let header = Vec::from("hello!".as_bytes());
+            let header = Vec::from(&b"hello!"[..]);
             let mut comp_buf = Vec::new();
             let mut decomp_buf = header.clone();
             assert_eq!(
@@ -94,7 +94,7 @@ mod decompress_to_vec {
     #[test]
     fn incomplete_src() {
         lz4f_test_set().par_bridge().for_each(|(src, prefs)| {
-            let header = Vec::from("hello!".as_bytes());
+            let header = Vec::from(&b"hello!"[..]);
             let mut comp_buf = Vec::new();
             let mut decomp_buf = header.clone();
             assert_eq!(

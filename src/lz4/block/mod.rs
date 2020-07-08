@@ -1,7 +1,7 @@
 //! LZ4 Block Compressor/Decompressor
 mod api;
 
-use crate::{Buffer, Error, ErrorKind, Report, Result};
+use crate::{Error, ErrorKind, Report, Result};
 use api::ExtState;
 
 /// Compression mode specifier
