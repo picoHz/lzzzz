@@ -1,11 +1,10 @@
 #![cfg(feature = "tokio-io")]
 
 use super::{Compressor, Dictionary, Preferences};
-use crate::lz4f::{Error, Result};
+use crate::lz4f::Result;
 use pin_project::pin_project;
 use std::{
     cmp,
-    convert::TryInto,
     pin::Pin,
     task::{Context, Poll},
 };

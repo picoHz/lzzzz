@@ -1,10 +1,9 @@
 #![cfg(feature = "tokio-io")]
 
 use super::{AsyncBufReadCompressor, Dictionary, Preferences};
-use crate::lz4f::{Error, Result};
+use crate::lz4f::Result;
 use pin_project::pin_project;
 use std::{
-    convert::TryInto,
     pin::Pin,
     task::{Context, Poll},
 };
