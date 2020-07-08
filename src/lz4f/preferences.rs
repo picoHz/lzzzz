@@ -68,7 +68,7 @@ impl Default for CompressionLevel {
 }
 
 /// Compression preferences
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 #[repr(C)]
 pub struct Preferences {
     frame_info: FrameInfo,
@@ -156,7 +156,7 @@ impl Default for Preferences {
 ///     .compression_level(CompressionLevel::Max)
 ///     .build();
 /// ```
-#[derive(Default, Debug, Copy, Clone, PartialEq, Eq)]
+#[derive(Default, Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct PreferencesBuilder {
     prefs: Preferences,
 }
