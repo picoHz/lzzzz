@@ -42,25 +42,15 @@ use api::ExtState;
 /// # assert_eq!(&buf[..len], data.as_bytes());
 /// # Ok::<(), std::io::Error>(())
 /// ```
-pub fn compress(src: &[u8], dst: &mut [u8], compression_level: CompressionLevel) -> Result<usize> {
+pub fn compress(src: &[u8], dst: &mut [u8], level: CompressionLevel) -> Result<usize> {
     if src.is_empty() && dst.is_empty() {
         return Ok(0);
     }
     let result = ExtState::with(|state, reset| {
         if reset {
-            api::compress_ext_state_fast_reset(
-                &mut state.borrow_mut(),
-                src,
-                dst,
-                compression_level.as_i32(),
-            )
+            api::compress_ext_state_fast_reset(&mut state.borrow_mut(), src, dst, level.as_i32())
         } else {
-            api::compress_ext_state(
-                &mut state.borrow_mut(),
-                src,
-                dst,
-                compression_level.as_i32(),
-            )
+            api::compress_ext_state(&mut state.borrow_mut(), src, dst, level.as_i32())
         }
     });
     if result.dst_len() > 0 {
@@ -73,18 +63,13 @@ pub fn compress(src: &[u8], dst: &mut [u8], compression_level: CompressionLevel)
 pub fn compress_partial(
     src: &[u8],
     dst: &mut [u8],
-    compression_level: CompressionLevel,
+    level: CompressionLevel,
 ) -> Result<(usize, usize)> {
     if src.is_empty() && dst.is_empty() {
         return Ok((0, 0));
     }
     let result = ExtState::with(|state, _| {
-        api::compress_dest_size(
-            &mut state.borrow_mut(),
-            src,
-            dst,
-            compression_level.as_i32(),
-        )
+        api::compress_dest_size(&mut state.borrow_mut(), src, dst, level.as_i32())
     });
     Ok((result.src_len().unwrap(), result.dst_len()))
 }
@@ -144,18 +129,14 @@ pub fn compress_partial(
 /// # assert_eq!(&buf[..len], data.as_bytes());
 /// # Ok::<(), std::io::Error>(())
 /// ```
-pub fn compress_to_vec(
-    src: &[u8],
-    dst: &mut Vec<u8>,
-    compression_level: CompressionLevel,
-) -> Result<usize> {
+pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, level: CompressionLevel) -> Result<usize> {
     let orig_len = dst.len();
     dst.reserve(lz4::max_compressed_size(src.len()));
     #[allow(unsafe_code)]
     unsafe {
         dst.set_len(dst.capacity());
     }
-    let result = compress(src, &mut dst[orig_len..], compression_level);
+    let result = compress(src, &mut dst[orig_len..], level);
     dst.resize_with(orig_len + result.as_ref().unwrap_or(&0), Default::default);
     result
 }
