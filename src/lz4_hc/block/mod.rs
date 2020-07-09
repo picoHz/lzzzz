@@ -119,7 +119,18 @@ pub fn compress_partial(
     dst: &mut [u8],
     compression_level: CompressionLevel,
 ) -> Result<(usize, usize)> {
-    todo!();
+    if src.is_empty() && dst.is_empty() {
+        return Ok((0, 0));
+    }
+    let result = ExtState::with(|state, _| {
+        api::compress_dest_size(
+            &mut state.borrow_mut(),
+            src,
+            dst,
+            compression_level.as_i32(),
+        )
+    });
+    Ok((result.src_len().unwrap(), result.dst_len()))
 }
 
 /// Read data from a slice and append compressed data to `Vec<u8>`.
@@ -142,11 +153,7 @@ pub fn compress_partial(
 /// let data = "So we beat on, boats against the current, borne back ceaselessly into the past.";
 /// let mut buf = Vec::new();
 ///
-/// lz4_hc::compress_to_vec(
-///     data.as_bytes(),
-///     &mut buf,
-///     lz4_hc::CompressionLevel::Default,
-/// )?;
+/// lz4_hc::compress_to_vec(data.as_bytes(), &mut buf, lz4_hc::CompressionLevel::Default)?;
 ///
 /// # use lzzzz::lz4;
 /// # let compressed = &buf;
@@ -168,11 +175,7 @@ pub fn compress_partial(
 /// let data = "It was not till they had examined the rings that they recognized who it was.";
 /// let mut buf = Vec::new();
 ///
-/// lz4_hc::compress_to_vec(
-///     data.as_bytes(),
-///     &mut buf,
-///     lz4_hc::CompressionLevel::Max,
-/// )?;
+/// lz4_hc::compress_to_vec(data.as_bytes(), &mut buf, lz4_hc::CompressionLevel::Max)?;
 ///
 /// # use lzzzz::lz4;
 /// # let compressed = &buf;
