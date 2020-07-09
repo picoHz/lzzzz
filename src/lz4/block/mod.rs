@@ -2,7 +2,7 @@
 mod api;
 
 use super::Acceleration;
-use crate::{Error, ErrorKind, Report, Result};
+use crate::{Error, ErrorKind, Result};
 use api::ExtState;
 
 /// Calculate the maximum size of the compressed data from the original size.
@@ -39,7 +39,7 @@ pub const fn max_compressed_size(original_size: usize) -> usize {
 /// # assert_eq!(&buf[..len], &data[..]);
 /// # Ok::<(), std::io::Error>(())
 /// ```
-pub fn compress(src: &[u8], dst: &mut [u8], acc: Acceleration) -> Result<Report> {
+pub fn compress(src: &[u8], dst: &mut [u8], acc: Acceleration) -> Result<usize> {
     let acc = match acc {
         Acceleration::Default => 1,
         Acceleration::Factor(factor) => factor,
@@ -53,9 +53,9 @@ pub fn compress(src: &[u8], dst: &mut [u8], acc: Acceleration) -> Result<Report>
         }
     });
     if len.dst_len() > 0 {
-        Ok(len)
+        Ok(len.dst_len())
     } else if src.is_empty() && dst.is_empty() {
-        Ok(Report::default())
+        Ok(0)
     } else {
         Err(Error::new(ErrorKind::DecompressionFailed))
     }
@@ -130,7 +130,7 @@ pub fn compress(src: &[u8], dst: &mut [u8], acc: Acceleration) -> Result<Report>
 /// # assert_eq!(&buf[..len], &data[..]);
 /// # Ok::<(), std::io::Error>(())
 /// ```
-pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, acc: Acceleration) -> Result<Report> {
+pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, acc: Acceleration) -> Result<usize> {
     let orig_len = dst.len();
     dst.reserve(max_compressed_size(src.len()));
     #[allow(unsafe_code)]
@@ -138,10 +138,7 @@ pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, acc: Acceleration) -> Resu
         dst.set_len(dst.capacity());
     };
     let result = compress(src, &mut dst[orig_len..], acc);
-    dst.resize_with(
-        orig_len + result.as_ref().map(|r| r.dst_len()).unwrap_or(0),
-        Default::default,
-    );
+    dst.resize_with(orig_len + result.as_ref().unwrap_or(&0), Default::default);
     result
 }
 
