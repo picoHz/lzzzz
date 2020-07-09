@@ -114,6 +114,14 @@ pub fn compress(
     }
 }
 
+pub fn compress_partial(
+    src: &[u8],
+    dst: &mut [u8],
+    compression_level: CompressionLevel,
+) -> Result<(usize, usize)> {
+    todo!();
+}
+
 /// Read data from a slice and append compressed data to `Vec<u8>`.
 ///
 /// In this function, [`CompressionMode::Partial`] has no special meaning and
@@ -137,7 +145,6 @@ pub fn compress(
 /// lz4_hc::compress_to_vec(
 ///     data.as_bytes(),
 ///     &mut buf,
-///     lz4_hc::CompressionMode::Default,
 ///     lz4_hc::CompressionLevel::Default,
 /// )?;
 ///
@@ -164,7 +171,6 @@ pub fn compress(
 /// lz4_hc::compress_to_vec(
 ///     data.as_bytes(),
 ///     &mut buf,
-///     lz4_hc::CompressionMode::Default,
 ///     lz4_hc::CompressionLevel::Max,
 /// )?;
 ///
@@ -182,19 +188,20 @@ pub fn compress(
 pub fn compress_to_vec(
     src: &[u8],
     dst: &mut Vec<u8>,
-    mode: CompressionMode,
     compression_level: CompressionLevel,
 ) -> Result<Report> {
-    if mode != CompressionMode::Default {
-        return Err(Error::new(ErrorKind::CompressionModeInvalid));
-    }
     let orig_len = dst.len();
     dst.reserve(lz4::max_compressed_size(src.len()));
     #[allow(unsafe_code)]
     unsafe {
         dst.set_len(dst.capacity());
     }
-    let result = compress(src, &mut dst[orig_len..], mode, compression_level);
+    let result = compress(
+        src,
+        &mut dst[orig_len..],
+        CompressionMode::default(),
+        compression_level,
+    );
     dst.resize_with(
         orig_len + result.as_ref().map(|r| r.dst_len()).unwrap_or(0),
         Default::default,
