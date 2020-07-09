@@ -37,8 +37,7 @@ use api::ExtState;
 /// # let len = lz4::decompress(
 /// #     compressed,
 /// #     &mut buf[..data.len()],
-/// #     lz4::DecompressionMode::Default,
-/// # )?.dst_len();
+/// # )?;
 /// # assert_eq!(&buf[..len], data.as_bytes());
 /// # Ok::<(), std::io::Error>(())
 /// ```
@@ -102,8 +101,7 @@ pub fn compress_partial(
 /// # let len = lzzzz::lz4::decompress(
 /// #     compressed,
 /// #     &mut buf[..data.len()],
-/// #     lz4::DecompressionMode::Default,
-/// # )?.dst_len();
+/// # )?;
 /// # assert_eq!(&buf[..len], data.as_bytes());
 /// # Ok::<(), std::io::Error>(())
 /// ```
@@ -124,8 +122,7 @@ pub fn compress_partial(
 /// # let len = lzzzz::lz4::decompress(
 /// #     compressed,
 /// #     &mut buf[..data.len()],
-/// #     lz4::DecompressionMode::Default,
-/// # )?.dst_len();
+/// # )?;
 /// # assert_eq!(&buf[..len], data.as_bytes());
 /// # Ok::<(), std::io::Error>(())
 /// ```

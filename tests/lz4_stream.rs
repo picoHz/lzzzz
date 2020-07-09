@@ -25,12 +25,7 @@ mod compressor {
                         .unwrap()
                         .dst_len();
 
-                    lz4::decompress(
-                        &comp_buf[..len],
-                        &mut decomp_buf,
-                        lz4::DecompressionMode::Default,
-                    )
-                    .unwrap();
+                    lz4::decompress(&comp_buf[..len], &mut decomp_buf).unwrap();
                     assert_eq!(decomp_buf, src);
                 }
             });
@@ -54,12 +49,7 @@ mod compressor {
                         .dst_len();
 
                     let mut decomp_buf = vec![0; src.len()];
-                    lz4::decompress(
-                        &comp_buf[..len],
-                        &mut decomp_buf,
-                        lz4::DecompressionMode::Dictionary { data: &dict },
-                    )
-                    .unwrap();
+                    lz4::decompress_with_dict(&comp_buf[..len], &mut decomp_buf, &dict).unwrap();
                     assert_eq!(src, decomp_buf);
                 }
             });

@@ -15,11 +15,9 @@
 //! # let mut buf = [0u8; 2048];
 //! # let len = lz4::decompress(
 //! #     compressed,
-//! #     &mut buf[..data.len()],
-//! #     lz4::DecompressionMode::Default,
+//! #     &mut buf[..data.len()]
 //! # )
-//! # .unwrap()
-//! # .dst_len();
+//! # .unwrap();
 //! # assert_eq!(&buf[..len], &data[..]);
 //! ```
 
@@ -97,11 +95,9 @@ impl<'a> Compressor<'a> {
     /// # let mut buf = [0u8; 2048];
     /// # let len = lz4::decompress(
     /// #     compressed,
-    /// #     &mut buf[..data.len()],
-    /// #     lz4::DecompressionMode::Default,
+    /// #     &mut buf[..data.len()]
     /// # )
-    /// # .unwrap()
-    /// # .dst_len();
+    /// # .unwrap();
     /// # assert_eq!(&buf[..len], &data[..]);
     /// ```
     pub fn next<B>(&mut self, src: B, dst: &mut [u8], mode: CompressionMode) -> Result<Report>

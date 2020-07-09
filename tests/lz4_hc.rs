@@ -15,12 +15,7 @@ mod compress {
             let mut comp_buf = vec![0; lz4::max_compressed_size(src.len())];
             let mut decomp_buf = vec![0; src.len()];
             let len = lz4_hc::compress(&src, &mut comp_buf, level).unwrap();
-            lz4::decompress(
-                &comp_buf[..len],
-                &mut decomp_buf,
-                lz4::DecompressionMode::Default,
-            )
-            .unwrap();
+            lz4::decompress(&comp_buf[..len], &mut decomp_buf).unwrap();
             assert_eq!(decomp_buf, src);
         });
     }
@@ -39,8 +34,7 @@ mod compress {
     // decomp_buf.resize(report.src_len().unwrap(), 0);
     // lz4::decompress(
     // &comp_buf[..report.dst_len()],
-    // &mut decomp_buf,
-    // lz4::DecompressionMode::Default,
+    // &mut decomp_buf
     // )
     // .unwrap();
     // assert!(src.starts_with(&decomp_buf));
@@ -57,12 +51,7 @@ mod compress_to_vec {
             let mut comp_buf = Vec::new();
             let mut decomp_buf = vec![0; src.len()];
             let len = lz4_hc::compress_to_vec(&src, &mut comp_buf, level).unwrap();
-            lz4::decompress(
-                &comp_buf[..len],
-                &mut decomp_buf,
-                lz4::DecompressionMode::Default,
-            )
-            .unwrap();
+            lz4::decompress(&comp_buf[..len], &mut decomp_buf).unwrap();
             assert_eq!(decomp_buf, src);
         });
     }

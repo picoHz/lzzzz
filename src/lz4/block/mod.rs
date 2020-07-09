@@ -1,7 +1,7 @@
 //! LZ4 Block Compressor/Decompressor
 mod api;
 
-use super::{CompressionMode, DecompressionMode};
+use super::CompressionMode;
 use crate::{Error, ErrorKind, Report, Result};
 use api::ExtState;
 
@@ -35,9 +35,7 @@ pub const fn max_compressed_size(original_size: usize) -> usize {
 /// let compressed = &buf[..len];
 ///
 /// # let mut buf = [0u8; 2048];
-/// # let len = lz4::decompress(compressed,
-/// #    &mut buf[..data.len()],
-/// #    lz4::DecompressionMode::Default)?.dst_len();
+/// # let len = lz4::decompress(compressed, &mut buf[..data.len()])?;
 /// # assert_eq!(&buf[..len], &data[..]);
 /// # Ok::<(), std::io::Error>(())
 /// ```
@@ -80,9 +78,7 @@ pub fn compress(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> Result<Rep
 /// lz4::compress_to_vec(data.as_bytes(), &mut buf, lz4::CompressionMode::Default)?;
 /// # let compressed = &buf;
 /// # let mut buf = [0u8; 2048];
-/// # let len = lz4::decompress(compressed,
-/// #    &mut buf[..data.len()],
-/// #    lz4::DecompressionMode::Default)?.dst_len();
+/// # let len = lz4::decompress(compressed, &mut buf[..data.len()])?;
 /// # assert_eq!(&buf[..len], data.as_bytes());
 /// # Ok::<(), std::io::Error>(())
 /// ```
@@ -103,9 +99,7 @@ pub fn compress(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> Result<Rep
 ///
 /// # let compressed = &buf[header.len()..];
 /// # let mut buf = [0u8; 2048];
-/// # let len = lz4::decompress(compressed,
-/// #    &mut buf[..data.len()],
-/// #    lz4::DecompressionMode::Default)?.dst_len();
+/// # let len = lz4::decompress(compressed, &mut buf[..data.len()])?;
 /// # assert_eq!(&buf[..len], &data[..]);
 /// # Ok::<(), std::io::Error>(())
 /// ```
@@ -132,9 +126,7 @@ pub fn compress(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> Result<Rep
 ///
 /// # let compressed = &buf;
 /// # let mut buf = [0u8; 2048];
-/// # let len = lz4::decompress(compressed,
-/// #    &mut buf[..data.len()],
-/// #    lz4::DecompressionMode::Default)?.dst_len();
+/// # let len = lz4::decompress(compressed, &mut buf[..data.len()])?;
 /// # assert_eq!(&buf[..len], &data[..]);
 /// # Ok::<(), std::io::Error>(())
 /// ```
@@ -169,7 +161,7 @@ pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, mode: CompressionMode) -> 
 /// ];
 ///
 /// let mut buf = [0u8; ORIGINAL_SIZE];
-/// lz4::decompress(&data[..], &mut buf[..], lz4::DecompressionMode::Default)?;
+/// lz4::decompress(&data[..], &mut buf[..])?;
 ///
 /// assert_eq!(
 ///     &buf[..],
@@ -194,23 +186,23 @@ pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, mode: CompressionMode) -> 
 /// ];
 ///
 /// let mut buf = [0u8; 30];
-/// lz4::decompress(
+/// lz4::decompress_partial(
 ///     &data[..],
 ///     &mut buf[..],
-///     lz4::DecompressionMode::Partial {
-///         original_size: ORIGINAL_SIZE,
-///     },
+///     ORIGINAL_SIZE,
 /// )?;
 ///
 /// assert_eq!(&buf[..], b"Alb. The weight of this sad ti");
 /// # Ok::<(), std::io::Error>(())
 /// ```
-pub fn decompress(src: &[u8], dst: &mut [u8], mode: DecompressionMode) -> Result<Report> {
-    match mode {
-        DecompressionMode::Default => api::decompress_safe(src, dst),
-        DecompressionMode::Partial { original_size } => {
-            api::decompress_safe_partial(src, dst, original_size)
-        }
-        DecompressionMode::Dictionary { data } => api::decompress_safe_using_dict(src, dst, data),
-    }
+pub fn decompress(src: &[u8], dst: &mut [u8]) -> Result<usize> {
+    Ok(api::decompress_safe(src, dst)?.dst_len())
+}
+
+pub fn decompress_partial(src: &[u8], dst: &mut [u8], original_size: usize) -> Result<usize> {
+    Ok(api::decompress_safe_partial(src, dst, original_size)?.dst_len())
+}
+
+pub fn decompress_with_dict(src: &[u8], dst: &mut [u8], dict: &[u8]) -> Result<usize> {
+    Ok(api::decompress_safe_using_dict(src, dst, dict)?.dst_len())
 }

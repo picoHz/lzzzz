@@ -26,28 +26,3 @@ impl Default for CompressionMode {
         Self::Default
     }
 }
-
-/// Decompression mode specifier
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum DecompressionMode<'a> {
-    /// Decompress the whole data.
-    ///
-    /// The destination slice must have the exact size of the uncompressed data.
-    Default,
-    /// Decompress the partial data.
-    ///
-    /// The destination slice can have smaller size of the uncompressed data.
-    Partial {
-        /// The value must be the exact size of the uncompressed data.
-        original_size: usize,
-    },
-    Dictionary {
-        data: &'a [u8],
-    },
-}
-
-impl<'a> Default for DecompressionMode<'a> {
-    fn default() -> Self {
-        Self::Default
-    }
-}

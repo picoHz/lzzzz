@@ -22,10 +22,8 @@
 //! # let len = lz4::decompress(
 //! #     compressed,
 //! #     &mut buf[..data.len()],
-//! #     lz4::DecompressionMode::Default,
 //! # )
-//! # .unwrap()
-//! # .dst_len();
+//! # .unwrap();
 //! # assert_eq!(&buf[..len], &data[..]);
 //! ```
 
