@@ -19,27 +19,27 @@ mod compress {
             assert_eq!(decomp_buf, src);
         });
     }
-    // #[test]
-    // fn partial() {
-    // lz4_hc_test_set()
-    // .map(|(src, level)| (0..20).map(move |n| (src.clone(), level, 16 << n)))
-    // .flatten()
-    // .par_bridge()
-    // .for_each(|(src, level, len)| {
-    // let mut comp_buf = vec![0; len];
-    // let mut decomp_buf = Vec::new();
-    // let report =
-    // lz4_hc::compress(&src, &mut comp_buf, lz4_hc::CompressionMode::Partial, level)
-    // .unwrap();
-    // decomp_buf.resize(report.src_len().unwrap(), 0);
-    // lz4::decompress(
-    // &comp_buf[..report.dst_len()],
-    // &mut decomp_buf
-    // )
-    // .unwrap();
-    // assert!(src.starts_with(&decomp_buf));
-    // });
-    // }
+}
+
+mod compress_partial {
+    use super::*;
+
+    #[test]
+    fn default() {
+        lz4_hc_test_set()
+            .map(|(src, level)| (0..20).map(move |n| (src.clone(), level, 16 << n)))
+            .flatten()
+            .par_bridge()
+            .for_each(|(src, level, len)| {
+                let mut comp_buf = vec![0; len];
+                let mut decomp_buf = Vec::new();
+                let (src_len, dst_len) =
+                    lz4_hc::compress_partial(&src, &mut comp_buf, level).unwrap();
+                decomp_buf.resize(src_len, 0);
+                lz4::decompress(&comp_buf[..dst_len], &mut decomp_buf).unwrap();
+                assert!(src.starts_with(&decomp_buf));
+            });
+    }
 }
 
 mod compress_to_vec {
