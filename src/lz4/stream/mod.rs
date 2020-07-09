@@ -24,7 +24,7 @@
 mod api;
 
 use super::Acceleration;
-use crate::{common::DEFAULT_BUF_SIZE, lz4, Buffer, Error, ErrorKind, Report, Result};
+use crate::{common::DEFAULT_BUF_SIZE, lz4, Buffer, Error, ErrorKind, Result};
 use api::{CompressionContext, DecompressionContext};
 use std::{cmp, collections::LinkedList};
 
@@ -88,8 +88,7 @@ impl<'a> Compressor<'a> {
     ///
     /// let len = stream
     ///     .next(data, &mut buf, lz4::Acceleration::Default)
-    ///     .unwrap()
-    ///     .dst_len();
+    ///     .unwrap();
     /// let compressed = &buf[..len];
     ///
     /// # let mut buf = [0u8; 2048];
@@ -100,7 +99,7 @@ impl<'a> Compressor<'a> {
     /// # .unwrap();
     /// # assert_eq!(&buf[..len], &data[..]);
     /// ```
-    pub fn next<B>(&mut self, src: B, dst: &mut [u8], acc: Acceleration) -> Result<Report>
+    pub fn next<B>(&mut self, src: B, dst: &mut [u8], acc: Acceleration) -> Result<usize>
     where
         B: Into<Buffer<'a>>,
     {
@@ -128,18 +127,15 @@ impl<'a> Compressor<'a> {
         }
 
         if dst_len > 0 {
-            Ok(Report {
-                dst_len,
-                ..Default::default()
-            })
+            Ok(dst_len)
         } else if src_is_empty && dst.is_empty() {
-            Ok(Report::default())
+            Ok(0)
         } else {
             Err(Error::new(ErrorKind::CompressionFailed))
         }
     }
 
-    pub fn next_to_vec<B>(&mut self, src: B, dst: &mut Vec<u8>, acc: Acceleration) -> Result<Report>
+    pub fn next_to_vec<B>(&mut self, src: B, dst: &mut Vec<u8>, acc: Acceleration) -> Result<usize>
     where
         B: Into<Buffer<'a>>,
     {
@@ -151,10 +147,7 @@ impl<'a> Compressor<'a> {
             dst.set_len(dst.capacity());
         }
         let result = self.next(src, &mut dst[orig_len..], acc);
-        dst.resize_with(
-            orig_len + result.as_ref().map(|r| r.dst_len()).unwrap_or(0),
-            Default::default,
-        );
+        dst.resize_with(orig_len + result.as_ref().unwrap_or(&0), Default::default);
         result
     }
 }
