@@ -41,8 +41,8 @@ pub fn max_compressed_size(original_size: usize, prefs: &Preferences) -> usize {
 /// let compressed = &buf[..len];
 /// # Ok::<(), std::io::Error>(())
 /// ```
-pub fn compress(src: &[u8], dst: &mut [u8], prefs: &Preferences) -> Result<Report> {
-    api::compress(src, dst, prefs)
+pub fn compress(src: &[u8], dst: &mut [u8], prefs: &Preferences) -> Result<usize> {
+    Ok(api::compress(src, dst, prefs)?.dst_len())
 }
 
 /// Read data from a slice and append compressed data to `Vec<u8>`.
@@ -72,7 +72,7 @@ pub fn compress(src: &[u8], dst: &mut [u8], prefs: &Preferences) -> Result<Repor
 /// assert!(buf.starts_with(header));
 /// # Ok::<(), std::io::Error>(())
 /// ```
-pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, prefs: &Preferences) -> Result<Report> {
+pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, prefs: &Preferences) -> Result<usize> {
     let orig_len = dst.len();
     dst.reserve(max_compressed_size(src.len(), prefs));
     #[allow(unsafe_code)]
@@ -80,15 +80,12 @@ pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, prefs: &Preferences) -> Re
         dst.set_len(dst.capacity());
     }
     let result = compress(src, &mut dst[orig_len..], prefs);
-    dst.resize_with(
-        orig_len + result.as_ref().map(|r| r.dst_len()).unwrap_or(0),
-        Default::default,
-    );
+    dst.resize_with(orig_len + result.as_ref().unwrap_or(&0), Default::default);
     result
 }
 
 /// Read data from a slice and append decompressed data to `Vec<u8>`.
-pub fn decompress_to_vec(src: &[u8], dst: &mut Vec<u8>) -> Result<Report> {
+pub fn decompress_to_vec(src: &[u8], dst: &mut Vec<u8>) -> Result<usize> {
     let header_len = dst.len();
     let mut src_offset = 0;
     let mut dst_offset = header_len;
@@ -107,10 +104,7 @@ pub fn decompress_to_vec(src: &[u8], dst: &mut Vec<u8>) -> Result<Report> {
                     dst_offset += result.dst_len();
                     if expected == 0 {
                         dst.resize_with(dst_offset, Default::default);
-                        return Ok(Report {
-                            dst_len: dst_offset - header_len,
-                            ..Default::default()
-                        });
+                        return Ok(dst_offset - header_len);
                     } else if src_offset >= src.len() {
                         dst.resize_with(header_len, Default::default);
                         return Err(Error::new(ErrorKind::CompressedDataIncomplete).into());
