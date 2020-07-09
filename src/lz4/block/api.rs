@@ -63,7 +63,7 @@ pub fn compress_fast_ext_state_fast_reset(
     }
 }
 
-pub fn decompress_safe(src: &[u8], dst: &mut [u8]) -> Result<Report> {
+pub fn decompress_safe(src: &[u8], dst: &mut [u8]) -> Result<usize> {
     let result = unsafe {
         binding::LZ4_decompress_safe(
             src.as_ptr() as *const c_char,
@@ -75,14 +75,11 @@ pub fn decompress_safe(src: &[u8], dst: &mut [u8]) -> Result<Report> {
     if result < 0 {
         Err(Error::new(ErrorKind::DecompressionFailed))
     } else {
-        Ok(Report {
-            dst_len: result as usize,
-            ..Default::default()
-        })
+        Ok(result as usize)
     }
 }
 
-pub fn decompress_safe_partial(src: &[u8], dst: &mut [u8], original_size: usize) -> Result<Report> {
+pub fn decompress_safe_partial(src: &[u8], dst: &mut [u8], original_size: usize) -> Result<usize> {
     let result = unsafe {
         binding::LZ4_decompress_safe_partial(
             src.as_ptr() as *const c_char,
@@ -95,14 +92,11 @@ pub fn decompress_safe_partial(src: &[u8], dst: &mut [u8], original_size: usize)
     if result < 0 {
         Err(Error::new(ErrorKind::DecompressionFailed))
     } else {
-        Ok(Report {
-            dst_len: result as usize,
-            ..Default::default()
-        })
+        Ok(result as usize)
     }
 }
 
-pub fn decompress_safe_using_dict(src: &[u8], dst: &mut [u8], dict: &[u8]) -> Result<Report> {
+pub fn decompress_safe_using_dict(src: &[u8], dst: &mut [u8], dict: &[u8]) -> Result<usize> {
     let result = unsafe {
         binding::LZ4_decompress_safe_usingDict(
             src.as_ptr() as *const c_char,
@@ -116,10 +110,7 @@ pub fn decompress_safe_using_dict(src: &[u8], dst: &mut [u8], dict: &[u8]) -> Re
     if result < 0 {
         Err(Error::new(ErrorKind::DecompressionFailed))
     } else {
-        Ok(Report {
-            dst_len: result as usize,
-            ..Default::default()
-        })
+        Ok(result as usize)
     }
 }
 

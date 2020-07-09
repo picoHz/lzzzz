@@ -73,10 +73,9 @@ impl<R: BufRead> Read for BufReadDecompressor<'_, R> {
     fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
         loop {
             let inner_buf = self.device.fill_buf()?;
-            let report = self.inner.decompress(inner_buf)?;
-            let consumed = report.src_len().unwrap();
+            let consumed = self.inner.decompress(inner_buf)?;
             self.device.consume(consumed);
-            if consumed == 0 || report.dst_len() > 0 {
+            if consumed == 0 {
                 break;
             }
         }

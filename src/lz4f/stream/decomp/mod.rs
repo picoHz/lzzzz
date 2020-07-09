@@ -22,7 +22,7 @@ use crate::{
         },
         FrameInfo, Result,
     },
-    Buffer, Error, ErrorKind, Report,
+    Buffer, Error, ErrorKind,
 };
 use std::{cmp, mem, mem::MaybeUninit, ptr};
 
@@ -78,7 +78,7 @@ impl<'a> Decompressor<'a> {
         self.header_only = flag;
     }
 
-    pub fn decompress(&mut self, src: &[u8]) -> Result<Report> {
+    pub fn decompress(&mut self, src: &[u8]) -> Result<usize> {
         let mut header_consumed = 0;
         if let State::Header {
             mut header,
@@ -120,10 +120,7 @@ impl<'a> Decompressor<'a> {
         }
 
         if self.header_only {
-            return Ok(Report {
-                src_len: Some(header_consumed),
-                ..Default::default()
-            });
+            return Ok(header_consumed);
         }
 
         let src = &src[header_consumed..];
@@ -143,15 +140,9 @@ impl<'a> Decompressor<'a> {
                     .decompress_dict(src, &mut self.buffer[len..], &self.dict, false)?;
             self.buffer
                 .resize_with(len + report.dst_len(), Default::default);
-            Ok(Report {
-                src_len: report.src_len.map(|len| len + header_consumed),
-                ..report
-            })
+            Ok(report.src_len().unwrap() + header_consumed)
         } else {
-            Ok(Report {
-                src_len: Some(header_consumed),
-                ..Default::default()
-            })
+            Ok(header_consumed)
         }
     }
 

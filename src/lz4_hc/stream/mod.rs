@@ -114,7 +114,7 @@ impl<'a> Compressor<'a> {
             self.cache_len -= len;
         }
 
-        Ok(result.dst_len())
+        Ok(result)
     }
 
     pub fn next_partial<B>(&mut self, src: B, dst: &mut [u8]) -> Result<(usize, usize)>
@@ -138,7 +138,7 @@ impl<'a> Compressor<'a> {
             self.cache_len -= len;
         }
 
-        Ok((result.src_len().unwrap(), result.dst_len()))
+        Ok(result)
     }
 
     pub fn next_to_vec<B>(&mut self, src: B, dst: &mut Vec<u8>) -> Result<usize>

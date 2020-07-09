@@ -61,7 +61,7 @@ impl<W: Write> Write for WriteDecompressor<'_, W> {
         let report = self.inner.decompress(buf)?;
         self.device.write_all(self.inner.buf())?;
         self.inner.clear_buf();
-        Ok(report.src_len.unwrap())
+        Ok(report)
     }
 
     fn flush(&mut self) -> std::io::Result<()> {

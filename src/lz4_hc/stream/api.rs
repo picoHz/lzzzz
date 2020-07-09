@@ -1,7 +1,7 @@
 #![allow(unsafe_code)]
 
 use super::super::{binding, binding::LZ4StreamHC};
-use crate::{Error, ErrorKind, Report, Result};
+use crate::{Error, ErrorKind, Result};
 
 use std::{
     os::raw::{c_char, c_int},
@@ -50,7 +50,7 @@ impl CompressionContext {
         }
     }
 
-    pub fn next(&mut self, src: &[u8], dst: &mut [u8]) -> Result<Report> {
+    pub fn next(&mut self, src: &[u8], dst: &mut [u8]) -> Result<usize> {
         let dst_len = unsafe {
             binding::LZ4_compress_HC_continue(
                 self.stream.as_ptr(),
@@ -61,18 +61,15 @@ impl CompressionContext {
             ) as usize
         };
         if dst_len > 0 {
-            Ok(Report {
-                dst_len,
-                ..Default::default()
-            })
+            Ok(dst_len)
         } else if src.is_empty() && dst.is_empty() {
-            Ok(Report::default())
+            Ok(0)
         } else {
             Err(Error::new(ErrorKind::CompressionFailed))
         }
     }
 
-    pub fn next_partial(&mut self, src: &[u8], dst: &mut [u8]) -> Result<Report> {
+    pub fn next_partial(&mut self, src: &[u8], dst: &mut [u8]) -> Result<(usize, usize)> {
         let mut src_len = src.len() as c_int;
         let dst_len = unsafe {
             binding::LZ4_compress_HC_continue_destSize(
@@ -84,12 +81,9 @@ impl CompressionContext {
             ) as usize
         };
         if dst_len > 0 {
-            Ok(Report {
-                dst_len,
-                src_len: Some(src_len as usize),
-            })
+            Ok((src_len as usize, dst_len))
         } else if src.is_empty() && dst.is_empty() {
-            Ok(Report::default())
+            Ok((0, 0))
         } else {
             Err(Error::new(ErrorKind::CompressionFailed))
         }

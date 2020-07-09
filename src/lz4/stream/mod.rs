@@ -219,10 +219,10 @@ impl<'a> Decompressor<'a> {
             back.set_len(len + original_size);
         }
 
-        let report = self.ctx.decompress(src, &mut back[len..])?;
+        let dst_len = self.ctx.decompress(src, &mut back[len..])?;
         self.last_len = original_size;
 
-        self.cache_len += report.dst_len();
+        self.cache_len += dst_len;
         while let Some(len) = self
             .cache
             .front()

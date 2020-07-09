@@ -4,7 +4,7 @@ use super::super::{
     binding,
     binding::{LZ4DecStream, LZ4Stream},
 };
-use crate::{Error, ErrorKind, Report, Result};
+use crate::{Error, ErrorKind, Result};
 
 use std::{
     mem::{size_of, MaybeUninit},
@@ -118,7 +118,7 @@ impl DecompressionContext {
         }
     }
 
-    pub fn decompress(&mut self, src: &[u8], dst: &mut [u8]) -> Result<Report> {
+    pub fn decompress(&mut self, src: &[u8], dst: &mut [u8]) -> Result<usize> {
         let result = unsafe {
             binding::LZ4_decompress_safe_continue(
                 self.stream.as_ptr(),
@@ -131,10 +131,7 @@ impl DecompressionContext {
         if result < 0 {
             Err(Error::new(ErrorKind::DecompressionFailed))
         } else {
-            Ok(Report {
-                dst_len: result as usize,
-                ..Default::default()
-            })
+            Ok(result as usize)
         }
     }
 }

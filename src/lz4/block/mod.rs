@@ -193,13 +193,13 @@ pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, acc: Acceleration) -> Resu
 /// # Ok::<(), std::io::Error>(())
 /// ```
 pub fn decompress(src: &[u8], dst: &mut [u8]) -> Result<usize> {
-    Ok(api::decompress_safe(src, dst)?.dst_len())
+    api::decompress_safe(src, dst)
 }
 
 pub fn decompress_partial(src: &[u8], dst: &mut [u8], original_size: usize) -> Result<usize> {
-    Ok(api::decompress_safe_partial(src, dst, original_size)?.dst_len())
+    api::decompress_safe_partial(src, dst, original_size)
 }
 
 pub fn decompress_with_dict(src: &[u8], dst: &mut [u8], dict: &[u8]) -> Result<usize> {
-    Ok(api::decompress_safe_using_dict(src, dst, dict)?.dst_len())
+    api::decompress_safe_using_dict(src, dst, dict)
 }
