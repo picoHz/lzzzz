@@ -1,7 +1,7 @@
 //! LZ4 Frame Compressor/Decompressor
 
 use super::{api, Result};
-use crate::{common::DEFAULT_BUF_SIZE, lz4f::Preferences, Error, ErrorKind, Report};
+use crate::{common::DEFAULT_BUF_SIZE, lz4f::Preferences, Error, ErrorKind};
 use std::{cell::RefCell, ops::Deref};
 
 /// Calculate the maximum size of the compressed data from the original size.
@@ -37,7 +37,7 @@ pub fn max_compressed_size(original_size: usize, prefs: &Preferences) -> usize {
 /// // The slice should have enough capacity.
 /// assert!(buf.len() >= lz4f::max_compressed_size(data.len(), &prefs));
 ///
-/// let len = lz4f::compress(data, &mut buf, &prefs)?.dst_len();
+/// let len = lz4f::compress(data, &mut buf, &prefs)?;
 /// let compressed = &buf[..len];
 /// # Ok::<(), std::io::Error>(())
 /// ```

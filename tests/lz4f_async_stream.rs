@@ -23,9 +23,7 @@ mod async_read_compressor {
                 r.read_to_end(&mut comp_buf).await.unwrap();
             }
             assert_eq!(
-                lz4f::decompress_to_vec(&comp_buf, &mut decomp_buf)
-                    .unwrap()
-                    .dst_len(),
+                lz4f::decompress_to_vec(&comp_buf, &mut decomp_buf).unwrap(),
                 decomp_buf.len()
             );
             assert_eq!(decomp_buf, src);
@@ -59,9 +57,7 @@ mod async_read_compressor {
                 }
             }
             assert_eq!(
-                lz4f::decompress_to_vec(&comp_buf, &mut decomp_buf)
-                    .unwrap()
-                    .dst_len(),
+                lz4f::decompress_to_vec(&comp_buf, &mut decomp_buf).unwrap(),
                 decomp_buf.len()
             );
             assert_eq!(decomp_buf, src);
@@ -86,9 +82,7 @@ mod async_bufread_compressor {
                 r.read_to_end(&mut comp_buf).await.unwrap();
             }
             assert_eq!(
-                lz4f::decompress_to_vec(&comp_buf, &mut decomp_buf)
-                    .unwrap()
-                    .dst_len(),
+                lz4f::decompress_to_vec(&comp_buf, &mut decomp_buf).unwrap(),
                 decomp_buf.len()
             );
             assert_eq!(decomp_buf, src);
@@ -122,9 +116,7 @@ mod async_bufread_compressor {
                 }
             }
             assert_eq!(
-                lz4f::decompress_to_vec(&comp_buf, &mut decomp_buf)
-                    .unwrap()
-                    .dst_len(),
+                lz4f::decompress_to_vec(&comp_buf, &mut decomp_buf).unwrap(),
                 decomp_buf.len()
             );
             assert_eq!(decomp_buf, src);
@@ -150,9 +142,7 @@ mod async_write_compressor {
                 w.shutdown().await.unwrap();
             }
             assert_eq!(
-                lz4f::decompress_to_vec(&comp_buf, &mut decomp_buf)
-                    .unwrap()
-                    .dst_len(),
+                lz4f::decompress_to_vec(&comp_buf, &mut decomp_buf).unwrap(),
                 decomp_buf.len()
             );
             assert_eq!(decomp_buf, src);
@@ -174,9 +164,7 @@ mod async_read_decompressor {
             let mut comp_buf = Vec::new();
             let mut decomp_buf = Vec::new();
             assert_eq!(
-                lz4f::compress_to_vec(&src, &mut comp_buf, &prefs)
-                    .unwrap()
-                    .dst_len(),
+                lz4f::compress_to_vec(&src, &mut comp_buf, &prefs).unwrap(),
                 comp_buf.len()
             );
             {
@@ -228,9 +216,7 @@ mod async_read_decompressor {
             let mut comp_buf = Vec::new();
             let mut decomp_buf = vec![0; src.len()];
             assert_eq!(
-                lz4f::compress_to_vec(&src, &mut comp_buf, &prefs)
-                    .unwrap()
-                    .dst_len(),
+                lz4f::compress_to_vec(&src, &mut comp_buf, &prefs).unwrap(),
                 comp_buf.len()
             );
             {
@@ -267,9 +253,7 @@ mod async_bufread_decompressor {
             let mut comp_buf = Vec::new();
             let mut decomp_buf = Vec::new();
             assert_eq!(
-                lz4f::compress_to_vec(&src, &mut comp_buf, &prefs)
-                    .unwrap()
-                    .dst_len(),
+                lz4f::compress_to_vec(&src, &mut comp_buf, &prefs).unwrap(),
                 comp_buf.len()
             );
             {
@@ -325,9 +309,7 @@ mod async_bufread_decompressor {
             let mut comp_buf = Vec::new();
             let mut decomp_buf = vec![0; src.len()];
             assert_eq!(
-                lz4f::compress_to_vec(&src, &mut comp_buf, &prefs)
-                    .unwrap()
-                    .dst_len(),
+                lz4f::compress_to_vec(&src, &mut comp_buf, &prefs).unwrap(),
                 comp_buf.len()
             );
             {
@@ -364,9 +346,7 @@ mod async_write_decompressor {
             let mut comp_buf = Vec::new();
             let mut decomp_buf = Vec::new();
             assert_eq!(
-                lz4f::compress_to_vec(&src, &mut comp_buf, &prefs)
-                    .unwrap()
-                    .dst_len(),
+                lz4f::compress_to_vec(&src, &mut comp_buf, &prefs).unwrap(),
                 comp_buf.len()
             );
             {
@@ -412,9 +392,7 @@ mod async_write_decompressor {
             let mut comp_buf = Vec::new();
             let mut decomp_buf = Vec::new();
             assert_eq!(
-                lz4f::compress_to_vec(&src, &mut comp_buf, &prefs)
-                    .unwrap()
-                    .dst_len(),
+                lz4f::compress_to_vec(&src, &mut comp_buf, &prefs).unwrap(),
                 comp_buf.len()
             );
             {
@@ -441,9 +419,7 @@ mod async_write_decompressor {
             let mut comp_buf = Vec::new();
             let mut decomp_buf = Vec::new();
             assert_eq!(
-                lz4f::compress_to_vec(&src, &mut comp_buf, &prefs)
-                    .unwrap()
-                    .dst_len(),
+                lz4f::compress_to_vec(&src, &mut comp_buf, &prefs).unwrap(),
                 comp_buf.len()
             );
             {
