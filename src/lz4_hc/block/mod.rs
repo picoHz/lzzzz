@@ -1,6 +1,6 @@
 mod api;
 
-use super::{CompressionLevel, CompressionMode};
+use super::CompressionLevel;
 use crate::{lz4, Error, ErrorKind, Report, Result};
 use api::ExtState;
 
@@ -28,9 +28,8 @@ use api::ExtState;
 /// let len = lz4_hc::compress(
 ///     data.as_bytes(),
 ///     &mut buf,
-///     lz4_hc::CompressionMode::Default,
 ///     lz4_hc::CompressionLevel::Default,
-/// )?.dst_len();
+/// )?;
 ///
 /// let compressed = &buf[..len];
 ///
@@ -43,72 +42,29 @@ use api::ExtState;
 /// # assert_eq!(&buf[..len], data.as_bytes());
 /// # Ok::<(), std::io::Error>(())
 /// ```
-///
-/// ### Partial compression
-///
-/// ```
-/// use lzzzz::{lz4, lz4_hc};
-///
-/// let data = "Rugía la fiera: la verdadera, la única.";
-/// let mut buf = [0u8; 32];
-///
-/// let result = lz4_hc::compress(
-///     data.as_bytes(),
-///     &mut buf,
-///     lz4_hc::CompressionMode::Partial,
-///     lz4_hc::CompressionLevel::Default,
-/// )?;
-///
-/// let compressed = &buf[..result.dst_len()];
-/// let comsumed = result.src_len().unwrap();
-///
-/// # assert_eq!(result.dst_len(), 32);
-/// # assert_eq!(comsumed, 31);
-/// # let mut buf = [0u8; 2048];
-/// # let len = lz4::decompress(
-/// #     compressed,
-/// #     &mut buf[..comsumed],
-/// #     lz4::DecompressionMode::Default,
-/// # )?.dst_len();
-/// # let compressed = &buf[..len];
-/// # assert!(data.as_bytes().starts_with(compressed));
-/// # Ok::<(), std::io::Error>(())
-/// ```
-pub fn compress(
-    src: &[u8],
-    dst: &mut [u8],
-    mode: CompressionMode,
-    compression_level: CompressionLevel,
-) -> Result<Report> {
-    let result = ExtState::with(|state, reset| match mode {
-        CompressionMode::Default => {
-            if reset {
-                api::compress_ext_state_fast_reset(
-                    &mut state.borrow_mut(),
-                    src,
-                    dst,
-                    compression_level.as_i32(),
-                )
-            } else {
-                api::compress_ext_state(
-                    &mut state.borrow_mut(),
-                    src,
-                    dst,
-                    compression_level.as_i32(),
-                )
-            }
+pub fn compress(src: &[u8], dst: &mut [u8], compression_level: CompressionLevel) -> Result<usize> {
+    if src.is_empty() && dst.is_empty() {
+        return Ok(0);
+    }
+    let result = ExtState::with(|state, reset| {
+        if reset {
+            api::compress_ext_state_fast_reset(
+                &mut state.borrow_mut(),
+                src,
+                dst,
+                compression_level.as_i32(),
+            )
+        } else {
+            api::compress_ext_state(
+                &mut state.borrow_mut(),
+                src,
+                dst,
+                compression_level.as_i32(),
+            )
         }
-        CompressionMode::Partial => api::compress_dest_size(
-            &mut state.borrow_mut(),
-            src,
-            dst,
-            compression_level.as_i32(),
-        ),
     });
     if result.dst_len() > 0 {
-        Ok(result)
-    } else if src.is_empty() && dst.is_empty() {
-        Ok(Report::default())
+        Ok(result.dst_len())
     } else {
         Err(Error::new(ErrorKind::CompressionFailed))
     }
@@ -192,23 +148,15 @@ pub fn compress_to_vec(
     src: &[u8],
     dst: &mut Vec<u8>,
     compression_level: CompressionLevel,
-) -> Result<Report> {
+) -> Result<usize> {
     let orig_len = dst.len();
     dst.reserve(lz4::max_compressed_size(src.len()));
     #[allow(unsafe_code)]
     unsafe {
         dst.set_len(dst.capacity());
     }
-    let result = compress(
-        src,
-        &mut dst[orig_len..],
-        CompressionMode::default(),
-        compression_level,
-    );
-    dst.resize_with(
-        orig_len + result.as_ref().map(|r| r.dst_len()).unwrap_or(0),
-        Default::default,
-    );
+    let result = compress(src, &mut dst[orig_len..], compression_level);
+    dst.resize_with(orig_len + result.as_ref().unwrap_or(&0), Default::default);
     result
 }
 
