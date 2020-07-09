@@ -70,6 +70,8 @@ impl<'a> Compressor<'a> {
 
     pub fn reset(&mut self) {
         self.ctx.reset(self.compression_level.as_i32());
+        self.cache.clear();
+        self.cache_len = 0;
     }
 
     pub fn reset_with_dict<B>(&mut self, dict: B)
@@ -79,6 +81,8 @@ impl<'a> Compressor<'a> {
         let dict = dict.into();
         self.ctx.load_dict(&dict);
         self.dict = dict;
+        self.cache.clear();
+        self.cache_len = 0;
     }
 
     pub fn set_compression_level(&mut self, level: CompressionLevel) {
