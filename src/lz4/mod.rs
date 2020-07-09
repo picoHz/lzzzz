@@ -8,20 +8,19 @@ mod stream;
 pub use block::*;
 pub use stream::*;
 
-/// Compression mode specifier
+/// Acceleration mode specifier
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-pub enum CompressionMode {
-    /// `Default` is same as `Acceleration { factor: 1 }`.
+pub enum Acceleration {
+    /// `Default` is same as `Factor(1)`.
     Default,
     /// Custom acceleration factor.
-    Acceleration {
-        /// Larger value increases the processing speed in exchange for the
-        /// loss of compression ratio.
-        factor: i32,
-    },
+    ///
+    /// Larger value increases the processing speed in exchange for the
+    /// loss of compression ratio.
+    Factor(i32),
 }
 
-impl Default for CompressionMode {
+impl Default for Acceleration {
     fn default() -> Self {
         Self::Default
     }

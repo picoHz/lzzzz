@@ -1,7 +1,7 @@
 //! LZ4 Block Compressor/Decompressor
 mod api;
 
-use super::CompressionMode;
+use super::Acceleration;
 use crate::{Error, ErrorKind, Report, Result};
 use api::ExtState;
 
@@ -31,7 +31,7 @@ pub const fn max_compressed_size(original_size: usize) -> usize {
 /// // The slice should have enough capacity.
 /// assert!(buf.len() >= lz4::max_compressed_size(data.len()));
 ///
-/// let len = lz4::compress(data, &mut buf, lz4::CompressionMode::Default)?.dst_len();
+/// let len = lz4::compress(data, &mut buf, lz4::Acceleration::Default)?.dst_len();
 /// let compressed = &buf[..len];
 ///
 /// # let mut buf = [0u8; 2048];
@@ -39,10 +39,10 @@ pub const fn max_compressed_size(original_size: usize) -> usize {
 /// # assert_eq!(&buf[..len], &data[..]);
 /// # Ok::<(), std::io::Error>(())
 /// ```
-pub fn compress(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> Result<Report> {
-    let acc = match mode {
-        CompressionMode::Default => 1,
-        CompressionMode::Acceleration { factor } => factor,
+pub fn compress(src: &[u8], dst: &mut [u8], acc: Acceleration) -> Result<Report> {
+    let acc = match acc {
+        Acceleration::Default => 1,
+        Acceleration::Factor(factor) => factor,
     };
     let len = ExtState::with(|state, reset| {
         let mut state = state.borrow_mut();
@@ -75,7 +75,7 @@ pub fn compress(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> Result<Rep
 /// let data = "En vérité, ne ferait-on pas, pour moins que cela, le Tour du Monde ?";
 /// let mut buf = Vec::new();
 ///
-/// lz4::compress_to_vec(data.as_bytes(), &mut buf, lz4::CompressionMode::Default)?;
+/// lz4::compress_to_vec(data.as_bytes(), &mut buf, lz4::Acceleration::Default)?;
 /// # let compressed = &buf;
 /// # let mut buf = [0u8; 2048];
 /// # let len = lz4::decompress(compressed, &mut buf[..data.len()])?;
@@ -94,7 +94,7 @@ pub fn compress(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> Result<Rep
 /// let mut buf = Vec::from(&header[..]);
 ///
 /// let data = b"Cito et velociter!";
-/// lz4::compress_to_vec(data, &mut buf, lz4::CompressionMode::Default)?;
+/// lz4::compress_to_vec(data, &mut buf, lz4::Acceleration::Default)?;
 /// assert!(buf.starts_with(header) && buf.len() > header.len());
 ///
 /// # let compressed = &buf[header.len()..];
@@ -121,7 +121,7 @@ pub fn compress(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> Result<Rep
 /// lz4::compress_to_vec(
 ///     data,
 ///     &mut buf,
-///     lz4::CompressionMode::Acceleration { factor: 20 },
+///     lz4::Acceleration::Factor(20),
 /// )?;
 ///
 /// # let compressed = &buf;
@@ -130,14 +130,14 @@ pub fn compress(src: &[u8], dst: &mut [u8], mode: CompressionMode) -> Result<Rep
 /// # assert_eq!(&buf[..len], &data[..]);
 /// # Ok::<(), std::io::Error>(())
 /// ```
-pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, mode: CompressionMode) -> Result<Report> {
+pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, acc: Acceleration) -> Result<Report> {
     let orig_len = dst.len();
     dst.reserve(max_compressed_size(src.len()));
     #[allow(unsafe_code)]
     unsafe {
         dst.set_len(dst.capacity());
     };
-    let result = compress(src, &mut dst[orig_len..], mode);
+    let result = compress(src, &mut dst[orig_len..], acc);
     dst.resize_with(
         orig_len + result.as_ref().map(|r| r.dst_len()).unwrap_or(0),
         Default::default,

@@ -72,24 +72,24 @@ pub fn lz4f_test_set() -> impl Iterator<Item = (Bytes, Preferences)> {
         .flatten()
 }
 
-fn compression_mode_set() -> impl Iterator<Item = lz4::CompressionMode> {
+fn compression_acc_set() -> impl Iterator<Item = lz4::Acceleration> {
     vec![
-        lz4::CompressionMode::Default,
-        lz4::CompressionMode::Acceleration { factor: 0 },
-        lz4::CompressionMode::Acceleration { factor: i32::MIN },
-        lz4::CompressionMode::Acceleration { factor: i32::MAX },
+        lz4::Acceleration::Default,
+        lz4::Acceleration::Factor(0),
+        lz4::Acceleration::Factor(i32::MIN),
+        lz4::Acceleration::Factor(i32::MAX),
     ]
     .into_iter()
 }
 
-pub fn lz4_test_set() -> impl Iterator<Item = (Bytes, lz4::CompressionMode)> {
+pub fn lz4_test_set() -> impl Iterator<Item = (Bytes, lz4::Acceleration)> {
     generate_data()
-        .map(|data| compression_mode_set().map(move |mode| (data.clone(), mode)))
+        .map(|data| compression_acc_set().map(move |acc| (data.clone(), acc)))
         .flatten()
 }
 
-pub fn lz4_stream_test_set() -> impl Iterator<Item = (Vec<Bytes>, lz4::CompressionMode)> {
-    compression_mode_set().map(|mode| (generate_data().collect(), mode))
+pub fn lz4_stream_test_set() -> impl Iterator<Item = (Vec<Bytes>, lz4::Acceleration)> {
+    compression_acc_set().map(|acc| (generate_data().collect(), acc))
 }
 
 fn compression_level_set() -> impl Iterator<Item = lz4_hc::CompressionLevel> {

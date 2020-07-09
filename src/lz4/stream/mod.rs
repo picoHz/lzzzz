@@ -9,7 +9,7 @@
 //! let data = &b"aaaaa"[..];
 //! let mut buf = Vec::new();
 //!
-//! stream.next_to_vec(data, &mut buf, lz4::CompressionMode::Default);
+//! stream.next_to_vec(data, &mut buf, lz4::Acceleration::Default);
 //!
 //! # let compressed = &buf;
 //! # let mut buf = [0u8; 2048];
@@ -23,7 +23,7 @@
 
 mod api;
 
-use super::CompressionMode;
+use super::Acceleration;
 use crate::{common::DEFAULT_BUF_SIZE, lz4, Buffer, Error, ErrorKind, Report, Result};
 use api::{CompressionContext, DecompressionContext};
 use std::{cmp, collections::LinkedList};
@@ -87,7 +87,7 @@ impl<'a> Compressor<'a> {
     /// assert!(buf.len() >= lz4::max_compressed_size(data.len()));
     ///
     /// let len = stream
-    ///     .next(data, &mut buf, lz4::CompressionMode::Default)
+    ///     .next(data, &mut buf, lz4::Acceleration::Default)
     ///     .unwrap()
     ///     .dst_len();
     /// let compressed = &buf[..len];
@@ -100,13 +100,13 @@ impl<'a> Compressor<'a> {
     /// # .unwrap();
     /// # assert_eq!(&buf[..len], &data[..]);
     /// ```
-    pub fn next<B>(&mut self, src: B, dst: &mut [u8], mode: CompressionMode) -> Result<Report>
+    pub fn next<B>(&mut self, src: B, dst: &mut [u8], acc: Acceleration) -> Result<Report>
     where
         B: Into<Buffer<'a>>,
     {
-        let acc = match mode {
-            CompressionMode::Default => 1,
-            CompressionMode::Acceleration { factor } => factor,
+        let acc = match acc {
+            Acceleration::Default => 1,
+            Acceleration::Factor(factor) => factor,
         };
         let src = src.into();
         let src_is_empty = src.is_empty();
@@ -139,12 +139,7 @@ impl<'a> Compressor<'a> {
         }
     }
 
-    pub fn next_to_vec<B>(
-        &mut self,
-        src: B,
-        dst: &mut Vec<u8>,
-        mode: CompressionMode,
-    ) -> Result<Report>
+    pub fn next_to_vec<B>(&mut self, src: B, dst: &mut Vec<u8>, acc: Acceleration) -> Result<Report>
     where
         B: Into<Buffer<'a>>,
     {
@@ -155,7 +150,7 @@ impl<'a> Compressor<'a> {
         unsafe {
             dst.set_len(dst.capacity());
         }
-        let result = self.next(src, &mut dst[orig_len..], mode);
+        let result = self.next(src, &mut dst[orig_len..], acc);
         dst.resize_with(
             orig_len + result.as_ref().map(|r| r.dst_len()).unwrap_or(0),
             Default::default,
