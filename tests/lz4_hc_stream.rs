@@ -25,14 +25,7 @@ mod compressor {
                     let mut comp_buf = vec![0; lz4::max_compressed_size(src.len())];
                     let mut decomp_buf = vec![0; src.len()];
 
-                    let len = stream
-                        .next(
-                            Vec::from(src.as_ref()),
-                            &mut comp_buf,
-                            lz4_hc::CompressionMode::Default,
-                        )
-                        .unwrap()
-                        .dst_len();
+                    let len = stream.next(Vec::from(src.as_ref()), &mut comp_buf).unwrap();
 
                     lz4::decompress(
                         &comp_buf[..len],
@@ -62,10 +55,7 @@ mod compressor {
                         continue;
                     }
                     let mut comp_buf = vec![0; lz4::max_compressed_size(src.len())];
-                    let len = stream
-                        .next(Vec::from(src.as_ref()), &mut comp_buf, Default::default())
-                        .unwrap()
-                        .dst_len();
+                    let len = stream.next(Vec::from(src.as_ref()), &mut comp_buf).unwrap();
 
                     let mut decomp_buf = vec![0; src.len()];
                     lz4::decompress(
@@ -101,14 +91,7 @@ mod compressor {
                         lz4_hc::FavorDecSpeed::Disabled
                     });
 
-                    let len = stream
-                        .next(
-                            Vec::from(src.as_ref()),
-                            &mut comp_buf,
-                            lz4_hc::CompressionMode::Default,
-                        )
-                        .unwrap()
-                        .dst_len();
+                    let len = stream.next(Vec::from(src.as_ref()), &mut comp_buf).unwrap();
 
                     lz4::decompress(
                         &comp_buf[..len],

@@ -1,7 +1,7 @@
 mod api;
 
 use super::CompressionLevel;
-use crate::{lz4, Error, ErrorKind, Report, Result};
+use crate::{lz4, Error, ErrorKind, Result};
 use api::ExtState;
 
 /// Read data from a slice and write compressed data into another slice.

@@ -15,19 +15,6 @@ pub use stream::*;
 
 use std::cmp::Ordering;
 
-/// Compression mode specifier
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-pub enum CompressionMode {
-    Default,
-    Partial,
-}
-
-impl Default for CompressionMode {
-    fn default() -> Self {
-        Self::Default
-    }
-}
-
 /// Compression level specifier
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Ord, Hash)]
 pub enum CompressionLevel {

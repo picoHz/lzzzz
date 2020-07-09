@@ -14,7 +14,7 @@
 //! let data = &b"aaaaa"[..];
 //! let mut buf = Vec::new();
 //!
-//! stream.next_to_vec(data, &mut buf, lz4_hc::CompressionMode::Default);
+//! stream.next_to_vec(data, &mut buf);
 //!
 //! # use lzzzz::lz4;
 //! # let compressed = &buf;
@@ -33,8 +33,8 @@ mod api;
 
 use crate::{
     lz4,
-    lz4_hc::{CompressionLevel, CompressionMode, FavorDecSpeed},
-    Buffer, Report, Result,
+    lz4_hc::{CompressionLevel, FavorDecSpeed},
+    Buffer, Result,
 };
 use api::CompressionContext;
 use std::collections::LinkedList;
@@ -91,15 +91,12 @@ impl<'a> Compressor<'a> {
             .set_favor_dec_speed(dec_speed == FavorDecSpeed::Enabled);
     }
 
-    pub fn next<B>(&mut self, src: B, dst: &mut [u8], mode: CompressionMode) -> Result<Report>
+    pub fn next<B>(&mut self, src: B, dst: &mut [u8]) -> Result<usize>
     where
         B: Into<Buffer<'a>>,
     {
         let src = src.into();
-        let result = match mode {
-            CompressionMode::Default => self.ctx.next(&src, dst),
-            _ => self.ctx.next_partial(&src, dst),
-        };
+        let result = self.ctx.next(&src, dst)?;
         if !src.is_empty() {
             self.cache_len += src.len();
             self.cache.push_back(src);
@@ -115,15 +112,34 @@ impl<'a> Compressor<'a> {
             self.cache_len -= len;
         }
 
-        result
+        Ok(result.dst_len())
     }
 
-    pub fn next_to_vec<B>(
-        &mut self,
-        src: B,
-        dst: &mut Vec<u8>,
-        mode: CompressionMode,
-    ) -> Result<Report>
+    pub fn next_partial<B>(&mut self, src: B, dst: &mut [u8]) -> Result<(usize, usize)>
+    where
+        B: Into<Buffer<'a>>,
+    {
+        let src = src.into();
+        let result = self.ctx.next_partial(&src, dst)?;
+        if !src.is_empty() {
+            self.cache_len += src.len();
+            self.cache.push_back(src);
+        }
+
+        while let Some(len) = self
+            .cache
+            .front()
+            .map(|b| b.len())
+            .filter(|n| self.cache_len - n >= 64_000)
+        {
+            self.cache.pop_front();
+            self.cache_len -= len;
+        }
+
+        Ok((result.src_len().unwrap(), result.dst_len()))
+    }
+
+    pub fn next_to_vec<B>(&mut self, src: B, dst: &mut Vec<u8>) -> Result<usize>
     where
         B: Into<Buffer<'a>>,
     {
@@ -134,11 +150,8 @@ impl<'a> Compressor<'a> {
         unsafe {
             dst.set_len(dst.capacity());
         }
-        let result = self.next(src, &mut dst[orig_len..], mode);
-        dst.resize_with(
-            orig_len + result.as_ref().map(|r| r.dst_len()).unwrap_or(0),
-            Default::default,
-        );
+        let result = self.next(src, &mut dst[orig_len..]);
+        dst.resize_with(orig_len + result.as_ref().unwrap_or(&0), Default::default);
         result
     }
 }
