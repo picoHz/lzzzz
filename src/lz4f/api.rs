@@ -8,10 +8,7 @@ use super::{
     },
     Dictionary,
 };
-use crate::{
-    lz4f::{Error, ErrorKind, FrameInfo, Preferences, Result},
-    Report,
-};
+use crate::lz4f::{Error, ErrorKind, FrameInfo, Preferences, Result};
 
 use std::{mem::MaybeUninit, os::raw::c_void, ptr::NonNull};
 
@@ -160,7 +157,7 @@ impl DecompressionContext {
         dst: &mut [u8],
         dict: &[u8],
         stable_dst: bool,
-    ) -> Result<(Report, usize)> {
+    ) -> Result<(usize, usize, usize)> {
         let mut dst_len = dst.len();
         let mut src_len = src.len();
         let opt = LZ4FDecompressionOptions::stable(stable_dst);
@@ -176,15 +173,7 @@ impl DecompressionContext {
                 &opt as *const LZ4FDecompressionOptions,
             )
         };
-        result_from_code(code).map(|_| {
-            (
-                Report {
-                    src_len: Some(src_len as usize),
-                    dst_len: dst_len as usize,
-                },
-                code as usize,
-            )
-        })
+        result_from_code(code).map(|_| (src_len as usize, dst_len as usize, code as usize))
     }
 
     pub fn reset(&mut self) {

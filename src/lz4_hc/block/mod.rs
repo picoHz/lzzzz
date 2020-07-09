@@ -45,15 +45,15 @@ pub fn compress(src: &[u8], dst: &mut [u8], level: CompressionLevel) -> Result<u
     if src.is_empty() && dst.is_empty() {
         return Ok(0);
     }
-    let result = ExtState::with(|state, reset| {
+    let len = ExtState::with(|state, reset| {
         if reset {
             api::compress_ext_state_fast_reset(&mut state.borrow_mut(), src, dst, level.as_i32())
         } else {
             api::compress_ext_state(&mut state.borrow_mut(), src, dst, level.as_i32())
         }
     });
-    if result.dst_len() > 0 {
-        Ok(result.dst_len())
+    if len > 0 {
+        Ok(len)
     } else {
         Err(Error::new(ErrorKind::CompressionFailed))
     }
@@ -67,10 +67,9 @@ pub fn compress_partial(
     if src.is_empty() && dst.is_empty() {
         return Ok((0, 0));
     }
-    let result = ExtState::with(|state, _| {
+    Ok(ExtState::with(|state, _| {
         api::compress_dest_size(&mut state.borrow_mut(), src, dst, level.as_i32())
-    });
-    Ok((result.src_len().unwrap(), result.dst_len()))
+    }))
 }
 
 /// Read data from a slice and append compressed data to `Vec<u8>`.

@@ -106,7 +106,7 @@ impl<W: AsyncWrite + Unpin> AsyncWrite for AsyncWriteDecompressor<'_, W> {
     ) -> Poll<tokio::io::Result<usize>> {
         let mut me = Pin::new(&mut *self);
         if let State::None = me.state {
-            me.state = State::Write(me.inner.decompress(buf)?.src_len().unwrap());
+            me.state = State::Write(me.inner.decompress(buf)?);
         } else if let State::Shutdown = me.state {
             return Poll::Ready(Ok(0));
         }

@@ -92,8 +92,7 @@ impl<'a, R: AsyncBufRead + Unpin> AsyncBufReadDecompressor<'a, R> {
             }
             Poll::Ready(r) => r,
         }?;
-        let report = me.inner.decompress(inner_buf)?;
-        let consumed = report.src_len().unwrap();
+        let consumed = me.inner.decompress(inner_buf)?;
         me.device.as_mut().consume(consumed);
         Poll::Ready(Ok(()))
     }

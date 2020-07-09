@@ -135,12 +135,11 @@ impl<'a> Decompressor<'a> {
             unsafe {
                 self.buffer.set_len(self.buffer.capacity());
             }
-            let (report, _) =
+            let (src_len, dst_len, _) =
                 self.ctx
                     .decompress_dict(src, &mut self.buffer[len..], &self.dict, false)?;
-            self.buffer
-                .resize_with(len + report.dst_len(), Default::default);
-            Ok(report.src_len().unwrap() + header_consumed)
+            self.buffer.resize_with(len + dst_len, Default::default);
+            Ok(src_len + header_consumed)
         } else {
             Ok(header_consumed)
         }

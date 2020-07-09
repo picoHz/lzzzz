@@ -1,7 +1,7 @@
 #![allow(unsafe_code)]
 
 use super::super::binding;
-use crate::{Error, ErrorKind, Report, Result};
+use crate::{Error, ErrorKind, Result};
 
 use std::{
     cell::RefCell,
@@ -24,8 +24,8 @@ pub fn compress_fast_ext_state(
     src: &[u8],
     dst: &mut [u8],
     acceleration: i32,
-) -> Report {
-    let dst_len = unsafe {
+) -> usize {
+    unsafe {
         binding::LZ4_compress_fast_extState(
             state.as_mut_ptr() as *mut c_void,
             src.as_ptr() as *const c_char,
@@ -34,10 +34,6 @@ pub fn compress_fast_ext_state(
             dst.len() as c_int,
             acceleration as c_int,
         ) as usize
-    };
-    Report {
-        dst_len,
-        ..Default::default()
     }
 }
 
@@ -46,8 +42,8 @@ pub fn compress_fast_ext_state_fast_reset(
     src: &[u8],
     dst: &mut [u8],
     acceleration: i32,
-) -> Report {
-    let dst_len = unsafe {
+) -> usize {
+    unsafe {
         binding::LZ4_compress_fast_extState_fastReset(
             state.as_mut_ptr() as *mut c_void,
             src.as_ptr() as *const c_char,
@@ -56,10 +52,6 @@ pub fn compress_fast_ext_state_fast_reset(
             dst.len() as c_int,
             acceleration as c_int,
         ) as usize
-    };
-    Report {
-        dst_len,
-        ..Default::default()
     }
 }
 

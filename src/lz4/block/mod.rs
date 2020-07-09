@@ -52,8 +52,8 @@ pub fn compress(src: &[u8], dst: &mut [u8], acc: Acceleration) -> Result<usize> 
             api::compress_fast_ext_state(&mut state, src, dst, acc)
         }
     });
-    if len.dst_len() > 0 {
-        Ok(len.dst_len())
+    if len > 0 {
+        Ok(len)
     } else if src.is_empty() && dst.is_empty() {
         Ok(0)
     } else {
@@ -118,11 +118,7 @@ pub fn compress(src: &[u8], dst: &mut [u8], acc: Acceleration) -> Result<usize> 
 /// let data = b"QUATRE HEURES.";
 /// let mut buf = Vec::new();
 ///
-/// lz4::compress_to_vec(
-///     data,
-///     &mut buf,
-///     lz4::Acceleration::Factor(20),
-/// )?;
+/// lz4::compress_to_vec(data, &mut buf, lz4::Acceleration::Factor(20))?;
 ///
 /// # let compressed = &buf;
 /// # let mut buf = [0u8; 2048];
@@ -183,11 +179,7 @@ pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, acc: Acceleration) -> Resu
 /// ];
 ///
 /// let mut buf = [0u8; 30];
-/// lz4::decompress_partial(
-///     &data[..],
-///     &mut buf[..],
-///     ORIGINAL_SIZE,
-/// )?;
+/// lz4::decompress_partial(&data[..], &mut buf[..], ORIGINAL_SIZE)?;
 ///
 /// assert_eq!(&buf[..], b"Alb. The weight of this sad ti");
 /// # Ok::<(), std::io::Error>(())
