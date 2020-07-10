@@ -50,26 +50,11 @@ impl<'a> Compressor<'a> {
     where
         B: Into<Buffer<'a>>,
     {
-        let mut comp = Self::new()?;
-        comp.reset_with_dict(dict);
-        Ok(comp)
-    }
-
-    pub fn reset(&mut self) {
-        self.ctx.reset();
-        self.cache.clear();
-        self.cache_len = 0;
-    }
-
-    pub fn reset_with_dict<B>(&mut self, dict: B)
-    where
-        B: Into<Buffer<'a>>,
-    {
         let dict = dict.into();
-        self.ctx.load_dict(&dict);
-        self.dict = dict;
-        self.cache.clear();
-        self.cache_len = 0;
+        let mut comp = Self::new()?;
+        comp.ctx.load_dict(&dict);
+        comp.dict = dict;
+        Ok(comp)
     }
 
     /// LZ4 Streaming Compressor/Decompressor
@@ -176,26 +161,11 @@ impl<'a> Decompressor<'a> {
     where
         B: Into<Buffer<'a>>,
     {
-        let mut decomp = Self::new()?;
-        decomp.reset_with_dict(dict)?;
-        Ok(decomp)
-    }
-
-    pub fn reset(&mut self) -> Result<()> {
-        self.reset_with_dict(&[][..])
-    }
-
-    pub fn reset_with_dict<B>(&mut self, dict: B) -> Result<()>
-    where
-        B: Into<Buffer<'a>>,
-    {
         let dict = dict.into();
-        self.ctx.reset(&dict)?;
-        self.dict = dict;
-        self.cache.clear();
-        self.cache_len = 0;
-        self.last_len = 0;
-        Ok(())
+        let mut decomp = Self::new()?;
+        decomp.ctx.reset(&dict)?;
+        decomp.dict = dict;
+        Ok(decomp)
     }
 
     pub fn next(&mut self, src: &[u8], original_size: usize) -> Result<&[u8]> {

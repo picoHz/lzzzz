@@ -63,12 +63,6 @@ impl CompressionContext {
         }
     }
 
-    pub fn reset(&mut self) {
-        unsafe {
-            binding::LZ4_resetStream_fast(self.get_ptr());
-        }
-    }
-
     pub fn load_dict(&mut self, dict: &[u8]) {
         unsafe {
             binding::LZ4_loadDict(
