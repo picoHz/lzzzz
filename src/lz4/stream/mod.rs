@@ -9,7 +9,7 @@
 //! let data = &b"aaaaa"[..];
 //! let mut buf = Vec::new();
 //!
-//! stream.next_to_vec(data, &mut buf, lz4::Acceleration::Default);
+//! stream.next_to_vec(data, &mut buf, lz4::ACCELERATION_DEFAULT);
 //!
 //! # let compressed = &buf;
 //! # let mut buf = [0u8; 2048];
@@ -23,7 +23,6 @@
 
 mod api;
 
-use super::Acceleration;
 use crate::{common::DEFAULT_BUF_SIZE, lz4, Buffer, Error, ErrorKind, Result};
 use api::{CompressionContext, DecompressionContext};
 use std::{cmp, collections::LinkedList};
@@ -72,7 +71,7 @@ impl<'a> Compressor<'a> {
     /// assert!(buf.len() >= lz4::max_compressed_size(data.len()));
     ///
     /// let len = stream
-    ///     .next(data, &mut buf, lz4::Acceleration::Default)
+    ///     .next(data, &mut buf, lz4::ACCELERATION_DEFAULT)
     ///     .unwrap();
     /// let compressed = &buf[..len];
     ///
@@ -84,14 +83,10 @@ impl<'a> Compressor<'a> {
     /// # .unwrap();
     /// # assert_eq!(&buf[..len], &data[..]);
     /// ```
-    pub fn next<B>(&mut self, src: B, dst: &mut [u8], acc: Acceleration) -> Result<usize>
+    pub fn next<B>(&mut self, src: B, dst: &mut [u8], acc: i32) -> Result<usize>
     where
         B: Into<Buffer<'a>>,
     {
-        let acc = match acc {
-            Acceleration::Default => 1,
-            Acceleration::Factor(factor) => factor,
-        };
         let src = src.into();
         let src_is_empty = src.is_empty();
         let dst_len = self.ctx.next(&src, dst, acc);
@@ -120,7 +115,7 @@ impl<'a> Compressor<'a> {
         }
     }
 
-    pub fn next_to_vec<B>(&mut self, src: B, dst: &mut Vec<u8>, acc: Acceleration) -> Result<usize>
+    pub fn next_to_vec<B>(&mut self, src: B, dst: &mut Vec<u8>, acc: i32) -> Result<usize>
     where
         B: Into<Buffer<'a>>,
     {
