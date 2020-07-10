@@ -38,6 +38,10 @@ impl Default for FavorDecSpeed {
     }
 }
 
+pub const COMPRESSION_LEVEL_DEFAULT: i32 = 0;
+pub const COMPRESSION_LEVEL_HIGH: i32 = 10;
+pub const COMPRESSION_LEVEL_MAX: i32 = 12;
+
 /// Compression level specifier
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum CompressionLevel {
@@ -122,8 +126,8 @@ impl Preferences {
         self.frame_info.set_block_checksum(checksum);
     }
 
-    pub(super) fn set_compression_level(&mut self, level: CompressionLevel) {
-        self.compression_level = level.as_i32() as c_int;
+    pub(super) fn set_compression_level(&mut self, level: i32) {
+        self.compression_level = level as c_int;
     }
 
     pub(super) fn set_favor_dec_speed(&mut self, dec_speed: FavorDecSpeed) {
@@ -140,11 +144,11 @@ impl Preferences {
 /// # Example
 ///
 /// ```
-/// use lzzzz::lz4f::{BlockSize, CompressionLevel, PreferencesBuilder};
+/// use lzzzz::lz4f::{BlockSize, PreferencesBuilder, COMPRESSION_LEVEL_MAX};
 ///
 /// let pref = PreferencesBuilder::new()
 ///     .block_size(BlockSize::Max1MB)
-///     .compression_level(CompressionLevel::Max)
+///     .compression_level(COMPRESSION_LEVEL_MAX)
 ///     .build();
 /// ```
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, Hash)]
@@ -190,7 +194,7 @@ impl PreferencesBuilder {
     }
 
     /// Set the compression level.
-    pub fn compression_level(&mut self, level: CompressionLevel) -> &mut Self {
+    pub fn compression_level(&mut self, level: i32) -> &mut Self {
         self.prefs.set_compression_level(level);
         self
     }
@@ -219,8 +223,9 @@ impl PreferencesBuilder {
 #[cfg(test)]
 mod tests {
     use crate::lz4f::{
-        BlockChecksum, BlockMode, BlockSize, CompressionLevel, ContentChecksum, FavorDecSpeed,
-        Preferences, PreferencesBuilder,
+        BlockChecksum, BlockMode, BlockSize, ContentChecksum, FavorDecSpeed, Preferences,
+        PreferencesBuilder, COMPRESSION_LEVEL_DEFAULT, COMPRESSION_LEVEL_HIGH,
+        COMPRESSION_LEVEL_MAX,
     };
     use std::{i32, u32};
 
@@ -284,28 +289,35 @@ mod tests {
         );
         assert_eq!(
             PreferencesBuilder::new()
-                .compression_level(CompressionLevel::Custom(i32::MAX))
+                .compression_level(i32::MAX)
                 .build()
                 .compression_level,
-            CompressionLevel::Custom(i32::MAX).as_i32()
+            i32::MAX
         );
         assert_eq!(
             PreferencesBuilder::new()
-                .compression_level(CompressionLevel::High)
+                .compression_level(COMPRESSION_LEVEL_DEFAULT)
                 .build()
                 .compression_level,
-            CompressionLevel::High.as_i32()
+            COMPRESSION_LEVEL_DEFAULT
         );
         assert_eq!(
             PreferencesBuilder::new()
-                .compression_level(CompressionLevel::Max)
+                .compression_level(COMPRESSION_LEVEL_HIGH)
                 .build()
                 .compression_level,
-            CompressionLevel::Max.as_i32()
+            COMPRESSION_LEVEL_HIGH
         );
         assert_eq!(
             PreferencesBuilder::new()
-                .compression_level(CompressionLevel::Custom(i32::MIN))
+                .compression_level(COMPRESSION_LEVEL_MAX)
+                .build()
+                .compression_level,
+            COMPRESSION_LEVEL_MAX
+        );
+        assert_eq!(
+            PreferencesBuilder::new()
+                .compression_level(i32::MIN)
                 .build()
                 .compression_level,
             i32::MIN
@@ -333,23 +345,6 @@ mod tests {
                 .frame_info
                 .dict_id(),
             u32::MIN
-        );
-    }
-
-    #[test]
-    fn compression_level() {
-        assert_eq!(CompressionLevel::Default, CompressionLevel::default());
-        assert_eq!(
-            CompressionLevel::Default.as_i32(),
-            CompressionLevel::Custom(0).as_i32()
-        );
-        assert_eq!(
-            CompressionLevel::High.as_i32(),
-            CompressionLevel::Custom(10).as_i32()
-        );
-        assert_eq!(
-            CompressionLevel::Max.as_i32(),
-            CompressionLevel::Custom(12).as_i32()
         );
     }
 }
