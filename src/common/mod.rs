@@ -8,3 +8,4 @@ pub use buffer::Buffer;
 pub use error::{Error, ErrorKind, Result};
 
 pub(crate) const DEFAULT_BUF_SIZE: usize = 8 * 1024;
+pub(crate) const DICTIONARY_SIZE: usize = 64 * 1024;

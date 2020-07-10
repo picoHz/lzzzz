@@ -29,7 +29,7 @@
 
 mod api;
 
-use crate::{lz4, lz4_hc::FavorDecSpeed, Buffer, Result};
+use crate::{common::DICTIONARY_SIZE, lz4, lz4_hc::FavorDecSpeed, Buffer, Result};
 use api::CompressionContext;
 use std::collections::LinkedList;
 
@@ -86,7 +86,7 @@ impl<'a> Compressor<'a> {
             .cache
             .front()
             .map(|b| b.len())
-            .filter(|n| self.cache_len - n >= 64_000)
+            .filter(|n| self.cache_len - n >= DICTIONARY_SIZE)
         {
             self.cache.pop_front();
             self.cache_len -= len;
@@ -110,7 +110,7 @@ impl<'a> Compressor<'a> {
             .cache
             .front()
             .map(|b| b.len())
-            .filter(|n| self.cache_len - n >= 64_000)
+            .filter(|n| self.cache_len - n >= DICTIONARY_SIZE)
         {
             self.cache.pop_front();
             self.cache_len -= len;

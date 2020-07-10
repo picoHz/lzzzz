@@ -23,7 +23,10 @@
 
 mod api;
 
-use crate::{common::DEFAULT_BUF_SIZE, lz4, Buffer, Error, ErrorKind, Result};
+use crate::{
+    common::{DEFAULT_BUF_SIZE, DICTIONARY_SIZE},
+    lz4, Buffer, Error, ErrorKind, Result,
+};
 use api::{CompressionContext, DecompressionContext};
 use std::{cmp, collections::LinkedList};
 
@@ -100,7 +103,7 @@ impl<'a> Compressor<'a> {
             .cache
             .front()
             .map(|b| b.len())
-            .filter(|n| self.cache_len - n >= 64_000)
+            .filter(|n| self.cache_len - n >= DICTIONARY_SIZE)
         {
             self.cache.pop_front();
             self.cache_len -= len;
@@ -192,7 +195,7 @@ impl<'a> Decompressor<'a> {
             .cache
             .front()
             .map(Vec::len)
-            .filter(|n| self.cache_len - n >= 64_000)
+            .filter(|n| self.cache_len - n >= DICTIONARY_SIZE)
         {
             self.cache.pop_front();
             self.cache_len -= len;
