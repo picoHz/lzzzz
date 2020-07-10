@@ -1,6 +1,10 @@
 use super::frame_info::{BlockChecksum, BlockMode, BlockSize, ContentChecksum, FrameInfo};
 use std::os::raw::{c_int, c_uint};
 
+pub const COMPRESSION_LEVEL_DEFAULT: i32 = 0;
+pub const COMPRESSION_LEVEL_HIGH: i32 = 10;
+pub const COMPRESSION_LEVEL_MAX: i32 = 12;
+
 /// Auto flush flag
 ///
 /// **Cited from lz4frame.h:**
@@ -35,42 +39,6 @@ pub enum FavorDecSpeed {
 impl Default for FavorDecSpeed {
     fn default() -> Self {
         Self::Disabled
-    }
-}
-
-pub const COMPRESSION_LEVEL_DEFAULT: i32 = 0;
-pub const COMPRESSION_LEVEL_HIGH: i32 = 10;
-pub const COMPRESSION_LEVEL_MAX: i32 = 12;
-
-/// Compression level specifier
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-pub enum CompressionLevel {
-    /// Custom compression level.
-    /// Values larger then 12 are same as 12. Minus values trigger fast
-    /// acceleration.
-    Custom(i32),
-    /// `Default` is same as `Custom(0)`
-    Default,
-    /// `High` is same as `Custom(10)`
-    High,
-    /// `Max` is same as `Custom(12)`
-    Max,
-}
-
-impl CompressionLevel {
-    pub(crate) fn as_i32(self) -> i32 {
-        match self {
-            Self::Custom(level) => level,
-            Self::Default => 0,
-            Self::High => 10,
-            Self::Max => 12,
-        }
-    }
-}
-
-impl Default for CompressionLevel {
-    fn default() -> Self {
-        Self::Default
     }
 }
 

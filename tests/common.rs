@@ -45,16 +45,16 @@ fn preferences_set() -> impl Iterator<Item = Preferences> {
             .block_checksum(BlockChecksum::Enabled)
             .build(),
         PreferencesBuilder::new()
-            .compression_level(CompressionLevel::High)
+            .compression_level(COMPRESSION_LEVEL_HIGH)
             .build(),
         PreferencesBuilder::new()
-            .compression_level(CompressionLevel::Max)
+            .compression_level(COMPRESSION_LEVEL_MAX)
             .build(),
         PreferencesBuilder::new()
-            .compression_level(CompressionLevel::Custom(i32::MAX))
+            .compression_level(i32::MAX)
             .build(),
         PreferencesBuilder::new()
-            .compression_level(CompressionLevel::Custom(i32::MIN))
+            .compression_level(i32::MIN)
             .build(),
         PreferencesBuilder::new()
             .favor_dec_speed(FavorDecSpeed::Enabled)
