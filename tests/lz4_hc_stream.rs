@@ -74,7 +74,7 @@ mod compressor {
                     let mut comp_buf = vec![0; lz4::max_compressed_size(src.len())];
                     let mut decomp_buf = vec![0; src.len()];
 
-                    stream.set_compression_level(lz4_hc::CompressionLevel::Custom(rng.gen()));
+                    stream.set_compression_level(rng.gen());
                     stream.set_favor_dec_speed(if rng.gen_bool(0.5) {
                         lz4_hc::FavorDecSpeed::Enabled
                     } else {

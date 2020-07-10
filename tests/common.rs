@@ -86,24 +86,24 @@ pub fn lz4_stream_test_set() -> impl Iterator<Item = (Vec<Bytes>, i32)> {
     compression_acc_set().map(|acc| (generate_data().collect(), acc))
 }
 
-fn compression_level_set() -> impl Iterator<Item = lz4_hc::CompressionLevel> {
+fn compression_level_set() -> impl Iterator<Item = i32> {
     vec![
-        lz4_hc::CompressionLevel::Default,
-        lz4_hc::CompressionLevel::Min,
-        lz4_hc::CompressionLevel::OptMin,
-        lz4_hc::CompressionLevel::Max,
-        lz4_hc::CompressionLevel::Custom(i32::MIN),
-        lz4_hc::CompressionLevel::Custom(i32::MAX),
+        lz4_hc::COMPRESSION_LEVEL_DEFAULT,
+        lz4_hc::COMPRESSION_LEVEL_MIN,
+        lz4_hc::COMPRESSION_LEVEL_OPTMIN,
+        lz4_hc::COMPRESSION_LEVEL_MAX,
+        i32::MIN,
+        i32::MAX,
     ]
     .into_iter()
 }
 
-pub fn lz4_hc_test_set() -> impl Iterator<Item = (Bytes, lz4_hc::CompressionLevel)> {
+pub fn lz4_hc_test_set() -> impl Iterator<Item = (Bytes, i32)> {
     generate_data()
         .map(|data| compression_level_set().map(move |level| (data.clone(), level)))
         .flatten()
 }
 
-pub fn lz4_hc_stream_test_set() -> impl Iterator<Item = (Vec<Bytes>, lz4_hc::CompressionLevel)> {
+pub fn lz4_hc_stream_test_set() -> impl Iterator<Item = (Vec<Bytes>, i32)> {
     compression_level_set().map(|level| (generate_data().collect(), level))
 }

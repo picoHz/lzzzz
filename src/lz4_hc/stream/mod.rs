@@ -29,11 +29,7 @@
 
 mod api;
 
-use crate::{
-    lz4,
-    lz4_hc::{CompressionLevel, FavorDecSpeed},
-    Buffer, Result,
-};
+use crate::{lz4, lz4_hc::FavorDecSpeed, Buffer, Result};
 use api::CompressionContext;
 use std::collections::LinkedList;
 
@@ -66,8 +62,8 @@ impl<'a> Compressor<'a> {
         Ok(comp)
     }
 
-    pub fn set_compression_level(&mut self, level: CompressionLevel) {
-        self.ctx.set_compression_level(level.as_i32());
+    pub fn set_compression_level(&mut self, level: i32) {
+        self.ctx.set_compression_level(level);
     }
 
     pub fn set_favor_dec_speed(&mut self, dec_speed: FavorDecSpeed) {
