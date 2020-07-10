@@ -1,9 +1,14 @@
 use super::frame_info::{BlockChecksum, BlockMode, BlockSize, ContentChecksum, FrameInfo};
 use std::os::raw::{c_int, c_uint};
 
-pub const COMPRESSION_LEVEL_DEFAULT: i32 = 0;
-pub const COMPRESSION_LEVEL_HIGH: i32 = 10;
-pub const COMPRESSION_LEVEL_MAX: i32 = 12;
+/// Predefined compression level (0)
+pub const CLEVEL_DEFAULT: i32 = 0;
+
+/// Predefined compression level (10)
+pub const CLEVEL_HIGH: i32 = 10;
+
+/// Predefined compression level (12)
+pub const CLEVEL_MAX: i32 = 12;
 
 /// Auto flush flag
 ///
@@ -112,11 +117,11 @@ impl Preferences {
 /// # Example
 ///
 /// ```
-/// use lzzzz::lz4f::{BlockSize, PreferencesBuilder, COMPRESSION_LEVEL_MAX};
+/// use lzzzz::lz4f::{BlockSize, PreferencesBuilder, CLEVEL_MAX};
 ///
 /// let pref = PreferencesBuilder::new()
 ///     .block_size(BlockSize::Max1MB)
-///     .compression_level(COMPRESSION_LEVEL_MAX)
+///     .compression_level(CLEVEL_MAX)
 ///     .build();
 /// ```
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, Hash)]
@@ -192,8 +197,7 @@ impl PreferencesBuilder {
 mod tests {
     use crate::lz4f::{
         BlockChecksum, BlockMode, BlockSize, ContentChecksum, FavorDecSpeed, Preferences,
-        PreferencesBuilder, COMPRESSION_LEVEL_DEFAULT, COMPRESSION_LEVEL_HIGH,
-        COMPRESSION_LEVEL_MAX,
+        PreferencesBuilder, CLEVEL_DEFAULT, CLEVEL_HIGH, CLEVEL_MAX,
     };
     use std::{i32, u32};
 
@@ -264,24 +268,24 @@ mod tests {
         );
         assert_eq!(
             PreferencesBuilder::new()
-                .compression_level(COMPRESSION_LEVEL_DEFAULT)
+                .compression_level(CLEVEL_DEFAULT)
                 .build()
                 .compression_level,
-            COMPRESSION_LEVEL_DEFAULT
+            CLEVEL_DEFAULT
         );
         assert_eq!(
             PreferencesBuilder::new()
-                .compression_level(COMPRESSION_LEVEL_HIGH)
+                .compression_level(CLEVEL_HIGH)
                 .build()
                 .compression_level,
-            COMPRESSION_LEVEL_HIGH
+            CLEVEL_HIGH
         );
         assert_eq!(
             PreferencesBuilder::new()
-                .compression_level(COMPRESSION_LEVEL_MAX)
+                .compression_level(CLEVEL_MAX)
                 .build()
                 .compression_level,
-            COMPRESSION_LEVEL_MAX
+            CLEVEL_MAX
         );
         assert_eq!(
             PreferencesBuilder::new()

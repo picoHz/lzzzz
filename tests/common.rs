@@ -45,10 +45,10 @@ fn preferences_set() -> impl Iterator<Item = Preferences> {
             .block_checksum(BlockChecksum::Enabled)
             .build(),
         PreferencesBuilder::new()
-            .compression_level(COMPRESSION_LEVEL_HIGH)
+            .compression_level(CLEVEL_HIGH)
             .build(),
         PreferencesBuilder::new()
-            .compression_level(COMPRESSION_LEVEL_MAX)
+            .compression_level(CLEVEL_MAX)
             .build(),
         PreferencesBuilder::new()
             .compression_level(i32::MAX)
@@ -88,10 +88,10 @@ pub fn lz4_stream_test_set() -> impl Iterator<Item = (Vec<Bytes>, i32)> {
 
 fn compression_level_set() -> impl Iterator<Item = i32> {
     vec![
-        lz4_hc::COMPRESSION_LEVEL_DEFAULT,
-        lz4_hc::COMPRESSION_LEVEL_MIN,
-        lz4_hc::COMPRESSION_LEVEL_OPTMIN,
-        lz4_hc::COMPRESSION_LEVEL_MAX,
+        lz4_hc::CLEVEL_DEFAULT,
+        lz4_hc::CLEVEL_MIN,
+        lz4_hc::CLEVEL_OPT_MIN,
+        lz4_hc::CLEVEL_MAX,
         i32::MIN,
         i32::MAX,
     ]

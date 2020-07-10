@@ -13,10 +13,17 @@ mod stream;
 pub use block::*;
 pub use stream::*;
 
-pub const COMPRESSION_LEVEL_MIN: i32 = 3;
-pub const COMPRESSION_LEVEL_DEFAULT: i32 = 9;
-pub const COMPRESSION_LEVEL_OPTMIN: i32 = 10;
-pub const COMPRESSION_LEVEL_MAX: i32 = 12;
+/// Predefined compression level (3)
+pub const CLEVEL_MIN: i32 = 3;
+
+/// Predefined compression level (9)
+pub const CLEVEL_DEFAULT: i32 = 9;
+
+/// Predefined compression level (10)
+pub const CLEVEL_OPT_MIN: i32 = 10;
+
+/// Predefined compression level (12)
+pub const CLEVEL_MAX: i32 = 12;
 
 /// Decompression speed flag
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]

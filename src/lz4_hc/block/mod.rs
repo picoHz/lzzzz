@@ -27,7 +27,7 @@ use api::ExtState;
 /// let len = lz4_hc::compress(
 ///     data.as_bytes(),
 ///     &mut buf,
-///     lz4_hc::COMPRESSION_LEVEL_DEFAULT,
+///     lz4_hc::CLEVEL_DEFAULT,
 /// )?;
 ///
 /// let compressed = &buf[..len];
@@ -87,7 +87,7 @@ pub fn compress_partial(src: &[u8], dst: &mut [u8], level: i32) -> Result<(usize
 /// let data = "So we beat on, boats against the current, borne back ceaselessly into the past.";
 /// let mut buf = Vec::new();
 ///
-/// lz4_hc::compress_to_vec(data.as_bytes(), &mut buf, lz4_hc::COMPRESSION_LEVEL_DEFAULT)?;
+/// lz4_hc::compress_to_vec(data.as_bytes(), &mut buf, lz4_hc::CLEVEL_DEFAULT)?;
 ///
 /// # use lzzzz::lz4;
 /// # let compressed = &buf;
@@ -108,7 +108,7 @@ pub fn compress_partial(src: &[u8], dst: &mut [u8], level: i32) -> Result<(usize
 /// let data = "It was not till they had examined the rings that they recognized who it was.";
 /// let mut buf = Vec::new();
 ///
-/// lz4_hc::compress_to_vec(data.as_bytes(), &mut buf, lz4_hc::COMPRESSION_LEVEL_MAX)?;
+/// lz4_hc::compress_to_vec(data.as_bytes(), &mut buf, lz4_hc::CLEVEL_MAX)?;
 ///
 /// # use lzzzz::lz4;
 /// # let compressed = &buf;
