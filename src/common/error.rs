@@ -4,13 +4,10 @@ use std::{convert, fmt, io};
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 #[non_exhaustive]
 pub enum ErrorKind {
+    InitializationFailed,
     CompressionFailed,
     DecompressionFailed,
-    /// The reset operation of the stream failed.
-    StreamResetFailed,
     CompressedDataIncomplete,
-    /// The underlying liblz4 constructor function returned a NULL pointer.
-    NullPointerUnexpected,
     /// The specified compression mode was not valid.
     CompressionModeInvalid,
     /// The specified decompression mode was not valid.

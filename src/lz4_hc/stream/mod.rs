@@ -40,7 +40,6 @@ use std::collections::LinkedList;
 /// Streaming compressor
 pub struct Compressor<'a> {
     ctx: CompressionContext,
-    compression_level: CompressionLevel,
     dict: Buffer<'a>,
     cache: LinkedList<Buffer<'a>>,
     cache_len: usize,
@@ -50,7 +49,6 @@ impl<'a> Compressor<'a> {
     pub fn new() -> Result<Self> {
         Ok(Self {
             ctx: CompressionContext::new()?,
-            compression_level: CompressionLevel::Default,
             dict: Buffer::new(),
             cache: LinkedList::new(),
             cache_len: 0,
@@ -61,30 +59,14 @@ impl<'a> Compressor<'a> {
     where
         B: Into<Buffer<'a>>,
     {
+        let dict = dict.into();
         let mut comp = Self::new()?;
-        comp.reset_with_dict(dict);
+        comp.ctx.load_dict(&dict);
+        comp.dict = dict;
         Ok(comp)
     }
 
-    pub fn reset(&mut self) {
-        self.ctx.reset(self.compression_level.as_i32());
-        self.cache.clear();
-        self.cache_len = 0;
-    }
-
-    pub fn reset_with_dict<B>(&mut self, dict: B)
-    where
-        B: Into<Buffer<'a>>,
-    {
-        let dict = dict.into();
-        self.ctx.load_dict(&dict);
-        self.dict = dict;
-        self.cache.clear();
-        self.cache_len = 0;
-    }
-
     pub fn set_compression_level(&mut self, level: CompressionLevel) {
-        self.compression_level = level;
         self.ctx.set_compression_level(level.as_i32());
     }
 

@@ -15,7 +15,7 @@ pub struct CompressionContext {
 impl CompressionContext {
     pub fn new() -> Result<Self> {
         let ptr = unsafe { NonNull::new(binding::LZ4_createStreamHC()) };
-        ptr.ok_or_else(|| Error::new(ErrorKind::NullPointerUnexpected))
+        ptr.ok_or_else(|| Error::new(ErrorKind::InitializationFailed))
             .map(|stream| Self { stream })
     }
 
@@ -31,12 +31,6 @@ impl CompressionContext {
                 self.stream.as_ptr(),
                 if flag { 1 } else { 0 } as c_int,
             )
-        }
-    }
-
-    pub fn reset(&mut self, compression_level: i32) {
-        unsafe {
-            binding::LZ4_resetStreamHC_fast(self.stream.as_ptr(), compression_level);
         }
     }
 

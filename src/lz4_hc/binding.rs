@@ -39,7 +39,6 @@ extern "C" {
 
     pub fn LZ4_createStreamHC() -> *mut LZ4StreamHC;
     pub fn LZ4_freeStreamHC(ptr: *mut LZ4StreamHC) -> c_int;
-    pub fn LZ4_resetStreamHC_fast(ptr: *mut LZ4StreamHC, compression_level: c_int);
     pub fn LZ4_loadDictHC(
         ptr: *mut LZ4StreamHC,
         dictionary: *const c_char,

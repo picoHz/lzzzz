@@ -30,9 +30,8 @@ impl CompressionContext {
             );
             result_from_code(code).and_then(|_| {
                 Ok(Self {
-                    ctx: NonNull::new(ctx.assume_init()).ok_or_else(|| {
-                        crate::Error::new(crate::ErrorKind::NullPointerUnexpected)
-                    })?,
+                    ctx: NonNull::new(ctx.assume_init())
+                        .ok_or_else(|| crate::Error::new(crate::ErrorKind::InitializationFailed))?,
                     dict,
                 })
             })
@@ -129,9 +128,8 @@ impl DecompressionContext {
             );
             result_from_code(code).and_then(|_| {
                 Ok(Self {
-                    ctx: NonNull::new(ctx.assume_init()).ok_or_else(|| {
-                        crate::Error::new(crate::ErrorKind::NullPointerUnexpected)
-                    })?,
+                    ctx: NonNull::new(ctx.assume_init())
+                        .ok_or_else(|| crate::Error::new(crate::ErrorKind::InitializationFailed))?,
                 })
             })
         }
@@ -246,7 +244,7 @@ impl DictionaryHandle {
     pub fn new(data: &[u8]) -> Result<Self> {
         let dict = unsafe { binding::LZ4F_createCDict(data.as_ptr() as *const c_void, data.len()) };
         NonNull::new(dict)
-            .ok_or_else(|| crate::Error::new(crate::ErrorKind::NullPointerUnexpected).into())
+            .ok_or_else(|| crate::Error::new(crate::ErrorKind::InitializationFailed).into())
             .map(Self)
     }
 }

@@ -37,7 +37,7 @@ impl CompressionContext {
             }
             NonNull::new(binding::LZ4_createStream())
         }
-        .ok_or_else(|| Error::new(ErrorKind::NullPointerUnexpected))
+        .ok_or_else(|| Error::new(ErrorKind::InitializationFailed))
         .map(|stream| Self {
             stream: Stream::Heap(stream),
         })
@@ -92,7 +92,7 @@ impl DecompressionContext {
     pub fn new() -> Result<Self> {
         unsafe {
             let ptr = NonNull::new(binding::LZ4_createStreamDecode());
-            ptr.ok_or_else(|| Error::new(ErrorKind::NullPointerUnexpected))
+            ptr.ok_or_else(|| Error::new(ErrorKind::InitializationFailed))
                 .map(|stream| Self { stream })
         }
     }
@@ -108,7 +108,7 @@ impl DecompressionContext {
         if result == 1 {
             Ok(())
         } else {
-            Err(Error::new(ErrorKind::StreamResetFailed))
+            Err(Error::new(ErrorKind::InitializationFailed))
         }
     }
 
