@@ -39,6 +39,9 @@ pub const fn max_compressed_size(original_size: usize) -> usize {
 /// # Ok::<(), std::io::Error>(())
 /// ```
 pub fn compress(src: &[u8], dst: &mut [u8], acc: i32) -> Result<usize> {
+    if src.is_empty() {
+        return Ok(0);
+    }
     let len = ExtState::with(|state, reset| {
         let mut state = state.borrow_mut();
         if reset {
@@ -49,8 +52,6 @@ pub fn compress(src: &[u8], dst: &mut [u8], acc: i32) -> Result<usize> {
     });
     if len > 0 {
         Ok(len)
-    } else if src.is_empty() && dst.is_empty() {
-        Ok(0)
     } else {
         Err(Error::new(ErrorKind::DecompressionFailed))
     }

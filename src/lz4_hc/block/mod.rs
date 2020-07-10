@@ -41,7 +41,7 @@ use api::ExtState;
 /// # Ok::<(), std::io::Error>(())
 /// ```
 pub fn compress(src: &[u8], dst: &mut [u8], level: i32) -> Result<usize> {
-    if src.is_empty() && dst.is_empty() {
+    if src.is_empty() {
         return Ok(0);
     }
     let len = ExtState::with(|state, reset| {
@@ -59,7 +59,7 @@ pub fn compress(src: &[u8], dst: &mut [u8], level: i32) -> Result<usize> {
 }
 
 pub fn compress_partial(src: &[u8], dst: &mut [u8], level: i32) -> Result<(usize, usize)> {
-    if src.is_empty() && dst.is_empty() {
+    if src.is_empty() || dst.is_empty() {
         return Ok((0, 0));
     }
     Ok(ExtState::with(|state, _| {

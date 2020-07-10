@@ -45,6 +45,9 @@ impl CompressionContext {
     }
 
     pub fn next(&mut self, src: &[u8], dst: &mut [u8]) -> Result<usize> {
+        if src.is_empty() {
+            return Ok(0);
+        }
         let dst_len = unsafe {
             binding::LZ4_compress_HC_continue(
                 self.stream.as_ptr(),
@@ -56,14 +59,15 @@ impl CompressionContext {
         };
         if dst_len > 0 {
             Ok(dst_len)
-        } else if src.is_empty() && dst.is_empty() {
-            Ok(0)
         } else {
             Err(Error::new(ErrorKind::CompressionFailed))
         }
     }
 
     pub fn next_partial(&mut self, src: &[u8], dst: &mut [u8]) -> Result<(usize, usize)> {
+        if src.is_empty() || dst.is_empty() {
+            return Ok((0, 0));
+        }
         let mut src_len = src.len() as c_int;
         let dst_len = unsafe {
             binding::LZ4_compress_HC_continue_destSize(
@@ -76,8 +80,6 @@ impl CompressionContext {
         };
         if dst_len > 0 {
             Ok((src_len as usize, dst_len))
-        } else if src.is_empty() && dst.is_empty() {
-            Ok((0, 0))
         } else {
             Err(Error::new(ErrorKind::CompressionFailed))
         }
