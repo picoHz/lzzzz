@@ -3,7 +3,7 @@ use lzzzz::lz4;
 
 fn lz4_compress(src: &[u8]) -> Vec<u8> {
     let mut buf = Vec::new();
-    lz4::compress_to_vec(src, &mut buf, lz4::ACCELERATION_DEFAULT).unwrap();
+    lz4::compress_to_vec(src, &mut buf, lz4::ACC_LEVEL_DEFAULT).unwrap();
     buf
 }
 

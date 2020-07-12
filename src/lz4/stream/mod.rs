@@ -9,7 +9,7 @@
 //! let data = &b"aaaaa"[..];
 //! let mut buf = Vec::new();
 //!
-//! stream.next_to_vec(data, &mut buf, lz4::ACCELERATION_DEFAULT);
+//! stream.next_to_vec(data, &mut buf, lz4::ACC_LEVEL_DEFAULT);
 //!
 //! # let compressed = &buf;
 //! # let mut buf = [0u8; 2048];
@@ -73,9 +73,7 @@ impl<'a> Compressor<'a> {
     /// // The slice should have enough capacity.
     /// assert!(buf.len() >= lz4::max_compressed_size(data.len()));
     ///
-    /// let len = stream
-    ///     .next(data, &mut buf, lz4::ACCELERATION_DEFAULT)
-    ///     .unwrap();
+    /// let len = stream.next(data, &mut buf, lz4::ACC_LEVEL_DEFAULT).unwrap();
     /// let compressed = &buf[..len];
     ///
     /// # let mut buf = [0u8; 2048];

@@ -31,7 +31,7 @@ pub const fn max_compressed_size(original_size: usize) -> usize {
 /// // The slice should have enough capacity.
 /// assert!(buf.len() >= lz4::max_compressed_size(data.len()));
 ///
-/// let len = lz4::compress(data, &mut buf, lz4::ACCELERATION_DEFAULT)?;
+/// let len = lz4::compress(data, &mut buf, lz4::ACC_LEVEL_DEFAULT)?;
 /// let compressed = &buf[..len];
 ///
 /// # let mut buf = [0u8; 2048];
@@ -76,7 +76,7 @@ pub fn compress(src: &[u8], dst: &mut [u8], acc: i32) -> Result<usize> {
 /// let data = "En vérité, ne ferait-on pas, pour moins que cela, le Tour du Monde ?";
 /// let mut buf = Vec::new();
 ///
-/// lz4::compress_to_vec(data.as_bytes(), &mut buf, lz4::ACCELERATION_DEFAULT)?;
+/// lz4::compress_to_vec(data.as_bytes(), &mut buf, lz4::ACC_LEVEL_DEFAULT)?;
 /// # let compressed = &buf;
 /// # let mut buf = [0u8; 2048];
 /// # let len = lz4::decompress(compressed, &mut buf[..data.len()])?;
@@ -95,7 +95,7 @@ pub fn compress(src: &[u8], dst: &mut [u8], acc: i32) -> Result<usize> {
 /// let mut buf = Vec::from(&header[..]);
 ///
 /// let data = b"Cito et velociter!";
-/// lz4::compress_to_vec(data, &mut buf, lz4::ACCELERATION_DEFAULT)?;
+/// lz4::compress_to_vec(data, &mut buf, lz4::ACC_LEVEL_DEFAULT)?;
 /// assert!(buf.starts_with(header) && buf.len() > header.len());
 ///
 /// # let compressed = &buf[header.len()..];

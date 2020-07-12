@@ -73,7 +73,7 @@ pub fn lz4f_test_set() -> impl Iterator<Item = (Bytes, Preferences)> {
 }
 
 fn compression_acc_set() -> impl Iterator<Item = i32> {
-    vec![lz4::ACCELERATION_DEFAULT, 0, i32::MIN, i32::MAX].into_iter()
+    vec![lz4::ACC_LEVEL_DEFAULT, 0, i32::MIN, i32::MAX].into_iter()
 }
 
 pub fn lz4_test_set() -> impl Iterator<Item = (Bytes, i32)> {

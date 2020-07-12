@@ -24,17 +24,13 @@ impl Default for BlockSize {
     }
 }
 
-/// Compression block mode flag
-///
-/// **Cited from lz4frame.h:**
-/// Linked blocks sharply reduce inefficiencies when using small blocks,
-/// they compress_to_vec better.
-/// However, some LZ4 decoders are only compatible with independent blocks.
+/// Block mode flag
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 #[repr(C)]
 pub enum BlockMode {
-    /// Default value
+    /// Linked block mode (default)
     Linked,
+    /// Independent block mode
     Independent,
 }
 
