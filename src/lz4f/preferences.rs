@@ -1,5 +1,8 @@
 use super::frame_info::{BlockChecksum, BlockMode, BlockSize, ContentChecksum, FrameInfo};
-use std::os::raw::{c_int, c_uint};
+use std::{
+    cmp,
+    os::raw::{c_int, c_uint},
+};
 
 /// Predefined compression level (0)
 pub const CLEVEL_DEFAULT: i32 = 0;
@@ -100,6 +103,8 @@ impl Preferences {
     }
 
     pub(super) fn set_compression_level(&mut self, level: i32) {
+        // Workaround for https://github.com/lz4/lz4/issues/876
+        let level = cmp::max(-33_554_430, level);
         self.compression_level = level as c_int;
     }
 
@@ -292,7 +297,7 @@ mod tests {
                 .compression_level(i32::MIN)
                 .build()
                 .compression_level,
-            i32::MIN
+            -33_554_430
         );
         assert_eq!(
             PreferencesBuilder::new()

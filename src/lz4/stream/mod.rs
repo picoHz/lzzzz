@@ -92,6 +92,9 @@ impl<'a> Compressor<'a> {
     {
         let src = src.into();
         let src_is_empty = src.is_empty();
+
+        // Workaround for https://github.com/lz4/lz4/issues/876
+        let acc = cmp::min(acc, 33_554_431);
         let dst_len = self.ctx.next(&src, dst, acc);
 
         if !src_is_empty {

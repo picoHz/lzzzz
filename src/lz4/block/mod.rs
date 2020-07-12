@@ -3,6 +3,7 @@ mod api;
 
 use crate::{Error, ErrorKind, Result};
 use api::ExtState;
+use std::cmp;
 
 /// Calculate the maximum size of the compressed data from the original size.
 ///
@@ -42,6 +43,10 @@ pub fn compress(src: &[u8], dst: &mut [u8], acc: i32) -> Result<usize> {
     if src.is_empty() {
         return Ok(0);
     }
+
+    // Workaround for https://github.com/lz4/lz4/issues/876
+    let acc = cmp::min(acc, 33_554_431);
+
     let len = ExtState::with(|state, reset| {
         let mut state = state.borrow_mut();
         if reset {
