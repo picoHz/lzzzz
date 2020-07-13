@@ -36,7 +36,6 @@ use std::collections::LinkedList;
 /// Streaming compressor
 pub struct Compressor<'a> {
     ctx: CompressionContext,
-    dict: Buffer<'a>,
     cache: LinkedList<Buffer<'a>>,
     cache_len: usize,
 }
@@ -45,20 +44,14 @@ impl<'a> Compressor<'a> {
     pub fn new() -> Result<Self> {
         Ok(Self {
             ctx: CompressionContext::new()?,
-            dict: Buffer::new(),
             cache: LinkedList::new(),
             cache_len: 0,
         })
     }
 
-    pub fn with_dict<B>(dict: B) -> Result<Self>
-    where
-        B: Into<Buffer<'a>>,
-    {
-        let dict = dict.into();
+    pub fn with_dict(dict: &'a [u8]) -> Result<Self> {
         let mut comp = Self::new()?;
-        comp.ctx.load_dict(&dict);
-        comp.dict = dict;
+        comp.ctx.load_dict(dict);
         Ok(comp)
     }
 
