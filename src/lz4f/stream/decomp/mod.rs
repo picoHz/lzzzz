@@ -22,8 +22,9 @@ use crate::{
         },
         FrameInfo, Result,
     },
-    Buffer, Error, ErrorKind,
+    Error, ErrorKind,
 };
+use std::ops::Deref;
 use std::{cmp, mem, mem::MaybeUninit, ptr};
 
 enum State {
@@ -41,7 +42,7 @@ pub(crate) struct Decompressor<'a> {
     ctx: DecompressionContext,
     state: State,
     buffer: Vec<u8>,
-    dict: Buffer<'a>,
+    dict: Option<Box<dyn AsRef<[u8]> + 'a>>,
     header_only: bool,
 }
 
@@ -57,13 +58,13 @@ impl<'a> Decompressor<'a> {
                 header_len: 0,
             },
             buffer: Vec::with_capacity(DEFAULT_BUF_SIZE),
-            dict: Buffer::new(),
+            dict: None,
             header_only: false,
         })
     }
 
-    pub fn set_dict(&mut self, dict: Buffer<'a>) {
-        self.dict = dict;
+    pub fn set_dict<D: AsRef<[u8]> + 'a>(&mut self, dict: D) {
+        self.dict = Some(Box::new(dict));
     }
 
     pub fn frame_info(&self) -> Option<FrameInfo> {
@@ -135,9 +136,15 @@ impl<'a> Decompressor<'a> {
             unsafe {
                 self.buffer.set_len(self.buffer.capacity());
             }
-            let (src_len, dst_len, _) =
-                self.ctx
-                    .decompress_dict(src, &mut self.buffer[len..], &self.dict, false)?;
+            let (src_len, dst_len, _) = self.ctx.decompress_dict(
+                src,
+                &mut self.buffer[len..],
+                self.dict
+                    .as_ref()
+                    .map(|d| d.deref().as_ref())
+                    .unwrap_or(&[]),
+                false,
+            )?;
             self.buffer.resize_with(len + dst_len, Default::default);
             Ok(src_len + header_consumed)
         } else {
@@ -146,10 +153,15 @@ impl<'a> Decompressor<'a> {
     }
 
     fn dict_ptr(&self) -> (*const u8, usize) {
-        if self.dict.is_empty() {
+        let dict = self
+            .dict
+            .as_ref()
+            .map(|d| d.deref().as_ref())
+            .unwrap_or(&[]);
+        if dict.is_empty() {
             (ptr::null(), 0)
         } else {
-            (self.dict.as_ptr(), self.dict.len())
+            (dict.as_ptr(), dict.len())
         }
     }
 
