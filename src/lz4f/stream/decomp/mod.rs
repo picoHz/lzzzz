@@ -33,7 +33,7 @@ enum State {
     },
     Body {
         frame_info: FrameInfo,
-        comp_dict: Option<*const u8>,
+        comp_dict: Option<(*const u8, usize)>,
     },
 }
 
@@ -145,11 +145,11 @@ impl<'a> Decompressor<'a> {
         }
     }
 
-    fn dict_ptr(&self) -> *const u8 {
+    fn dict_ptr(&self) -> (*const u8, usize) {
         if self.dict.is_empty() {
-            ptr::null()
+            (ptr::null(), 0)
         } else {
-            self.dict.as_ptr()
+            (self.dict.as_ptr(), self.dict.len())
         }
     }
 
