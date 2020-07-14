@@ -12,10 +12,10 @@ use std::sync::Arc;
 /// useful. Best results are generally achieved by using Zstandard's Dictionary
 /// Builder to generate a high-quality dictionary from a set of samples.
 #[derive(Clone)]
-pub struct Dictionary(Arc<DictionaryHandle>);
+pub struct SharedDict(Arc<DictionaryHandle>);
 
-impl Dictionary {
-    /// Build a new `Dictionary`.
+impl SharedDict {
+    /// Build a new `SharedDict`.
     pub fn new(data: &[u8]) -> Result<Self> {
         DictionaryHandle::new(data).map(|dict| Self(Arc::new(dict)))
     }
@@ -27,14 +27,14 @@ impl Dictionary {
 
 #[cfg(test)]
 mod tests {
-    use super::Dictionary;
+    use super::SharedDict;
     use static_assertions::assert_impl_all;
 
-    assert_impl_all!(Dictionary: Send, Sync);
+    assert_impl_all!(SharedDict: Send, Sync);
 
     #[test]
     fn create_dictionary() {
-        assert!(Dictionary::new(&[]).is_ok());
-        assert!(Dictionary::new(&b"quick brown fox jumps over the lazy dog"[..]).is_ok());
+        assert!(SharedDict::new(&[]).is_ok());
+        assert!(SharedDict::new(&b"quick brown fox jumps over the lazy dog"[..]).is_ok());
     }
 }

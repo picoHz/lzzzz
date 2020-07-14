@@ -1,4 +1,4 @@
-use super::{Compressor, Dictionary, Preferences};
+use super::{Compressor, Preferences, SharedDict};
 use crate::lz4f::Result;
 use std::io::Write;
 
@@ -35,7 +35,7 @@ impl<W: Write> WriteCompressor<W> {
         })
     }
 
-    pub fn with_dict(writer: W, prefs: Preferences, dict: Dictionary) -> Result<Self> {
+    pub fn with_dict(writer: W, prefs: Preferences, dict: SharedDict) -> Result<Self> {
         Ok(Self {
             device: writer,
             inner: Compressor::new(prefs, Some(dict))?,

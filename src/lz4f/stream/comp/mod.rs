@@ -14,7 +14,7 @@ pub use write::*;
 
 use crate::lz4f::{
     api::{CompressionContext, LZ4F_HEADER_SIZE_MAX},
-    Dictionary, Preferences,
+    Preferences, SharedDict,
 };
 
 #[cfg(feature = "tokio-io")]
@@ -28,7 +28,7 @@ pub(crate) struct Compressor {
 }
 
 impl Compressor {
-    pub fn new(prefs: Preferences, dict: Option<Dictionary>) -> Result<Self> {
+    pub fn new(prefs: Preferences, dict: Option<SharedDict>) -> Result<Self> {
         Ok(Self {
             ctx: CompressionContext::new(dict)?,
             prefs,

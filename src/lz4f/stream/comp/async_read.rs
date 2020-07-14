@@ -1,6 +1,6 @@
 #![cfg(feature = "tokio-io")]
 
-use super::{AsyncBufReadCompressor, Dictionary, Preferences};
+use super::{AsyncBufReadCompressor, Preferences, SharedDict};
 use crate::lz4f::Result;
 use pin_project::pin_project;
 use std::{
@@ -51,7 +51,7 @@ impl<R: AsyncRead + Unpin> AsyncReadCompressor<R> {
         })
     }
 
-    pub fn with_dict(reader: R, prefs: Preferences, dict: Dictionary) -> Result<Self> {
+    pub fn with_dict(reader: R, prefs: Preferences, dict: SharedDict) -> Result<Self> {
         Ok(Self {
             inner: AsyncBufReadCompressor::with_dict(BufReader::new(reader), prefs, dict)?,
         })
