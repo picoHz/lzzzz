@@ -1,10 +1,7 @@
 #![cfg(feature = "tokio-io")]
 
 use super::Decompressor;
-use crate::{
-    lz4f::{FrameInfo, Result},
-    Buffer,
-};
+use crate::lz4f::{FrameInfo, Result};
 use pin_project::pin_project;
 use std::{
     marker::Unpin,
@@ -66,11 +63,11 @@ impl<'a, W: AsyncWrite + Unpin> AsyncWriteDecompressor<'a, W> {
         })
     }
 
-    pub fn set_dict<B>(&mut self, dict: B)
+    pub fn set_dict<D>(&mut self, dict: D)
     where
-        B: Into<Buffer<'a>>,
+        D: AsRef<[u8]> + 'a,
     {
-        self.inner.set_dict(dict.into());
+        self.inner.set_dict(dict);
     }
 
     pub fn frame_info(&self) -> Option<FrameInfo> {

@@ -1,7 +1,4 @@
-use crate::{
-    lz4f::{decomp::Decompressor, FrameInfo, Result},
-    Buffer,
-};
+use crate::lz4f::{decomp::Decompressor, FrameInfo, Result};
 use std::io::Write;
 
 /// Write-based streaming decompressor
@@ -40,11 +37,11 @@ impl<'a, W: Write> WriteDecompressor<'a, W> {
         })
     }
 
-    pub fn set_dict<B>(&mut self, dict: B)
+    pub fn set_dict<D>(&mut self, dict: D)
     where
-        B: Into<Buffer<'a>>,
+        D: AsRef<[u8]> + 'a,
     {
-        self.inner.set_dict(dict.into());
+        self.inner.set_dict(dict);
     }
 
     pub fn frame_info(&self) -> Option<FrameInfo> {

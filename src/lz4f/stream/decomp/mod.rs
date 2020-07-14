@@ -24,8 +24,7 @@ use crate::{
     },
     Error, ErrorKind,
 };
-use std::ops::Deref;
-use std::{cmp, mem, mem::MaybeUninit, ptr};
+use std::{cmp, mem, mem::MaybeUninit, ops::Deref, ptr};
 
 enum State {
     Header {
@@ -63,7 +62,10 @@ impl<'a> Decompressor<'a> {
         })
     }
 
-    pub fn set_dict<D: AsRef<[u8]> + 'a>(&mut self, dict: D) {
+    pub fn set_dict<D>(&mut self, dict: D)
+    where
+        D: AsRef<[u8]> + 'a,
+    {
         self.dict = Some(Box::new(dict));
     }
 

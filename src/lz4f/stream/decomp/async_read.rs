@@ -1,10 +1,7 @@
 #![cfg(feature = "tokio-io")]
 
 use super::AsyncBufReadDecompressor;
-use crate::{
-    lz4f::{FrameInfo, Result},
-    Buffer,
-};
+use crate::lz4f::{FrameInfo, Result};
 use pin_project::pin_project;
 use std::{
     pin::Pin,
@@ -56,11 +53,11 @@ impl<'a, R: AsyncRead + Unpin> AsyncReadDecompressor<'a, R> {
         })
     }
 
-    pub fn set_dict<B>(&mut self, dict: B)
+    pub fn set_dict<D>(&mut self, dict: D)
     where
-        B: Into<Buffer<'a>>,
+        D: AsRef<[u8]> + 'a,
     {
-        self.inner.set_dict(dict.into());
+        self.inner.set_dict(dict);
     }
 
     pub async fn read_frame_info(&mut self) -> tokio::io::Result<FrameInfo> {

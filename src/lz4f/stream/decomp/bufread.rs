@@ -1,8 +1,5 @@
 use super::Decompressor;
-use crate::{
-    lz4f::{FrameInfo, Result},
-    Buffer,
-};
+use crate::lz4f::{FrameInfo, Result};
 use std::io::{BufRead, Read};
 
 /// BufRead-based streaming decompressor
@@ -50,11 +47,11 @@ impl<'a, R: BufRead> BufReadDecompressor<'a, R> {
         })
     }
 
-    pub fn set_dict<B>(&mut self, dict: B)
+    pub fn set_dict<D>(&mut self, dict: D)
     where
-        B: Into<Buffer<'a>>,
+        D: AsRef<[u8]> + 'a,
     {
-        self.inner.set_dict(dict.into());
+        self.inner.set_dict(dict);
     }
 
     pub fn read_frame_info(&mut self) -> std::io::Result<FrameInfo> {
