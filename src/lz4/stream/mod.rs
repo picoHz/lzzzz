@@ -28,34 +28,36 @@ use crate::{
     lz4, Buffer, Error, ErrorKind, Result,
 };
 use api::{CompressionContext, DecompressionContext};
-use std::{cmp, collections::LinkedList};
+use std::{cmp, collections::LinkedList, ops::Deref};
 
 /// Streaming compressor
 pub struct Compressor<'a> {
     ctx: CompressionContext,
-    dict: Buffer<'a>,
     cache: LinkedList<Buffer<'a>>,
     cache_len: usize,
+    dict: Option<Box<dyn AsRef<[u8]> + 'a>>,
 }
 
 impl<'a> Compressor<'a> {
     pub fn new() -> Result<Self> {
         Ok(Self {
             ctx: CompressionContext::new()?,
-            dict: Buffer::new(),
             cache: LinkedList::new(),
             cache_len: 0,
+            dict: None,
         })
     }
 
-    pub fn with_dict<B>(dict: B) -> Result<Self>
+    pub fn with_dict<D>(dict: D) -> Result<Self>
     where
-        B: Into<Buffer<'a>>,
+        D: AsRef<[u8]> + 'a,
     {
-        let dict = dict.into();
-        let mut comp = Self::new()?;
-        comp.ctx.load_dict(&dict);
-        comp.dict = dict;
+        let mut comp = Self {
+            dict: Some(Box::new(dict)),
+            ..Self::new()?
+        };
+        comp.ctx
+            .load_dict(comp.dict.as_ref().unwrap().deref().as_ref());
         Ok(comp)
     }
 
@@ -139,31 +141,34 @@ impl<'a> Compressor<'a> {
 /// Streaming decompressor
 pub struct Decompressor<'a> {
     ctx: DecompressionContext,
-    dict: Buffer<'a>,
     cache: LinkedList<Vec<u8>>,
     cache_len: usize,
     last_len: usize,
+    dict: Option<Box<dyn AsRef<[u8]> + 'a>>,
 }
 
 impl<'a> Decompressor<'a> {
     pub fn new() -> Result<Self> {
         Ok(Self {
             ctx: DecompressionContext::new()?,
-            dict: Buffer::new(),
             cache: LinkedList::new(),
             cache_len: 0,
             last_len: 0,
+            dict: None,
         })
     }
 
-    pub fn with_dict<B>(dict: B) -> Result<Self>
+    pub fn with_dict<D>(dict: D) -> Result<Self>
     where
-        B: Into<Buffer<'a>>,
+        D: AsRef<[u8]> + 'a,
     {
-        let dict = dict.into();
-        let mut decomp = Self::new()?;
-        decomp.ctx.reset(&dict)?;
-        decomp.dict = dict;
+        let mut decomp = Self {
+            dict: Some(Box::new(dict)),
+            ..Self::new()?
+        };
+        decomp
+            .ctx
+            .reset(decomp.dict.as_ref().unwrap().deref().as_ref())?;
         Ok(decomp)
     }
 
