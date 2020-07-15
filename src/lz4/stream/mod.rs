@@ -28,7 +28,7 @@ use crate::{
     lz4, Buffer, Error, ErrorKind, Result,
 };
 use api::{CompressionContext, DecompressionContext};
-use std::{borrow::Cow, cmp, collections::LinkedList, ops::Deref, pin::Pin};
+use std::{borrow::Cow, cmp, collections::LinkedList, pin::Pin};
 
 /// Streaming compressor
 pub struct Compressor<'a> {
@@ -143,7 +143,7 @@ pub struct Decompressor<'a> {
     cache: LinkedList<Vec<u8>>,
     cache_len: usize,
     last_len: usize,
-    dict: Option<Box<dyn AsRef<[u8]> + 'a>>,
+    dict: Pin<Cow<'a, [u8]>>,
 }
 
 impl<'a> Decompressor<'a> {
@@ -153,21 +153,19 @@ impl<'a> Decompressor<'a> {
             cache: LinkedList::new(),
             cache_len: 0,
             last_len: 0,
-            dict: None,
+            dict: Pin::new(Cow::Borrowed(&[])),
         })
     }
 
     pub fn with_dict<D>(dict: D) -> Result<Self>
     where
-        D: AsRef<[u8]> + 'a,
+        D: Into<Cow<'a, [u8]>>,
     {
         let mut decomp = Self {
-            dict: Some(Box::new(dict)),
+            dict: Pin::new(dict.into()),
             ..Self::new()?
         };
-        decomp
-            .ctx
-            .reset(decomp.dict.as_ref().unwrap().deref().as_ref())?;
+        decomp.ctx.reset(&decomp.dict)?;
         Ok(decomp)
     }
 
