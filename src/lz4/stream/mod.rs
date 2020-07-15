@@ -25,7 +25,7 @@ mod api;
 
 use crate::{
     common::{DEFAULT_BUF_SIZE, DICTIONARY_SIZE},
-    lz4, Buffer, Error, ErrorKind, Result,
+    lz4, Error, ErrorKind, Result,
 };
 use api::{CompressionContext, DecompressionContext};
 use std::{borrow::Cow, cmp, collections::LinkedList, pin::Pin};
@@ -33,18 +33,16 @@ use std::{borrow::Cow, cmp, collections::LinkedList, pin::Pin};
 /// Streaming compressor
 pub struct Compressor<'a> {
     ctx: CompressionContext,
-    cache: LinkedList<Buffer<'a>>,
-    cache_len: usize,
     dict: Pin<Cow<'a, [u8]>>,
+    safe_buf: Vec<u8>,
 }
 
 impl<'a> Compressor<'a> {
     pub fn new() -> Result<Self> {
         Ok(Self {
             ctx: CompressionContext::new()?,
-            cache: LinkedList::new(),
-            cache_len: 0,
             dict: Pin::new(Cow::Borrowed(&[])),
+            safe_buf: Vec::new(),
         })
     }
 
@@ -85,31 +83,14 @@ impl<'a> Compressor<'a> {
     /// # .unwrap();
     /// # assert_eq!(&buf[..len], &data[..]);
     /// ```
-    pub fn next<B>(&mut self, src: B, dst: &mut [u8], acc: i32) -> Result<usize>
-    where
-        B: Into<Buffer<'a>>,
-    {
-        let src = src.into();
+    pub fn next(&mut self, src: &[u8], dst: &mut [u8], acc: i32) -> Result<usize> {
         let src_is_empty = src.is_empty();
 
         // Workaround for https://github.com/lz4/lz4/issues/876
         let acc = cmp::min(acc, 33_554_431);
         let dst_len = self.ctx.next(&src, dst, acc);
 
-        if !src_is_empty {
-            self.cache_len += src.len();
-            self.cache.push_back(src);
-        }
-
-        while let Some(len) = self
-            .cache
-            .front()
-            .map(|b| b.len())
-            .filter(|n| self.cache_len - n >= DICTIONARY_SIZE)
-        {
-            self.cache.pop_front();
-            self.cache_len -= len;
-        }
+        self.save_dict();
 
         if dst_len > 0 {
             Ok(dst_len)
@@ -120,11 +101,7 @@ impl<'a> Compressor<'a> {
         }
     }
 
-    pub fn next_to_vec<B>(&mut self, src: B, dst: &mut Vec<u8>, acc: i32) -> Result<usize>
-    where
-        B: Into<Buffer<'a>>,
-    {
-        let src = src.into();
+    pub fn next_to_vec(&mut self, src: &[u8], dst: &mut Vec<u8>, acc: i32) -> Result<usize> {
         let orig_len = dst.len();
         dst.reserve(lz4::max_compressed_size(src.len()));
         #[allow(unsafe_code)]
@@ -134,6 +111,11 @@ impl<'a> Compressor<'a> {
         let result = self.next(src, &mut dst[orig_len..], acc);
         dst.resize_with(orig_len + result.as_ref().unwrap_or(&0), Default::default);
         result
+    }
+
+    fn save_dict(&mut self) {
+        self.safe_buf.resize(DICTIONARY_SIZE, 0);
+        self.ctx.save_dict(&mut self.safe_buf);
     }
 }
 

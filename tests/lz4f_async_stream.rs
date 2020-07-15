@@ -190,7 +190,7 @@ mod async_read_decompressor {
                 let mut w = WriteCompressor::with_dict(
                     &mut comp_buf,
                     prefs,
-                    SharedDict::new(&dict).unwrap(),
+                    Dictionary::new(&dict).unwrap(),
                 )
                 .unwrap();
                 w.write_all(&src).unwrap();
@@ -283,7 +283,7 @@ mod async_bufread_decompressor {
                 let mut w = WriteCompressor::with_dict(
                     &mut comp_buf,
                     prefs,
-                    SharedDict::new(&dict).unwrap(),
+                    Dictionary::new(&dict).unwrap(),
                 )
                 .unwrap();
                 w.write_all(&src).unwrap();
@@ -371,7 +371,7 @@ mod async_write_decompressor {
                 let mut w = WriteCompressor::with_dict(
                     &mut comp_buf,
                     prefs,
-                    SharedDict::new(&dict).unwrap(),
+                    Dictionary::new(&dict).unwrap(),
                 )
                 .unwrap();
                 w.write_all(&src).unwrap();

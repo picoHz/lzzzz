@@ -20,7 +20,7 @@ mod compressor {
                 comp.set_compression_level(level);
                 for src in src_set {
                     let mut comp_buf = vec![0; lz4::max_compressed_size(src.len())];
-                    let len = comp.next(Vec::from(src.as_ref()), &mut comp_buf).unwrap();
+                    let len = comp.next(&src, &mut comp_buf).unwrap();
                     assert_eq!(
                         decomp.next(&comp_buf[..len], src.len()).unwrap(),
                         src.as_ref()
@@ -43,7 +43,7 @@ mod compressor {
                 comp.set_compression_level(level);
                 for src in src_set {
                     let mut comp_buf = vec![0; lz4::max_compressed_size(src.len())];
-                    let len = comp.next(Vec::from(src.as_ref()), &mut comp_buf).unwrap();
+                    let len = comp.next(&src, &mut comp_buf).unwrap();
                     assert_eq!(
                         decomp.next(&comp_buf[..len], src.len()).unwrap(),
                         src.as_ref()
@@ -70,7 +70,7 @@ mod compressor {
                         lz4_hc::FavorDecSpeed::Disabled
                     });
 
-                    let len = comp.next(Vec::from(src.as_ref()), &mut comp_buf).unwrap();
+                    let len = comp.next(&src, &mut comp_buf).unwrap();
                     assert_eq!(
                         decomp.next(&comp_buf[..len], src.len()).unwrap(),
                         src.as_ref()

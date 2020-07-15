@@ -1,4 +1,4 @@
-use super::{Compressor, Preferences, SharedDict};
+use super::{Compressor, Dictionary, Preferences};
 use crate::lz4f::Result;
 use std::io::{BufRead, Read};
 
@@ -45,7 +45,7 @@ impl<R: BufRead> BufReadCompressor<R> {
         })
     }
 
-    pub fn with_dict(reader: R, prefs: Preferences, dict: SharedDict) -> Result<Self> {
+    pub fn with_dict(reader: R, prefs: Preferences, dict: Dictionary) -> Result<Self> {
         Ok(Self {
             device: reader,
             inner: Compressor::new(prefs, Some(dict))?,

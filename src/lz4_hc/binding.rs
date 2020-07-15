@@ -44,6 +44,11 @@ extern "C" {
         dictionary: *const c_char,
         dict_size: c_int,
     ) -> c_int;
+    pub fn LZ4_saveDictHC(
+        ptr: *mut LZ4StreamHC,
+        safe_buffer: *mut c_char,
+        max_dict_size: c_int,
+    ) -> c_int;
     pub fn LZ4_compress_HC_continue(
         ptr: *mut LZ4StreamHC,
         src: *const c_char,

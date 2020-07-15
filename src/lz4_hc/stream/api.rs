@@ -44,6 +44,16 @@ impl CompressionContext {
         }
     }
 
+    pub fn save_dict(&mut self, dict: &mut [u8]) {
+        unsafe {
+            binding::LZ4_saveDictHC(
+                self.stream.as_ptr(),
+                dict.as_ptr() as *mut c_char,
+                dict.len() as c_int,
+            );
+        }
+    }
+
     pub fn next(&mut self, src: &[u8], dst: &mut [u8]) -> Result<usize> {
         if src.is_empty() {
             return Ok(0);

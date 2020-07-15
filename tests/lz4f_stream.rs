@@ -170,7 +170,7 @@ mod bufread_compressor {
 
 mod write_decompressor {
     use super::*;
-    use lzzzz::lz4f::{comp::WriteCompressor, decomp::WriteDecompressor, SharedDict};
+    use lzzzz::lz4f::{comp::WriteCompressor, decomp::WriteDecompressor, Dictionary};
 
     #[test]
     fn default() {
@@ -202,7 +202,7 @@ mod write_decompressor {
                 let mut w = WriteCompressor::with_dict(
                     &mut comp_buf,
                     prefs,
-                    SharedDict::new(&dict).unwrap(),
+                    Dictionary::new(&dict).unwrap(),
                 )
                 .unwrap();
                 w.write_all(&src).unwrap();
@@ -306,7 +306,7 @@ mod read_decompressor {
                 let mut w = WriteCompressor::with_dict(
                     &mut comp_buf,
                     prefs,
-                    SharedDict::new(&dict).unwrap(),
+                    Dictionary::new(&dict).unwrap(),
                 )
                 .unwrap();
                 w.write_all(&src).unwrap();
@@ -393,7 +393,7 @@ mod bufread_decompressor {
                 let mut w = WriteCompressor::with_dict(
                     &mut comp_buf,
                     prefs,
-                    SharedDict::new(&dict).unwrap(),
+                    Dictionary::new(&dict).unwrap(),
                 )
                 .unwrap();
                 w.write_all(&src).unwrap();

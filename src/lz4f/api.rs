@@ -6,7 +6,7 @@ use super::{
         LZ4FCompressionCtx, LZ4FCompressionDict, LZ4FCompressionOptions, LZ4FDecompressionCtx,
         LZ4FDecompressionOptions,
     },
-    SharedDict,
+    Dictionary,
 };
 use crate::lz4f::{Error, ErrorKind, FrameInfo, Preferences, Result};
 
@@ -17,11 +17,11 @@ pub const LZ4F_HEADER_SIZE_MAX: usize = 19;
 
 pub struct CompressionContext {
     ctx: NonNull<LZ4FCompressionCtx>,
-    dict: Option<SharedDict>,
+    dict: Option<Dictionary>,
 }
 
 impl CompressionContext {
-    pub fn new(dict: Option<SharedDict>) -> Result<Self> {
+    pub fn new(dict: Option<Dictionary>) -> Result<Self> {
         let ctx = MaybeUninit::<*mut LZ4FCompressionCtx>::uninit();
         unsafe {
             let code = binding::LZ4F_createCompressionContext(

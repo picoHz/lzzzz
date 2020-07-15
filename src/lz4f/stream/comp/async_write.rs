@@ -1,6 +1,6 @@
 #![cfg(feature = "tokio-io")]
 
-use super::{Compressor, Preferences, SharedDict};
+use super::{Compressor, Dictionary, Preferences};
 use crate::lz4f::Result;
 use pin_project::pin_project;
 use std::{
@@ -63,7 +63,7 @@ impl<W: AsyncWrite + Unpin> AsyncWriteCompressor<W> {
         })
     }
 
-    pub fn with_dict(writer: W, prefs: Preferences, dict: SharedDict) -> Result<Self> {
+    pub fn with_dict(writer: W, prefs: Preferences, dict: Dictionary) -> Result<Self> {
         Ok(Self {
             device: writer,
             inner: Compressor::new(prefs, Some(dict))?,

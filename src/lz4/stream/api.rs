@@ -72,6 +72,16 @@ impl CompressionContext {
             );
         }
     }
+
+    pub fn save_dict(&mut self, dict: &mut [u8]) {
+        unsafe {
+            binding::LZ4_saveDict(
+                self.get_ptr(),
+                dict.as_ptr() as *mut c_char,
+                dict.len() as c_int,
+            );
+        }
+    }
 }
 
 impl Drop for CompressionContext {

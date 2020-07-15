@@ -20,9 +20,7 @@ mod compressor {
                     let mut comp_buf = vec![0; lz4::max_compressed_size(src.len())];
                     let mut decomp_buf = vec![0; src.len()];
 
-                    let len = stream
-                        .next(Vec::from(src.as_ref()), &mut comp_buf, mode)
-                        .unwrap();
+                    let len = stream.next(&src, &mut comp_buf, mode).unwrap();
 
                     lz4::decompress(&comp_buf[..len], &mut decomp_buf).unwrap();
                     assert_eq!(decomp_buf, src);
@@ -42,10 +40,7 @@ mod compressor {
                 let mut stream = lz4::Compressor::with_dict(&dict).unwrap();
                 for src in src_set {
                     let mut comp_buf = vec![0; lz4::max_compressed_size(src.len())];
-                    let len = stream
-                        .next(Vec::from(src.as_ref()), &mut comp_buf, mode)
-                        .unwrap();
-
+                    let len = stream.next(&src, &mut comp_buf, mode).unwrap();
                     let mut decomp_buf = vec![0; src.len()];
                     lz4::decompress_with_dict(&comp_buf[..len], &mut decomp_buf, &dict).unwrap();
                     assert_eq!(src, decomp_buf);
