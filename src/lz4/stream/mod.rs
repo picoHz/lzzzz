@@ -28,14 +28,14 @@ use crate::{
     lz4, Buffer, Error, ErrorKind, Result,
 };
 use api::{CompressionContext, DecompressionContext};
-use std::{cmp, collections::LinkedList, ops::Deref};
+use std::{borrow::Cow, cmp, collections::LinkedList, ops::Deref, pin::Pin};
 
 /// Streaming compressor
 pub struct Compressor<'a> {
     ctx: CompressionContext,
     cache: LinkedList<Buffer<'a>>,
     cache_len: usize,
-    dict: Option<Box<dyn AsRef<[u8]> + 'a>>,
+    dict: Pin<Cow<'a, [u8]>>,
 }
 
 impl<'a> Compressor<'a> {
@@ -44,20 +44,19 @@ impl<'a> Compressor<'a> {
             ctx: CompressionContext::new()?,
             cache: LinkedList::new(),
             cache_len: 0,
-            dict: None,
+            dict: Pin::new(Cow::Borrowed(&[])),
         })
     }
 
     pub fn with_dict<D>(dict: D) -> Result<Self>
     where
-        D: AsRef<[u8]> + 'a,
+        D: Into<Cow<'a, [u8]>>,
     {
         let mut comp = Self {
-            dict: Some(Box::new(dict)),
+            dict: Pin::new(dict.into()),
             ..Self::new()?
         };
-        comp.ctx
-            .load_dict(comp.dict.as_ref().unwrap().deref().as_ref());
+        comp.ctx.load_dict(&comp.dict);
         Ok(comp)
     }
 
