@@ -31,14 +31,14 @@ mod api;
 
 use crate::{common::DICTIONARY_SIZE, lz4, lz4_hc::FavorDecSpeed, Buffer, Result};
 use api::CompressionContext;
-use std::{collections::LinkedList, ops::Deref};
+use std::{collections::LinkedList, ops::Deref, pin::Pin};
 
 /// Streaming compressor
 pub struct Compressor<'a> {
     ctx: CompressionContext,
     cache: LinkedList<Buffer<'a>>,
     cache_len: usize,
-    dict: Option<Box<dyn AsRef<[u8]> + 'a>>,
+    dict: Option<Pin<Box<dyn Deref<Target = [u8]> + 'a>>>,
 }
 
 impl<'a> Compressor<'a> {
@@ -53,14 +53,14 @@ impl<'a> Compressor<'a> {
 
     pub fn with_dict<D>(dict: D) -> Result<Self>
     where
-        D: AsRef<[u8]> + 'a,
+        D: Deref<Target = [u8]> + 'a,
     {
         let mut comp = Self {
-            dict: Some(Box::new(dict)),
+            dict: Some(Box::pin(dict)),
             ..Self::new()?
         };
         comp.ctx
-            .load_dict(comp.dict.as_ref().unwrap().deref().as_ref());
+            .load_dict(comp.dict.as_ref().unwrap().deref().deref());
         Ok(comp)
     }
 

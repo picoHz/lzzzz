@@ -38,7 +38,7 @@ mod compressor {
                     .sample_iter(Standard)
                     .take(64_000)
                     .collect::<Vec<_>>();
-                let mut comp = lz4_hc::Compressor::with_dict(&dict).unwrap();
+                let mut comp = lz4_hc::Compressor::with_dict(dict.as_ref()).unwrap();
                 let mut decomp = lz4::Decompressor::with_dict(&dict).unwrap();
                 comp.set_compression_level(level);
                 for src in src_set {
