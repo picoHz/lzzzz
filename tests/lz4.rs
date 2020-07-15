@@ -1,5 +1,3 @@
-#![cfg(feature = "lz4")]
-
 use lzzzz::lz4;
 use rayon::{iter::ParallelBridge, prelude::*};
 use std::cmp;

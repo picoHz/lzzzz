@@ -1,5 +1,3 @@
-#![cfg(feature = "lz4")]
-
 use lzzzz::lz4;
 use rand::{distributions::Standard, rngs::SmallRng, Rng, SeedableRng};
 use rayon::{iter::ParallelBridge, prelude::*};
@@ -19,9 +17,7 @@ mod compressor {
                 for src in src_set {
                     let mut comp_buf = vec![0; lz4::max_compressed_size(src.len())];
                     let mut decomp_buf = vec![0; src.len()];
-
                     let len = stream.next(&src, &mut comp_buf, mode).unwrap();
-
                     lz4::decompress(&comp_buf[..len], &mut decomp_buf).unwrap();
                     assert_eq!(decomp_buf, src);
                 }

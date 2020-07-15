@@ -1,5 +1,3 @@
-#![cfg(feature = "lz4-hc")]
-
 use lzzzz::{lz4, lz4_hc};
 use rand::{distributions::Standard, rngs::SmallRng, Rng, SeedableRng};
 use rayon::{iter::ParallelBridge, prelude::*};

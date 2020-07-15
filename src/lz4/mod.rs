@@ -1,4 +1,3 @@
-#![cfg(feature = "lz4")]
 //! Extremely fast compression algorithm
 
 mod binding;

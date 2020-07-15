@@ -29,12 +29,6 @@ rayon = "1.3.1"
 cc = { version = "1.0.57", features = ["parallel"] }
 
 [features]
-default = ["lz4", "lz4-hc", "lz4f"]
-
-lz4 = []
-lz4-hc = ["lz4"]
-lz4f = []
-
 tokio-io = ["tokio/io-util", "pin-project"]
 
 [package.metadata.docs.rs]

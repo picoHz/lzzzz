@@ -1,4 +1,3 @@
-#![cfg(feature = "lz4-hc")]
 //! High compression variant of LZ4
 //!
 //! The `lz4_hc` module doesn't provide decompression functionalities.

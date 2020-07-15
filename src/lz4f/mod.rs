@@ -1,4 +1,3 @@
-#![cfg(feature = "lz4f")]
 //! LZ4 frame format
 
 mod api;

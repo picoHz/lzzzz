@@ -1,5 +1,3 @@
-#![cfg(feature = "lz4-hc")]
-
 use lzzzz::{lz4, lz4_hc};
 use rayon::{iter::ParallelBridge, prelude::*};
 
