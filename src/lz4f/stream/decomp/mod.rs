@@ -24,7 +24,7 @@ use crate::{
     },
     Error, ErrorKind,
 };
-use std::{cmp, mem, mem::MaybeUninit, ops::Deref, ptr};
+use std::{borrow::Cow, cmp, mem, mem::MaybeUninit, pin::Pin, ptr};
 
 enum State {
     Header {
@@ -41,7 +41,7 @@ pub(crate) struct Decompressor<'a> {
     ctx: DecompressionContext,
     state: State,
     buffer: Vec<u8>,
-    dict: Option<Box<dyn AsRef<[u8]> + 'a>>,
+    dict: Pin<Cow<'a, [u8]>>,
     header_only: bool,
 }
 
@@ -57,16 +57,16 @@ impl<'a> Decompressor<'a> {
                 header_len: 0,
             },
             buffer: Vec::with_capacity(DEFAULT_BUF_SIZE),
-            dict: None,
+            dict: Pin::new(Cow::Borrowed(&[])),
             header_only: false,
         })
     }
 
     pub fn set_dict<D>(&mut self, dict: D)
     where
-        D: AsRef<[u8]> + 'a,
+        D: Into<Cow<'a, [u8]>>,
     {
-        self.dict = Some(Box::new(dict));
+        self.dict = Pin::new(dict.into());
     }
 
     pub fn frame_info(&self) -> Option<FrameInfo> {
@@ -138,15 +138,9 @@ impl<'a> Decompressor<'a> {
             unsafe {
                 self.buffer.set_len(self.buffer.capacity());
             }
-            let (src_len, dst_len, _) = self.ctx.decompress_dict(
-                src,
-                &mut self.buffer[len..],
-                self.dict
-                    .as_ref()
-                    .map(|d| d.deref().as_ref())
-                    .unwrap_or(&[]),
-                false,
-            )?;
+            let (src_len, dst_len, _) =
+                self.ctx
+                    .decompress_dict(src, &mut self.buffer[len..], &self.dict, false)?;
             self.buffer.resize_with(len + dst_len, Default::default);
             Ok(src_len + header_consumed)
         } else {
@@ -155,11 +149,7 @@ impl<'a> Decompressor<'a> {
     }
 
     fn dict_ptr(&self) -> (*const u8, usize) {
-        let dict = self
-            .dict
-            .as_ref()
-            .map(|d| d.deref().as_ref())
-            .unwrap_or(&[]);
+        let dict = &self.dict;
         if dict.is_empty() {
             (ptr::null(), 0)
         } else {

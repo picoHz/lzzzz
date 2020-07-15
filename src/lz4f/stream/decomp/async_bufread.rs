@@ -4,6 +4,7 @@ use super::Decompressor;
 use crate::lz4f::{FrameInfo, Result};
 use pin_project::pin_project;
 use std::{
+    borrow::Cow,
     pin::Pin,
     task::{Context, Poll},
 };
@@ -61,7 +62,7 @@ impl<'a, R: AsyncBufRead + Unpin> AsyncBufReadDecompressor<'a, R> {
 
     pub fn set_dict<D>(&mut self, dict: D)
     where
-        D: AsRef<[u8]> + 'a,
+        D: Into<Cow<'a, [u8]>>,
     {
         self.inner.set_dict(dict);
     }

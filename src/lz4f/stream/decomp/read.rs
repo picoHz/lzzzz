@@ -1,6 +1,9 @@
 use super::BufReadDecompressor;
 use crate::lz4f::{FrameInfo, Result};
-use std::io::{BufReader, Read};
+use std::{
+    borrow::Cow,
+    io::{BufReader, Read},
+};
 
 /// Read-based streaming decompressor
 /// # Examples
@@ -46,7 +49,7 @@ impl<'a, R: Read> ReadDecompressor<'a, R> {
     /// Set the dictionary.
     pub fn set_dict<D>(&mut self, dict: D)
     where
-        D: AsRef<[u8]> + 'a,
+        D: Into<Cow<'a, [u8]>>,
     {
         self.inner.set_dict(dict);
     }

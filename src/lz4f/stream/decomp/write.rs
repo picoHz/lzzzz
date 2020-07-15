@@ -1,5 +1,5 @@
 use crate::lz4f::{decomp::Decompressor, FrameInfo, Result};
-use std::io::Write;
+use std::{borrow::Cow, io::Write};
 
 /// Write-based streaming decompressor
 ///
@@ -39,7 +39,7 @@ impl<'a, W: Write> WriteDecompressor<'a, W> {
 
     pub fn set_dict<D>(&mut self, dict: D)
     where
-        D: AsRef<[u8]> + 'a,
+        D: Into<Cow<'a, [u8]>>,
     {
         self.inner.set_dict(dict);
     }
