@@ -1,5 +1,11 @@
-# Lz⁴
-Yet another liblz4 binding 😴
+<h1 align="center">lzzzz</h1>
+<div align="center">
+ <strong>
+   Yet another liblz4 binding for Rust.
+ </strong>
+</div>
+
+<br/>
 
 [![Build Status](https://dev.azure.com/picoHz/lzzzz/_apis/build/status/lzzzz-CI?branchName=master)](https://dev.azure.com/picoHz/lzzzz/_build/latest?definitionId=2&branchName=master)
 
