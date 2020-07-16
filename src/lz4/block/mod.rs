@@ -19,6 +19,8 @@ pub const fn max_compressed_size(original_size: usize) -> usize {
 /// If `dst.len()` is smaller than `lz4::max_compressed_size(src.len())`,
 /// this function may fail.
 ///
+/// The returned value is the number of bytes written into `dst`.
+///
 /// # Examples
 ///
 /// Compress data with the default compression mode:
@@ -140,6 +142,10 @@ pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, acc: i32) -> Result<usize>
 }
 
 /// Decompresses a LZ4 compressed block.
+///
+/// The length of the destination slice must be equal to the original data length.
+///
+/// The returned value is the number of bytes written into `dst`.
 ///
 /// # Examples
 ///
