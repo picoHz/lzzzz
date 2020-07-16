@@ -28,9 +28,6 @@ impl Dictionary {
 #[cfg(test)]
 mod tests {
     use super::Dictionary;
-    use static_assertions::assert_impl_all;
-
-    assert_impl_all!(Dictionary: Send, Sync);
 
     #[test]
     fn create_dictionary() {
