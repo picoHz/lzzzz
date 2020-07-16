@@ -258,7 +258,7 @@ mod write_decompressor {
                     .unwrap();
                 assert_eq!(
                     err.downcast::<lz4f::Error>().unwrap(),
-                    Box::new(lz4f::Error::Common(lzzzz::ErrorKind::DecompressionFailed))
+                    Box::new(lz4f::Error::Common(lzzzz::ErrorKind::FrameHeaderInvalid))
                 );
             }
         });
