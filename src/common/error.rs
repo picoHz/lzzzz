@@ -7,6 +7,7 @@ pub enum ErrorKind {
     InitializationFailed,
     CompressionFailed,
     DecompressionFailed,
+    FrameHeaderInvalid,
     CompressedDataIncomplete,
     /// The specified compression mode was not valid.
     CompressionModeInvalid,

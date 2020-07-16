@@ -98,8 +98,7 @@ impl<'a> Decompressor<'a> {
                 let src = &src[header_consumed..];
                 let exact_header_len = header_size(&header[..header_len]);
                 if exact_header_len > LZ4F_HEADER_SIZE_MAX {
-                    // TODO
-                    return Err(Error::new(ErrorKind::DecompressionFailed).into());
+                    return Err(Error::new(ErrorKind::FrameHeaderInvalid).into());
                 }
                 if header_len < exact_header_len {
                     let len = cmp::min(exact_header_len - header_len, src.len());
