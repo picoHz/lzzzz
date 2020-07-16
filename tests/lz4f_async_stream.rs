@@ -429,10 +429,12 @@ mod async_write_decompressor {
                     .await
                     .unwrap_err()
                     .into_inner()
+                    .unwrap()
+                    .downcast::<lz4f::Error>()
                     .unwrap();
                 assert_eq!(
-                    err.downcast::<lz4f::Error>().unwrap(),
-                    Box::new(lz4f::Error::Common(lzzzz::ErrorKind::DecompressionFailed))
+                    *err,
+                    lz4f::Error::Common(lzzzz::ErrorKind::DecompressionFailed)
                 );
             }
         }))

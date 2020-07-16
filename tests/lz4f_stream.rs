@@ -255,10 +255,12 @@ mod write_decompressor {
                     .write_all(&comp_buf[1..])
                     .unwrap_err()
                     .into_inner()
+                    .unwrap()
+                    .downcast::<lz4f::Error>()
                     .unwrap();
                 assert_eq!(
-                    err.downcast::<lz4f::Error>().unwrap(),
-                    Box::new(lz4f::Error::Common(lzzzz::ErrorKind::FrameHeaderInvalid))
+                    *err,
+                    lz4f::Error::Common(lzzzz::ErrorKind::FrameHeaderInvalid)
                 );
             }
         });
