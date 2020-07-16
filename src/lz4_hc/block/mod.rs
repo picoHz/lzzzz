@@ -3,7 +3,7 @@ mod api;
 use crate::{lz4, Error, ErrorKind, Result};
 use api::ExtState;
 
-/// Read data from a slice and write compressed data into another slice.
+/// Performs LZ4_HC block compression.
 ///
 /// Ensure that the destination slice have enough capacity.
 /// If `dst.len()` is smaller than `lz4::max_compressed_size(src.len())`,
@@ -58,6 +58,7 @@ pub fn compress(src: &[u8], dst: &mut [u8], level: i32) -> Result<usize> {
     }
 }
 
+/// Compresses data into a slice as much as possible.
 pub fn compress_partial(src: &[u8], dst: &mut [u8], level: i32) -> Result<(usize, usize)> {
     if src.is_empty() || dst.is_empty() {
         return Ok((0, 0));
@@ -67,7 +68,7 @@ pub fn compress_partial(src: &[u8], dst: &mut [u8], level: i32) -> Result<(usize
     }))
 }
 
-/// Read data from a slice and append compressed data to `Vec<u8>`.
+/// Appends compressed data to `Vec<u8>`.
 ///
 /// In this function, [`CompressionMode::Partial`] has no special meaning and
 /// is same as [`CompressionMode::Default`].

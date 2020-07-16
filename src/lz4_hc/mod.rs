@@ -1,5 +1,12 @@
 //! High compression variant of LZ4
 //!
+//! # Block mode
+//!
+//! # Streaming mode
+//!
+//! # Compression level
+//!
+//! # Decompression
 //! The `lz4_hc` module doesn't provide decompression functionalities.
 //! Use the [`lz4`] module instead.
 //!

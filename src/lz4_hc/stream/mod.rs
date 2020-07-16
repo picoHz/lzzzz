@@ -33,7 +33,7 @@ use crate::{common::DICTIONARY_SIZE, lz4, lz4_hc::FavorDecSpeed, Result};
 use api::CompressionContext;
 use std::{borrow::Cow, pin::Pin};
 
-/// Streaming compressor
+/// Streaming LZ4_HC compressor
 pub struct Compressor<'a> {
     ctx: CompressionContext,
     dict: Pin<Cow<'a, [u8]>>,
