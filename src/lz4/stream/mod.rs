@@ -1,26 +1,3 @@
-//! LZ4 Streaming Compressor/Decompressor
-//!
-//! # Example
-//! ```
-//! use lzzzz::lz4;
-//!
-//! let mut stream = lz4::Compressor::new().unwrap();
-//!
-//! let data = &b"aaaaa"[..];
-//! let mut buf = Vec::new();
-//!
-//! stream.next_to_vec(data, &mut buf, lz4::ACC_LEVEL_DEFAULT);
-//!
-//! # let compressed = &buf;
-//! # let mut buf = [0u8; 2048];
-//! # let len = lz4::decompress(
-//! #     compressed,
-//! #     &mut buf[..data.len()]
-//! # )
-//! # .unwrap();
-//! # assert_eq!(&buf[..len], &data[..]);
-//! ```
-
 mod api;
 
 use crate::{
@@ -30,7 +7,7 @@ use crate::{
 use api::{CompressionContext, DecompressionContext};
 use std::{borrow::Cow, cmp, collections::LinkedList, pin::Pin};
 
-/// Streaming compressor
+/// Streaming LZ4 compressor
 pub struct Compressor<'a> {
     ctx: CompressionContext,
     dict: Pin<Cow<'a, [u8]>>,
@@ -119,7 +96,7 @@ impl<'a> Compressor<'a> {
     }
 }
 
-/// Streaming decompressor
+/// Streaming LZ4 decompressor
 pub struct Decompressor<'a> {
     ctx: DecompressionContext,
     cache: LinkedList<Vec<u8>>,

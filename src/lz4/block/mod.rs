@@ -5,7 +5,7 @@ use crate::{Error, ErrorKind, Result};
 use api::ExtState;
 use std::cmp;
 
-/// Calculate the maximum size of the compressed data from the original size.
+/// Calculates the maximum size of the compressed data.
 ///
 /// If `original_size` is too large to compress, this function returns `0`.
 #[must_use]
@@ -13,7 +13,7 @@ pub const fn max_compressed_size(original_size: usize) -> usize {
     api::compress_bound(original_size)
 }
 
-/// Read data from a slice and write compressed data into another slice.
+/// Performs LZ4 block compression.
 ///
 /// Ensure that the destination slice have enough capacity.
 /// If `dst.len()` is smaller than `lz4::max_compressed_size(src.len())`,
@@ -62,7 +62,7 @@ pub fn compress(src: &[u8], dst: &mut [u8], acc: i32) -> Result<usize> {
     }
 }
 
-/// Read data from a slice and append compressed data to `Vec<u8>`.
+/// Appends compressed data to `Vec<u8>`.
 ///
 /// # Examples
 ///
@@ -139,7 +139,7 @@ pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, acc: i32) -> Result<usize>
     result
 }
 
-/// Read data from a slice and write decompressed data into another slice.
+/// Decompresses a LZ4 compressed block.
 ///
 /// # Examples
 ///
@@ -189,10 +189,12 @@ pub fn decompress(src: &[u8], dst: &mut [u8]) -> Result<usize> {
     api::decompress_safe(src, dst)
 }
 
+/// Decompresses a LZ4 compressed block as much as possible.
 pub fn decompress_partial(src: &[u8], dst: &mut [u8], original_size: usize) -> Result<usize> {
     api::decompress_safe_partial(src, dst, original_size)
 }
 
+/// Decompresses a LZ4 compressed block with a dictionary.
 pub fn decompress_with_dict(src: &[u8], dst: &mut [u8], dict: &[u8]) -> Result<usize> {
     api::decompress_safe_using_dict(src, dst, dict)
 }
