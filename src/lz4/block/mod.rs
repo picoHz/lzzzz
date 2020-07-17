@@ -140,7 +140,7 @@ pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, acc: i32) -> Result<usize>
     result
 }
 
-/// Decompresses a LZ4 compressed block.
+/// Decompresses a LZ4 block.
 ///
 /// The length of the destination slice must be equal to the original data length.
 ///
@@ -191,12 +191,12 @@ pub fn decompress(src: &[u8], dst: &mut [u8]) -> Result<usize> {
     api::decompress_safe(src, dst)
 }
 
-/// Decompresses a LZ4 compressed block as much as possible.
+/// Decompresses a LZ4 block as much as possible.
 pub fn decompress_partial(src: &[u8], dst: &mut [u8], original_size: usize) -> Result<usize> {
     api::decompress_safe_partial(src, dst, original_size)
 }
 
-/// Decompresses a LZ4 compressed block with a dictionary.
+/// Decompresses a LZ4 block with a dictionary.
 pub fn decompress_with_dict(src: &[u8], dst: &mut [u8], dict: &[u8]) -> Result<usize> {
     api::decompress_safe_using_dict(src, dst, dict)
 }
