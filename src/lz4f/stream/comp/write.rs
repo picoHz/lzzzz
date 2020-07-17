@@ -13,7 +13,7 @@ use std::io::Write;
 /// # use assert_fs::prelude::*;
 /// # let tmp_dir = assert_fs::TempDir::new().unwrap().into_persistent();
 /// # env::set_current_dir(tmp_dir.path()).unwrap();
-/// use lzzzz::lz4f::comp::WriteCompressor;
+/// use lzzzz::lz4f::WriteCompressor;
 /// use std::{fs::File, io::prelude::*};
 ///
 /// let mut f = File::create("foo.lz4")?;

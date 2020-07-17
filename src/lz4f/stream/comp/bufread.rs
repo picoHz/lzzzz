@@ -16,7 +16,7 @@ use std::io::{BufRead, Read};
 /// #
 /// # tmp_dir.child("foo.txt").write_str("Hello").unwrap();
 /// #
-/// use lzzzz::lz4f::comp::BufReadCompressor;
+/// use lzzzz::lz4f::BufReadCompressor;
 /// use std::{
 ///     fs::File,
 ///     io::{prelude::*, BufReader},

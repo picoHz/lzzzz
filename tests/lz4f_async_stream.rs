@@ -9,7 +9,7 @@ use common::lz4f_test_set;
 
 mod async_read_compressor {
     use super::*;
-    use lzzzz::lz4f::comp::AsyncReadCompressor;
+    use lzzzz::lz4f::AsyncReadCompressor;
     use tokio::io::AsyncReadExt;
 
     #[tokio::test]
@@ -68,7 +68,7 @@ mod async_read_compressor {
 
 mod async_bufread_compressor {
     use super::*;
-    use lzzzz::lz4f::comp::AsyncBufReadCompressor;
+    use lzzzz::lz4f::AsyncBufReadCompressor;
     use tokio::io::AsyncReadExt;
 
     #[tokio::test]
@@ -128,7 +128,7 @@ mod async_bufread_compressor {
 mod async_write_compressor {
     use super::*;
     use futures::future::join_all;
-    use lzzzz::lz4f::comp::AsyncWriteCompressor;
+    use lzzzz::lz4f::AsyncWriteCompressor;
     use tokio::io::AsyncWriteExt;
 
     #[tokio::test]
@@ -154,7 +154,7 @@ mod async_write_compressor {
 mod async_read_decompressor {
     use super::*;
     use futures::future::join_all;
-    use lzzzz::lz4f::{comp::WriteCompressor, decomp::AsyncReadDecompressor};
+    use lzzzz::lz4f::{AsyncReadDecompressor, WriteCompressor};
     use std::io::Write;
     use tokio::io::AsyncReadExt;
 
@@ -243,7 +243,7 @@ mod async_read_decompressor {
 mod async_bufread_decompressor {
     use super::*;
     use futures::future::join_all;
-    use lzzzz::lz4f::{comp::WriteCompressor, decomp::AsyncBufReadDecompressor};
+    use lzzzz::lz4f::{AsyncBufReadDecompressor, WriteCompressor};
     use std::io::Write;
     use tokio::io::AsyncReadExt;
 
@@ -336,7 +336,7 @@ mod async_bufread_decompressor {
 mod async_write_decompressor {
     use super::*;
     use futures::future::join_all;
-    use lzzzz::lz4f::{comp::WriteCompressor, decomp::AsyncWriteDecompressor};
+    use lzzzz::lz4f::{AsyncWriteDecompressor, WriteCompressor};
     use std::io::Write;
     use tokio::io::AsyncWriteExt;
 

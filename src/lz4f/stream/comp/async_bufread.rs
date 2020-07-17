@@ -26,7 +26,7 @@ use tokio::io::{AsyncBufRead, AsyncRead};
 /// #
 /// # let mut rt = tokio::runtime::Runtime::new().unwrap();
 /// # rt.block_on(async {
-/// use lzzzz::lz4f::comp::AsyncBufReadCompressor;
+/// use lzzzz::lz4f::AsyncBufReadCompressor;
 /// use tokio::{fs::File, io::BufReader, prelude::*};
 ///
 /// let mut f = File::open("foo.txt").await?;

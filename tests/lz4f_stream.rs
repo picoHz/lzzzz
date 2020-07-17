@@ -8,7 +8,7 @@ use common::lz4f_test_set;
 
 mod write_compressor {
     use super::*;
-    use lzzzz::lz4f::comp::WriteCompressor;
+    use lzzzz::lz4f::WriteCompressor;
 
     #[test]
     fn default() {
@@ -56,7 +56,7 @@ mod write_compressor {
 
 mod read_compressor {
     use super::*;
-    use lzzzz::lz4f::comp::ReadCompressor;
+    use lzzzz::lz4f::ReadCompressor;
 
     #[test]
     fn default() {
@@ -112,7 +112,7 @@ mod read_compressor {
 
 mod bufread_compressor {
     use super::*;
-    use lzzzz::lz4f::comp::BufReadCompressor;
+    use lzzzz::lz4f::BufReadCompressor;
 
     #[test]
     fn default() {
@@ -168,7 +168,7 @@ mod bufread_compressor {
 
 mod write_decompressor {
     use super::*;
-    use lzzzz::lz4f::{comp::WriteCompressor, decomp::WriteDecompressor, Dictionary};
+    use lzzzz::lz4f::{Dictionary, WriteCompressor, WriteDecompressor};
 
     #[test]
     fn default() {
@@ -269,7 +269,7 @@ mod write_decompressor {
 
 mod read_decompressor {
     use super::*;
-    use lzzzz::lz4f::{comp::WriteCompressor, decomp::ReadDecompressor};
+    use lzzzz::lz4f::{ReadDecompressor, WriteCompressor};
 
     #[test]
     fn default() {
@@ -356,7 +356,7 @@ mod read_decompressor {
 
 mod bufread_decompressor {
     use super::*;
-    use lzzzz::lz4f::{comp::WriteCompressor, decomp::BufReadDecompressor};
+    use lzzzz::lz4f::{BufReadDecompressor, WriteCompressor};
 
     #[test]
     fn default() {

@@ -1,4 +1,4 @@
-use crate::lz4f::{decomp::Decompressor, FrameInfo, Result};
+use crate::lz4f::{Decompressor, FrameInfo, Result};
 use std::{borrow::Cow, io::Write};
 
 /// The [`Write`]-based streaming decompressor.
@@ -12,7 +12,7 @@ use std::{borrow::Cow, io::Write};
 /// # use assert_fs::prelude::*;
 /// # let tmp_dir = assert_fs::TempDir::new().unwrap().into_persistent();
 /// # env::set_current_dir(tmp_dir.path()).unwrap();
-/// use lzzzz::lz4f::{compress_to_vec, decomp::WriteDecompressor};
+/// use lzzzz::lz4f::{compress_to_vec, WriteDecompressor};
 /// use std::{fs::File, io::prelude::*};
 ///
 /// let mut f = File::create("foo.txt")?;

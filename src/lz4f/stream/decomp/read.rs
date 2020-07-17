@@ -21,7 +21,7 @@ use std::{
 /// # lzzzz::lz4f::compress_to_vec(b"Hello world!", &mut buf, &Default::default())?;
 /// # tmp_dir.child("foo.lz4").write_binary(&buf).unwrap();
 /// #
-/// use lzzzz::lz4f::decomp::ReadDecompressor;
+/// use lzzzz::lz4f::ReadDecompressor;
 /// use std::{fs::File, io::prelude::*};
 ///
 /// let mut f = File::open("foo.lz4")?;

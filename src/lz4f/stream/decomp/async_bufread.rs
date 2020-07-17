@@ -28,7 +28,7 @@ use tokio::io::{AsyncBufRead, AsyncRead, AsyncReadExt};
 /// #
 /// # let mut rt = tokio::runtime::Runtime::new().unwrap();
 /// # rt.block_on(async {
-/// use lzzzz::lz4f::decomp::AsyncBufReadDecompressor;
+/// use lzzzz::lz4f::AsyncBufReadDecompressor;
 /// use tokio::{fs::File, io::BufReader, prelude::*};
 ///
 /// let mut f = File::open("foo.lz4").await?;

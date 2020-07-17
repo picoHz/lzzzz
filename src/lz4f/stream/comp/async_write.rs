@@ -22,7 +22,7 @@ use tokio::io::AsyncWrite;
 /// # env::set_current_dir(tmp_dir.path()).unwrap();
 /// # let mut rt = tokio::runtime::Runtime::new().unwrap();
 /// # rt.block_on(async {
-/// use lzzzz::lz4f::comp::AsyncWriteCompressor;
+/// use lzzzz::lz4f::AsyncWriteCompressor;
 /// use tokio::{fs::File, prelude::*};
 ///
 /// let mut f = File::create("foo.lz4").await?;
