@@ -1,4 +1,4 @@
-//! High compression variant of LZ4
+//! High compression variant of LZ4.
 //!
 //! # Block mode
 //!

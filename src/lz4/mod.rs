@@ -1,4 +1,4 @@
-//! Extremely fast compression algorithm
+//! Extremely fast compression algorithm.
 //!
 //! # Block mode
 //!

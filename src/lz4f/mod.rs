@@ -1,4 +1,4 @@
-//! LZ4 frame format
+//! LZ4 frame format.
 
 mod api;
 mod binding;
