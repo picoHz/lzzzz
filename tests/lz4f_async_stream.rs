@@ -1,4 +1,4 @@
-#![cfg(all(feature = "lz4f", feature = "tokio-io"))]
+#![cfg(feature = "tokio-io")]
 
 use futures::future::join_all;
 use lzzzz::{lz4f, lz4f::*};
@@ -434,7 +434,7 @@ mod async_write_decompressor {
                     .unwrap();
                 assert_eq!(
                     *err,
-                    lz4f::Error::Common(lzzzz::ErrorKind::DecompressionFailed)
+                    lz4f::Error::Common(lzzzz::ErrorKind::FrameHeaderInvalid)
                 );
             }
         }))
