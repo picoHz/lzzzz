@@ -1,4 +1,4 @@
-use std::{convert, fmt, io};
+use std::{convert, error, fmt, io, result};
 
 /// A list specifying general categories of LZ4 error.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
@@ -19,7 +19,7 @@ pub enum ErrorKind {
 }
 
 impl fmt::Display for ErrorKind {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> result::Result<(), fmt::Error> {
         <Self as fmt::Debug>::fmt(self, f)
     }
 }
@@ -48,14 +48,14 @@ impl convert::From<Error> for io::Error {
 }
 
 impl fmt::Display for Error {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> result::Result<(), fmt::Error> {
         <ErrorKind as fmt::Display>::fmt(&self.kind, f)
     }
 }
 
-impl std::error::Error for Error {}
+impl error::Error for Error {}
 
 /// A specialized [`Result`] type for LZ4 operations.
 ///
 /// [`Result`]: https://doc.rust-lang.org/std/result/enum.Result.html
-pub type Result<T> = std::result::Result<T, Error>;
+pub type Result<T> = result::Result<T, Error>;
