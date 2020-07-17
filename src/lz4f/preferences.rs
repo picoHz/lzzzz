@@ -4,13 +4,13 @@ use std::{
     os::raw::{c_int, c_uint},
 };
 
-/// Predefined compression level (0)
+/// Predefined compression level (0).
 pub const CLEVEL_DEFAULT: i32 = 0;
 
-/// Predefined compression level (10)
+/// Predefined compression level (10).
 pub const CLEVEL_HIGH: i32 = 10;
 
-/// Predefined compression level (12)
+/// Predefined compression level (12).
 pub const CLEVEL_MAX: i32 = 12;
 
 /// Auto flush flag
@@ -50,7 +50,7 @@ impl Default for FavorDecSpeed {
     }
 }
 
-/// Compression preferences
+/// Compression preferences.
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
 #[repr(C)]
 pub struct Preferences {
@@ -117,7 +117,7 @@ impl Preferences {
     }
 }
 
-/// A builder struct to create a custom `Preferences`
+/// Builds a custom `Preferences`.
 ///
 /// # Example
 ///

@@ -84,7 +84,7 @@ impl Default for BlockChecksum {
     }
 }
 
-/// LZ4 Frame parameters
+/// LZ4 Frame parameters.
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
 #[repr(C)]
 pub struct FrameInfo {
@@ -98,37 +98,37 @@ pub struct FrameInfo {
 }
 
 impl FrameInfo {
-    /// Return the block size.
+    /// Returns the block size.
     pub const fn block_size(&self) -> BlockSize {
         self.block_size
     }
 
-    /// Return the block mode.
+    /// Returns the block mode.
     pub const fn block_mode(&self) -> BlockMode {
         self.block_mode
     }
 
-    /// Return the content size.
+    /// Returns the content size.
     pub const fn content_checksum(&self) -> ContentChecksum {
         self.content_checksum
     }
 
-    /// Return the frame type.
+    /// Returns the frame type.
     pub const fn frame_type(&self) -> FrameType {
         self.frame_type
     }
 
-    /// Return the content checksum.
+    /// Returns the content checksum.
     pub const fn content_size(&self) -> usize {
         self.content_size as usize
     }
 
-    /// Return the dict id.
+    /// Returns the dictionary id.
     pub const fn dict_id(&self) -> u32 {
         self.dict_id as u32
     }
 
-    /// Return the block checksum.
+    /// Returns the block checksum.
     pub const fn block_checksum(&self) -> BlockChecksum {
         self.block_checksum
     }
