@@ -1,6 +1,6 @@
 //! LZ4 frame format.
 //!
-//! # Async streaming
+//! # Asynchronous I/O
 //!
 //! The `tokio-io` feature flag enables asynchronous streaming compressors and decompressors.
 //!
