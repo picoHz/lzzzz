@@ -4,16 +4,17 @@ use std::{convert, fmt, io};
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 #[non_exhaustive]
 pub enum ErrorKind {
+    /// The state initialization failed for some reason.
     InitializationFailed,
+    /// The compression failed for some reason.
     CompressionFailed,
+    /// The decompression failed for some reason.
     DecompressionFailed,
+    /// A frame header had an invalid value.
     FrameHeaderInvalid,
+    /// The decompressor reached unexpected EOF.
     CompressedDataIncomplete,
-    /// The specified compression mode was not valid.
-    CompressionModeInvalid,
-    /// The specified decompression mode was not valid.
-    DecompressionModeInvalid,
-    /// The dictionary data was not consistent during the decompression.
+    /// Dictionary data were not consistent during the streaming decompression.
     DictionaryChangedDuringDecompression,
 }
 
