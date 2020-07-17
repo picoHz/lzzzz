@@ -54,6 +54,10 @@ impl<'a, R: Read> ReadDecompressor<'a, R> {
         self.inner.set_dict(dict);
     }
 
+    /// Reads the frame header and returns `FrameInfo`.
+    ///
+    /// Calling this function before any `Read` operations
+    /// does not consume the frame body.
     pub fn read_frame_info(&mut self) -> std::io::Result<FrameInfo> {
         self.inner.read_frame_info()
     }

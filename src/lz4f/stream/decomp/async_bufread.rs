@@ -72,6 +72,10 @@ impl<'a, R: AsyncBufRead + Unpin> AsyncBufReadDecompressor<'a, R> {
         self.inner.set_dict(dict);
     }
 
+    /// Reads the frame header asynchronously and returns `FrameInfo`.
+    ///
+    /// Calling this function before any `AsyncRead` or `AsyncBufRead` operations
+    /// does not consume the frame body.
     pub async fn read_frame_info(&mut self) -> tokio::io::Result<FrameInfo> {
         loop {
             if let Some(frame) = self.inner.frame_info() {

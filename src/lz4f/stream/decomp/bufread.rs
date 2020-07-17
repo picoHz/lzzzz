@@ -62,6 +62,10 @@ impl<'a, R: BufRead> BufReadDecompressor<'a, R> {
         self.inner.set_dict(dict);
     }
 
+    /// Reads the frame header and returns `FrameInfo`.
+    ///
+    /// Calling this function before any `Read` or `BufRead` operations
+    /// does not consume the frame body.
     pub fn read_frame_info(&mut self) -> std::io::Result<FrameInfo> {
         loop {
             if let Some(frame) = self.inner.frame_info() {
