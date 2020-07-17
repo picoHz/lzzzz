@@ -32,6 +32,7 @@ use std::io::{BufRead, Read};
 /// ```
 ///
 /// [`BufRead`]: https://doc.rust-lang.org/std/io/trait.BufRead.html
+
 pub struct BufReadCompressor<R: BufRead> {
     device: R,
     inner: Compressor,
@@ -39,6 +40,7 @@ pub struct BufReadCompressor<R: BufRead> {
 }
 
 impl<R: BufRead> BufReadCompressor<R> {
+    /// Creates a new `BufReadCompressor<R>`.
     pub fn new(reader: R, prefs: Preferences) -> Result<Self> {
         Ok(Self {
             device: reader,
@@ -47,6 +49,7 @@ impl<R: BufRead> BufReadCompressor<R> {
         })
     }
 
+    /// Creates a new `BufReadCompressor<R>` with a dictionary.
     pub fn with_dict(reader: R, prefs: Preferences, dict: Dictionary) -> Result<Self> {
         Ok(Self {
             device: reader,

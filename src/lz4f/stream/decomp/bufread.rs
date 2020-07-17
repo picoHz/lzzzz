@@ -37,6 +37,7 @@ use std::{
 /// ```
 ///
 /// [`BufRead`]: https://doc.rust-lang.org/std/io/trait.BufRead.html
+
 pub struct BufReadDecompressor<'a, R: BufRead> {
     device: R,
     inner: Decompressor<'a>,
@@ -44,6 +45,7 @@ pub struct BufReadDecompressor<'a, R: BufRead> {
 }
 
 impl<'a, R: BufRead> BufReadDecompressor<'a, R> {
+    /// Creates a new `BufReadDecompressor<R>`.
     pub fn new(reader: R) -> Result<Self> {
         Ok(Self {
             device: reader,
@@ -52,6 +54,7 @@ impl<'a, R: BufRead> BufReadDecompressor<'a, R> {
         })
     }
 
+    /// Sets the dictionary.
     pub fn set_dict<D>(&mut self, dict: D)
     where
         D: Into<Cow<'a, [u8]>>,

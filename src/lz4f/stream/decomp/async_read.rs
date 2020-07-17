@@ -42,6 +42,7 @@ use tokio::io::{AsyncRead, BufReader};
 /// ```
 ///
 /// [`AsyncRead`]: https://docs.rs/tokio/latest/tokio/io/trait.AsyncRead.html
+
 #[cfg_attr(docsrs, doc(cfg(feature = "tokio-io")))]
 #[pin_project]
 pub struct AsyncReadDecompressor<'a, R: AsyncRead + Unpin> {
@@ -50,12 +51,14 @@ pub struct AsyncReadDecompressor<'a, R: AsyncRead + Unpin> {
 }
 
 impl<'a, R: AsyncRead + Unpin> AsyncReadDecompressor<'a, R> {
+    /// Creates a new `AsyncReadDecompressor<R>`.
     pub fn new(reader: R) -> Result<Self> {
         Ok(Self {
             inner: AsyncBufReadDecompressor::new(BufReader::new(reader))?,
         })
     }
 
+    /// Sets the dictionary.
     pub fn set_dict<D>(&mut self, dict: D)
     where
         D: Into<Cow<'a, [u8]>>,

@@ -1,4 +1,4 @@
-//! Yet another liblz4 binding 😴
+//! Yet another liblz4 binding. 😴
 
 #![deny(unsafe_code)]
 #![deny(clippy::all)]

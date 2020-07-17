@@ -26,12 +26,14 @@ use std::{borrow::Cow, io::Write};
 /// ```
 ///
 /// [`Write`]: https://doc.rust-lang.org/std/io/trait.Write.html
+
 pub struct WriteDecompressor<'a, W: Write> {
     device: W,
     inner: Decompressor<'a>,
 }
 
 impl<'a, W: Write> WriteDecompressor<'a, W> {
+    /// Creates a new `WriteDecompressor<W>`.
     pub fn new(writer: W) -> Result<Self> {
         Ok(Self {
             device: writer,
@@ -39,6 +41,7 @@ impl<'a, W: Write> WriteDecompressor<'a, W> {
         })
     }
 
+    /// Sets the dictionary.
     pub fn set_dict<D>(&mut self, dict: D)
     where
         D: Into<Cow<'a, [u8]>>,

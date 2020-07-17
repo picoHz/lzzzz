@@ -15,6 +15,7 @@ pub struct Compressor<'a> {
 }
 
 impl<'a> Compressor<'a> {
+    /// Creates a new `Compressor`.
     pub fn new() -> Result<Self> {
         Ok(Self {
             ctx: CompressionContext::new()?,
@@ -23,6 +24,7 @@ impl<'a> Compressor<'a> {
         })
     }
 
+    /// Creates a new `Compressor` with a dictionary.
     pub fn with_dict<D>(dict: D) -> Result<Self>
     where
         D: Into<Cow<'a, [u8]>>,
@@ -34,6 +36,7 @@ impl<'a> Compressor<'a> {
         comp.ctx.load_dict(&comp.dict);
         Ok(comp)
     }
+
     pub fn next(&mut self, src: &[u8], dst: &mut [u8], acc: i32) -> Result<usize> {
         let src_is_empty = src.is_empty();
 
@@ -80,6 +83,7 @@ pub struct Decompressor<'a> {
 }
 
 impl<'a> Decompressor<'a> {
+    /// Creates a new `Decompressor`.
     pub fn new() -> Result<Self> {
         Ok(Self {
             ctx: DecompressionContext::new()?,
@@ -90,6 +94,7 @@ impl<'a> Decompressor<'a> {
         })
     }
 
+    /// Creates a new `Decompressor` with a dictionary.
     pub fn with_dict<D>(dict: D) -> Result<Self>
     where
         D: Into<Cow<'a, [u8]>>,

@@ -24,12 +24,14 @@ use std::io::Write;
 /// ```
 ///
 /// [`Write`]: https://doc.rust-lang.org/std/io/trait.Write.html
+
 pub struct WriteCompressor<W: Write> {
     device: W,
     inner: Compressor,
 }
 
 impl<W: Write> WriteCompressor<W> {
+    /// Creates a new `WriteCompressor<W>`.
     pub fn new(writer: W, prefs: Preferences) -> Result<Self> {
         Ok(Self {
             device: writer,
@@ -37,6 +39,7 @@ impl<W: Write> WriteCompressor<W> {
         })
     }
 
+    /// Creates a new `WriteCompressor<W>` with a dictionary.
     pub fn with_dict(writer: W, prefs: Preferences, dict: Dictionary) -> Result<Self> {
         Ok(Self {
             device: writer,

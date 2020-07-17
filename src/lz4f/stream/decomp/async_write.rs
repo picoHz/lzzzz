@@ -39,6 +39,7 @@ use tokio::io::AsyncWrite;
 /// ```
 ///
 /// [`AsyncWrite`]: https://docs.rs/tokio/latest/tokio/io/trait.AsyncWrite.html
+
 #[cfg_attr(docsrs, doc(cfg(feature = "tokio-io")))]
 #[pin_project]
 pub struct AsyncWriteDecompressor<'a, W: AsyncWrite + Unpin> {
@@ -57,6 +58,7 @@ enum State {
 }
 
 impl<'a, W: AsyncWrite + Unpin> AsyncWriteDecompressor<'a, W> {
+    /// Creates a new `AsyncWriteDecompressor<W>`.
     pub fn new(writer: W) -> Result<Self> {
         Ok(Self {
             device: writer,
@@ -66,6 +68,7 @@ impl<'a, W: AsyncWrite + Unpin> AsyncWriteDecompressor<'a, W> {
         })
     }
 
+    /// Sets the dictionary.
     pub fn set_dict<D>(&mut self, dict: D)
     where
         D: Into<Cow<'a, [u8]>>,

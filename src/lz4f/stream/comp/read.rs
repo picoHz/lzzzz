@@ -28,17 +28,20 @@ use std::io::{BufReader, Read};
 /// ```
 ///
 /// [`Read`]: https://doc.rust-lang.org/std/io/trait.Read.html
+
 pub struct ReadCompressor<R: Read> {
     inner: BufReadCompressor<BufReader<R>>,
 }
 
 impl<R: Read> ReadCompressor<R> {
+    /// Creates a new `ReadCompressor<R>`.
     pub fn new(reader: R, prefs: Preferences) -> Result<Self> {
         Ok(Self {
             inner: BufReadCompressor::new(BufReader::new(reader), prefs)?,
         })
     }
 
+    /// Creates a new `ReadCompressor<R>` with a dictionary.
     pub fn with_dict(reader: R, prefs: Preferences, dict: Dictionary) -> Result<Self> {
         Ok(Self {
             inner: BufReadCompressor::with_dict(BufReader::new(reader), prefs, dict)?,

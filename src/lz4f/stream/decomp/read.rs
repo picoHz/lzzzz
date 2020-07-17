@@ -33,28 +33,29 @@ use std::{
 /// ```
 ///
 /// [`Read`]: https://doc.rust-lang.org/std/io/trait.Read.html
+
 pub struct ReadDecompressor<'a, R: Read> {
     inner: BufReadDecompressor<'a, BufReader<R>>,
 }
 
 impl<'a, R: Read> ReadDecompressor<'a, R> {
-    /// Create a new `ReadDecompressor`.
+    /// Creates a new `ReadDecompressor<R>`.
     pub fn new(reader: R) -> Result<Self> {
         Ok(Self {
             inner: BufReadDecompressor::new(BufReader::new(reader))?,
         })
     }
 
-    pub fn read_frame_info(&mut self) -> std::io::Result<FrameInfo> {
-        self.inner.read_frame_info()
-    }
-
-    /// Set the dictionary.
+    /// Sets the dictionary.
     pub fn set_dict<D>(&mut self, dict: D)
     where
         D: Into<Cow<'a, [u8]>>,
     {
         self.inner.set_dict(dict);
+    }
+
+    pub fn read_frame_info(&mut self) -> std::io::Result<FrameInfo> {
+        self.inner.read_frame_info()
     }
 }
 

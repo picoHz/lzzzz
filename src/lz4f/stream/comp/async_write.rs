@@ -38,6 +38,7 @@ use tokio::io::AsyncWrite;
 /// ```
 ///
 /// [`AsyncWrite`]: https://docs.rs/tokio/latest/tokio/io/trait.AsyncWrite.html
+
 #[cfg_attr(docsrs, doc(cfg(feature = "tokio-io")))]
 #[pin_project]
 pub struct AsyncWriteCompressor<W: AsyncWrite + Unpin> {
@@ -56,6 +57,7 @@ enum State {
 }
 
 impl<W: AsyncWrite + Unpin> AsyncWriteCompressor<W> {
+    /// Creates a new `AsyncWriteCompressor<W>`.
     pub fn new(writer: W, prefs: Preferences) -> Result<Self> {
         Ok(Self {
             device: writer,
@@ -65,6 +67,7 @@ impl<W: AsyncWrite + Unpin> AsyncWriteCompressor<W> {
         })
     }
 
+    /// Creates a new `AsyncWriteCompressor<W>` with a dictionary.
     pub fn with_dict(writer: W, prefs: Preferences, dict: Dictionary) -> Result<Self> {
         Ok(Self {
             device: writer,

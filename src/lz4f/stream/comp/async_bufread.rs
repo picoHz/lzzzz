@@ -41,6 +41,7 @@ use tokio::io::{AsyncBufRead, AsyncRead};
 /// ```
 ///
 /// [`AsyncBufRead`]: https://docs.rs/tokio/latest/tokio/io/trait.AsyncBufRead.html
+
 #[cfg_attr(docsrs, doc(cfg(feature = "tokio-io")))]
 #[pin_project]
 pub struct AsyncBufReadCompressor<R: AsyncBufRead + Unpin> {
@@ -59,6 +60,7 @@ enum State {
 }
 
 impl<R: AsyncBufRead + Unpin> AsyncBufReadCompressor<R> {
+    /// Creates a new `AsyncBufReadCompressor<R>`.
     pub fn new(reader: R, prefs: Preferences) -> Result<Self> {
         Ok(Self {
             device: reader,
@@ -69,6 +71,7 @@ impl<R: AsyncBufRead + Unpin> AsyncBufReadCompressor<R> {
         })
     }
 
+    /// Creates a new `AsyncBufReadCompressor<R>` with a dictionary.
     pub fn with_dict(reader: R, prefs: Preferences, dict: Dictionary) -> Result<Self> {
         Ok(Self {
             device: reader,

@@ -12,6 +12,7 @@ pub struct Compressor<'a> {
 }
 
 impl<'a> Compressor<'a> {
+    /// Creates a new `Compressor`.
     pub fn new() -> Result<Self> {
         Ok(Self {
             ctx: CompressionContext::new()?,
@@ -20,6 +21,7 @@ impl<'a> Compressor<'a> {
         })
     }
 
+    /// Creates a new `Compressor` with a dictionary.
     pub fn with_dict<D>(dict: D) -> Result<Self>
     where
         D: Into<Cow<'a, [u8]>>,
@@ -32,10 +34,12 @@ impl<'a> Compressor<'a> {
         Ok(comp)
     }
 
+    /// Sets the compression level.
     pub fn set_compression_level(&mut self, level: i32) {
         self.ctx.set_compression_level(level);
     }
 
+    /// Sets the decompression speed mode flag.
     pub fn set_favor_dec_speed(&mut self, dec_speed: FavorDecSpeed) {
         self.ctx
             .set_favor_dec_speed(dec_speed == FavorDecSpeed::Enabled);
