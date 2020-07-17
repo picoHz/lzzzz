@@ -19,10 +19,7 @@ mod compressor {
                 for src in src_set {
                     let mut comp_buf = vec![0; lz4::max_compressed_size(src.len())];
                     let len = comp.next(&src, &mut comp_buf).unwrap();
-                    assert_eq!(
-                        decomp.next(&comp_buf[..len], src.len()).unwrap(),
-                        src.as_ref()
-                    );
+                    assert_eq!(decomp.next(&comp_buf[..len], src.len()).unwrap(), &src);
                 }
             });
     }
@@ -34,7 +31,7 @@ mod compressor {
             .for_each(|(src_set, level)| {
                 let dict = SmallRng::seed_from_u64(0)
                     .sample_iter(Standard)
-                    .take(64_000)
+                    .take(64 * 1024)
                     .collect::<Vec<_>>();
                 let mut comp = lz4_hc::Compressor::with_dict(&dict).unwrap();
                 let mut decomp = lz4::Decompressor::with_dict(&dict).unwrap();
@@ -42,10 +39,7 @@ mod compressor {
                 for src in src_set {
                     let mut comp_buf = vec![0; lz4::max_compressed_size(src.len())];
                     let len = comp.next(&src, &mut comp_buf).unwrap();
-                    assert_eq!(
-                        decomp.next(&comp_buf[..len], src.len()).unwrap(),
-                        src.as_ref()
-                    );
+                    assert_eq!(decomp.next(&comp_buf[..len], src.len()).unwrap(), &src);
                 }
             });
     }
@@ -69,10 +63,7 @@ mod compressor {
                     });
 
                     let len = comp.next(&src, &mut comp_buf).unwrap();
-                    assert_eq!(
-                        decomp.next(&comp_buf[..len], src.len()).unwrap(),
-                        src.as_ref()
-                    );
+                    assert_eq!(decomp.next(&comp_buf[..len], src.len()).unwrap(), &src);
                 }
             });
     }
