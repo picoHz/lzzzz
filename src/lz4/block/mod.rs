@@ -155,10 +155,7 @@ pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, acc: i32) -> Result<usize>
 /// use lzzzz::lz4;
 ///
 /// const ORIGINAL_SIZE: usize = 47;
-/// let data = [
-///     113, 83, 111, 117, 116, 104, 45, 115, 6, 0, 97, 119, 101, 115, 116, 44, 32, 12, 0, 3, 7, 0,
-///     48, 45, 101, 97, 19, 0, 160, 101, 97, 115, 116, 46, 32, 46, 46, 46, 32,
-/// ];
+/// let data = base64::decode("cVNvdXRoLXMGAGF3ZXN0LCAMAAMHADAtZWETAKBlYXN0LiAuLi4g").unwrap();
 ///
 /// let mut buf = [0u8; ORIGINAL_SIZE];
 /// lz4::decompress(&data[..], &mut buf[..])?;
