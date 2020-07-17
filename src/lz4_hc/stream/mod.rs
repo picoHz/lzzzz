@@ -1,39 +1,10 @@
-//! LZ4_HC Streaming Compressor
-//!
-//! The `lz4_hc_stream` module doesn't provide decompression functionalities.
-//! Use the [`lz4_stream`] module instead.
-//!
-//! [`lz4_stream`]: ../lz4_stream/index.html
-//!
-//! # Example
-//! ```
-//! use lzzzz::lz4_hc;
-//!
-//! let mut stream = lz4_hc::Compressor::new().unwrap();
-//!
-//! let data = &b"aaaaa"[..];
-//! let mut buf = Vec::new();
-//!
-//! stream.next_to_vec(data, &mut buf);
-//!
-//! # use lzzzz::lz4;
-//! # let compressed = &buf;
-//! # let mut buf = [0u8; 2048];
-//! # let len = lz4::decompress(
-//! #     compressed,
-//! #     &mut buf[..data.len()],
-//! # )
-//! # .unwrap();
-//! # assert_eq!(&buf[..len], &data[..]);
-//! ```
-
 mod api;
 
 use crate::{common::DICTIONARY_SIZE, lz4, lz4_hc::FavorDecSpeed, Result};
 use api::CompressionContext;
 use std::{borrow::Cow, pin::Pin};
 
-/// Streaming LZ4_HC compressor
+/// Streaming LZ4_HC compressor.
 pub struct Compressor<'a> {
     ctx: CompressionContext,
     dict: Pin<Cow<'a, [u8]>>,

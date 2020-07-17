@@ -1,11 +1,5 @@
 //! High compression variant of LZ4.
 //!
-//! # Block mode
-//!
-//! # Streaming mode
-//!
-//! # Compression level
-//!
 //! # Decompression
 //! The `lz4_hc` module doesn't provide decompression functionalities.
 //! Use the [`lz4`] module instead.
@@ -19,22 +13,21 @@ mod stream;
 pub use block::*;
 pub use stream::*;
 
-/// Predefined compression level (3)
+/// Predefined compression level (3).
 pub const CLEVEL_MIN: i32 = 3;
 
-/// Predefined compression level (9)
+/// Predefined compression level (9).
 pub const CLEVEL_DEFAULT: i32 = 9;
 
-/// Predefined compression level (10)
+/// Predefined compression level (10).
 pub const CLEVEL_OPT_MIN: i32 = 10;
 
-/// Predefined compression level (12)
+/// Predefined compression level (12).
 pub const CLEVEL_MAX: i32 = 12;
 
-/// Decompression speed flag
+/// Decompression speed mode flag.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum FavorDecSpeed {
-    /// Default value
     Disabled,
     Enabled,
 }
