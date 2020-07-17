@@ -13,14 +13,10 @@ pub const CLEVEL_HIGH: i32 = 10;
 /// Predefined compression level (12).
 pub const CLEVEL_MAX: i32 = 12;
 
-/// Auto flush flag
-///
-/// **Cited from lz4frame.h:**
-/// 1: always flush; reduces usage of internal buffers
+/// Auto flush mode flag.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 #[repr(C)]
 pub enum AutoFlush {
-    /// Default value
     Disabled,
     Enabled,
 }
@@ -31,15 +27,10 @@ impl Default for AutoFlush {
     }
 }
 
-/// Decompression speed flag
-///
-/// **Cited from lz4frame.h:**
-/// 1: parser favors decompression speed vs compression ratio.
-/// Only works for high compression modes (>= LZ4HC_CLEVEL_OPT_MIN)
+/// Decompression speed mode flag.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 #[repr(C)]
 pub enum FavorDecSpeed {
-    /// Default value
     Disabled,
     Enabled,
 }

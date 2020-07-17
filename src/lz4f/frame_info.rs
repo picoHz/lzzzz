@@ -1,16 +1,9 @@
 use std::os::raw::{c_uint, c_ulonglong};
 
-/// Compression block size flag
-///
-/// **Cited from lz4frame.h:**
-/// The larger the block size, the (slightly) better the compression ratio,
-/// though there are diminishing returns.
-/// Larger blocks also increase memory usage on both compression and
-/// decompression sides.
+/// Block size flag.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 #[repr(C)]
 pub enum BlockSize {
-    /// Default value
     Default = 0,
     Max64KB = 4,
     Max256KB = 5,
@@ -24,13 +17,11 @@ impl Default for BlockSize {
     }
 }
 
-/// Block mode flag
+/// Block mode flag.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 #[repr(C)]
 pub enum BlockMode {
-    /// Linked block mode (default)
     Linked,
-    /// Independent block mode
     Independent,
 }
 
@@ -40,11 +31,10 @@ impl Default for BlockMode {
     }
 }
 
-/// Compression content checksum flag
+/// Content checksum flag.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 #[repr(C)]
 pub enum ContentChecksum {
-    /// Default value
     Disabled,
     Enabled,
 }
@@ -55,7 +45,7 @@ impl Default for ContentChecksum {
     }
 }
 
-/// Compression frame type flag
+/// Frame type flag.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 #[repr(C)]
 pub enum FrameType {
@@ -69,11 +59,10 @@ impl Default for FrameType {
     }
 }
 
-/// Compression block checksum flag
+/// Block checksum flag.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 #[repr(C)]
 pub enum BlockChecksum {
-    /// Default value
     Disabled,
     Enabled,
 }
