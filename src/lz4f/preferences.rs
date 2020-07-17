@@ -62,22 +62,22 @@ pub struct Preferences {
 }
 
 impl Preferences {
-    /// Return the frame info.
+    /// Returns the frame info.
     pub const fn frame_info(&self) -> FrameInfo {
         self.frame_info
     }
 
-    /// Return the compression level.
+    /// Returns the compression level.
     pub const fn compression_level(&self) -> i32 {
         self.compression_level as i32
     }
 
-    /// Return the auto flush mode flag.
+    /// Returns the auto flush mode flag.
     pub const fn auto_flush(&self) -> AutoFlush {
         self.auto_flush
     }
 
-    /// Return the decompression speed mode flag.
+    /// Returns the decompression speed mode flag.
     pub const fn favor_dec_speed(&self) -> FavorDecSpeed {
         self.favor_dec_speed
     }
@@ -135,64 +135,60 @@ pub struct PreferencesBuilder {
 }
 
 impl PreferencesBuilder {
-    /// Create a new `PreferencesBuilder` instance with the default
-    /// configuration.
+    /// Creates a new `PreferencesBuilder`.
     pub fn new() -> Self {
         Default::default()
     }
 
-    /// Set the block size.
+    /// Sets the block size.
     pub fn block_size(&mut self, block_size: BlockSize) -> &mut Self {
         self.prefs.set_block_size(block_size);
         self
     }
 
-    /// Set the block mode.
+    /// Sets the block mode.
     pub fn block_mode(&mut self, block_mode: BlockMode) -> &mut Self {
         self.prefs.set_block_mode(block_mode);
         self
     }
 
-    /// Set the content checksum.
+    /// Sets the content checksum.
     pub fn content_checksum(&mut self, checksum: ContentChecksum) -> &mut Self {
         self.prefs.set_content_checksum(checksum);
         self
     }
 
-    /// Set the dict id.
+    /// Sets the dictionary id.
     pub fn dict_id(&mut self, dict_id: u32) -> &mut Self {
         self.prefs.set_dict_id(dict_id);
         self
     }
 
-    /// Set the block checksum.
+    /// Sets the block checksum.
     pub fn block_checksum(&mut self, checksum: BlockChecksum) -> &mut Self {
         self.prefs.set_block_checksum(checksum);
         self
     }
 
-    /// Set the compression level.
+    /// Sets the compression level.
     pub fn compression_level(&mut self, level: i32) -> &mut Self {
         self.prefs.set_compression_level(level);
         self
     }
 
-    /// Set the decompression speed mode flag.
+    /// Sets the decompression speed mode flag.
     pub fn favor_dec_speed(&mut self, dec_speed: FavorDecSpeed) -> &mut Self {
         self.prefs.set_favor_dec_speed(dec_speed);
         self
     }
 
-    /// Set the auto flush flag.
+    /// Sets the auto flush mode flag.
     pub fn auto_flush(&mut self, auto_flush: AutoFlush) -> &mut Self {
         self.prefs.set_auto_flush(auto_flush);
         self
     }
 
-    /// Create a new `Compressor<D>` instance with this configuration.
-    ///
-    /// To make I/O operations to the returned `Compressor<D>`,
-    /// the `device` should implement `Read`, `BufRead` or `Write`.
+    /// Builds a `Preferences` with this configuration.
     pub const fn build(&self) -> Preferences {
         self.prefs
     }
