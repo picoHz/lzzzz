@@ -7,7 +7,7 @@ use std::cmp;
 
 /// Calculates the maximum size of the compressed data.
 ///
-/// If `original_size` is too large to compress, this function returns `0`.
+/// If `original_size` is too large to compress, this returns `0`.
 #[must_use]
 pub const fn max_compressed_size(original_size: usize) -> usize {
     api::compress_bound(original_size)

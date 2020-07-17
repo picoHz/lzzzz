@@ -2,6 +2,7 @@ use std::os::raw::{c_uint, c_ulonglong};
 
 /// Block size flag.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[non_exhaustive]
 #[repr(C)]
 pub enum BlockSize {
     Default = 0,

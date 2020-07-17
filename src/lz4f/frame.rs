@@ -4,12 +4,11 @@ use super::{api, Result};
 use crate::{common::DEFAULT_BUF_SIZE, lz4f::Preferences, Error, ErrorKind};
 use std::{cell::RefCell, ops::Deref};
 
-/// Calculate the maximum size of the compressed data from the original size.
+/// Calculates the maximum size of the compressed frame.
 ///
-/// ## Pitfall
-/// Returned values are reliable only if you are using [`compress`] or [`compress_to_vec`].
+/// If `original_size` is too large to compress, this returns `0`.
 ///
-/// [Streaming compressors](comp/index.html) may produce larger compressed frames.
+/// Returned values are reliable only for [`compress`] or [`compress_to_vec`]. [Streaming compressors](comp/index.html) may produce larger compressed frames.
 ///
 /// [`compress`]: fn.compress.html
 /// [`compress_to_vec`]: fn.compress_to_vec.html
@@ -18,7 +17,7 @@ pub fn max_compressed_size(original_size: usize, prefs: &Preferences) -> usize {
     api::compress_frame_bound(original_size, prefs)
 }
 
-/// Read data from a slice and write compressed data into another slice.
+/// Performs LZ4F compression.
 ///
 /// Ensure that the destination slice have enough capacity.
 /// If `dst.len()` is smaller than `lz4::max_compressed_size(src.len())`,
@@ -45,7 +44,7 @@ pub fn compress(src: &[u8], dst: &mut [u8], prefs: &Preferences) -> Result<usize
     api::compress(src, dst, prefs)
 }
 
-/// Read data from a slice and append compressed data to `Vec<u8>`.
+/// Appends a compressed frame to Vec<u8>.
 ///
 /// # Examples
 ///
@@ -84,7 +83,7 @@ pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, prefs: &Preferences) -> Re
     result
 }
 
-/// Read data from a slice and append decompressed data to `Vec<u8>`.
+/// Decompresses a LZ4 frame.
 pub fn decompress_to_vec(src: &[u8], dst: &mut Vec<u8>) -> Result<usize> {
     let header_len = dst.len();
     let mut src_offset = 0;

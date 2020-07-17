@@ -1,4 +1,4 @@
-//! Streaming Compressors
+//! Streaming compressors.
 mod async_bufread;
 mod async_read;
 mod async_write;

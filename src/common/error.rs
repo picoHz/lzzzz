@@ -1,6 +1,6 @@
 use std::{convert, fmt, io};
 
-/// A list specifying general categories of compression/decompression error.
+/// A list specifying general categories of LZ4 error.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 #[non_exhaustive]
 pub enum ErrorKind {
@@ -23,7 +23,7 @@ impl fmt::Display for ErrorKind {
     }
 }
 
-/// The error type for compression/decompression operations
+/// The error type for LZ4 operations.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct Error {
     kind: ErrorKind,
@@ -54,7 +54,7 @@ impl fmt::Display for Error {
 
 impl std::error::Error for Error {}
 
-/// A specialized [`Result`] type for compression/decompression operations.
+/// A specialized [`Result`] type for LZ4 operations.
 ///
-/// [`Result`]: https://doc.rust-lang.org/std/io/type.Result.html
+/// [`Result`]: https://doc.rust-lang.org/std/result/enum.Result.html
 pub type Result<T> = std::result::Result<T, Error>;

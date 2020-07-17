@@ -32,7 +32,7 @@ impl fmt::Display for ErrorKind {
     }
 }
 
-/// The error type for compression/decompression operations
+/// The error type for LZ4F operations.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum Error {
     Lz4f(ErrorKind),
@@ -68,7 +68,7 @@ impl fmt::Display for Error {
 
 impl std::error::Error for Error {}
 
-/// A specialized [`Result`] type for compression/decompression operations.
+/// A specialized [`Result`] type for LZ4F operations.
 ///
-/// [`Result`]: https://doc.rust-lang.org/std/io/type.Result.html
+/// [`Result`]: https://doc.rust-lang.org/std/result/enum.Result.html
 pub type Result<T> = std::result::Result<T, Error>;
