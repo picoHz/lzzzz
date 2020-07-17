@@ -5,7 +5,7 @@ use std::{
     io::{BufRead, Read},
 };
 
-/// BufRead-based streaming decompressor
+/// The [`BufRead`]-based streaming decompressor.
 ///
 /// # Examples
 ///
@@ -35,6 +35,8 @@ use std::{
 /// r.read_to_end(&mut buf)?;
 /// # Ok::<(), std::io::Error>(())
 /// ```
+///
+/// [`BufRead`]: https://doc.rust-lang.org/std/io/trait.BufRead.html
 pub struct BufReadDecompressor<'a, R: BufRead> {
     device: R,
     inner: Decompressor<'a>,

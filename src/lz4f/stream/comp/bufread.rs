@@ -2,7 +2,7 @@ use super::{Compressor, Dictionary, Preferences};
 use crate::lz4f::Result;
 use std::io::{BufRead, Read};
 
-/// BufRead-based streaming compressor
+/// The [`BufRead`]-based streaming compressor.
 ///
 /// # Examples
 ///
@@ -30,6 +30,8 @@ use std::io::{BufRead, Read};
 /// r.read_to_end(&mut buf)?;
 /// # Ok::<(), std::io::Error>(())
 /// ```
+///
+/// [`BufRead`]: https://doc.rust-lang.org/std/io/trait.BufRead.html
 pub struct BufReadCompressor<R: BufRead> {
     device: R,
     inner: Compressor,

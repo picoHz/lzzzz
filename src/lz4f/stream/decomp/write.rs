@@ -1,7 +1,7 @@
 use crate::lz4f::{decomp::Decompressor, FrameInfo, Result};
 use std::{borrow::Cow, io::Write};
 
-/// Write-based streaming decompressor
+/// The [`Write`]-based streaming decompressor.
 ///
 /// # Examples
 ///
@@ -24,6 +24,8 @@ use std::{borrow::Cow, io::Write};
 /// w.write_all(&buf)?;
 /// # Ok::<(), std::io::Error>(())
 /// ```
+///
+/// [`Write`]: https://doc.rust-lang.org/std/io/trait.Write.html
 pub struct WriteDecompressor<'a, W: Write> {
     device: W,
     inner: Decompressor<'a>,

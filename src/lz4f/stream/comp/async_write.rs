@@ -10,7 +10,7 @@ use std::{
 };
 use tokio::io::AsyncWrite;
 
-/// AsyncWrite-based streaming compressor
+/// The [`AsyncWrite`]-based streaming compressor.
 ///
 /// # Examples
 ///
@@ -36,6 +36,8 @@ use tokio::io::AsyncWrite;
 /// # }).unwrap();
 /// # tmp_dir.close().unwrap();
 /// ```
+///
+/// [`AsyncWrite`]: https://docs.rs/tokio/latest/tokio/io/trait.AsyncWrite.html
 #[cfg_attr(docsrs, doc(cfg(feature = "tokio-io")))]
 #[pin_project]
 pub struct AsyncWriteCompressor<W: AsyncWrite + Unpin> {

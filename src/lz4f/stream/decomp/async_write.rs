@@ -11,7 +11,7 @@ use std::{
 };
 use tokio::io::AsyncWrite;
 
-/// AsyncWrite-based streaming decompressor
+/// The [`AsyncWrite`]-based streaming decompressor.
 ///
 /// # Examples
 ///
@@ -37,6 +37,8 @@ use tokio::io::AsyncWrite;
 /// # }).unwrap();
 /// # tmp_dir.close().unwrap();
 /// ```
+///
+/// [`AsyncWrite`]: https://docs.rs/tokio/latest/tokio/io/trait.AsyncWrite.html
 #[cfg_attr(docsrs, doc(cfg(feature = "tokio-io")))]
 #[pin_project]
 pub struct AsyncWriteDecompressor<'a, W: AsyncWrite + Unpin> {

@@ -10,7 +10,7 @@ use std::{
 };
 use tokio::io::{AsyncBufRead, AsyncRead};
 
-/// AsyncBufRead-based streaming compressor
+/// The [`AsyncBufRead`]-based streaming compressor.
 ///
 /// # Examples
 ///
@@ -39,6 +39,8 @@ use tokio::io::{AsyncBufRead, AsyncRead};
 /// # }).unwrap();
 /// # tmp_dir.close().unwrap();
 /// ```
+///
+/// [`AsyncBufRead`]: https://docs.rs/tokio/latest/tokio/io/trait.AsyncBufRead.html
 #[cfg_attr(docsrs, doc(cfg(feature = "tokio-io")))]
 #[pin_project]
 pub struct AsyncBufReadCompressor<R: AsyncBufRead + Unpin> {

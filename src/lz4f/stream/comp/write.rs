@@ -2,7 +2,7 @@ use super::{Compressor, Dictionary, Preferences};
 use crate::lz4f::Result;
 use std::io::Write;
 
-/// Write-based streaming compressor
+/// The [`Write`]-based streaming compressor.
 ///
 /// # Examples
 ///
@@ -22,6 +22,8 @@ use std::io::Write;
 /// w.write_all(b"hello, world!")?;
 /// # Ok::<(), std::io::Error>(())
 /// ```
+///
+/// [`Write`]: https://doc.rust-lang.org/std/io/trait.Write.html
 pub struct WriteCompressor<W: Write> {
     device: W,
     inner: Compressor,
