@@ -5,6 +5,27 @@ use api::CompressionContext;
 use std::{borrow::Cow, pin::Pin};
 
 /// Streaming LZ4_HC compressor.
+///
+/// # Example
+///
+/// ```
+/// use lzzzz::{lz4, lz4_hc};
+///
+/// let data = b"The quick brown fox jumps over the lazy dog.";
+/// let mut buf = [0u8; 256];
+///
+/// // The slice should have enough capacity.
+/// assert!(buf.len() >= lz4::max_compressed_size(data.len()));
+///
+/// let mut comp = lz4_hc::Compressor::new()?;
+/// let len = comp.next(data, &mut buf)?;
+/// let compressed = &buf[..len];
+///
+/// # let mut buf = [0u8; 256];
+/// # let len = lz4::decompress(compressed, &mut buf[..data.len()])?;
+/// # assert_eq!(&buf[..len], &data[..]);
+/// # Ok::<(), std::io::Error>(())
+/// ```
 pub struct Compressor<'a> {
     ctx: CompressionContext,
     dict: Pin<Cow<'a, [u8]>>,

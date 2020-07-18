@@ -9,35 +9,26 @@ use api::ExtState;
 /// If `dst.len()` is smaller than `lz4::max_compressed_size(src.len())`,
 /// this function may fail.
 ///
-/// # Examples
-///
-/// ### Basic compression
-///
-/// Compress data with the default compression mode:
+/// # Example
 ///
 /// ```
 /// use lzzzz::{lz4, lz4_hc};
 ///
-/// let data = "— Да, простите, — повторил он то же слово, которым закончил и весь рассказ.";
-/// let mut buf = [0u8; 2048];
+/// let data = b"The quick brown fox jumps over the lazy dog.";
+/// let mut buf = [0u8; 256];
 ///
 /// // The slice should have enough capacity.
 /// assert!(buf.len() >= lz4::max_compressed_size(data.len()));
 ///
-/// let len = lz4_hc::compress(
-///     data.as_bytes(),
-///     &mut buf,
-///     lz4_hc::CLEVEL_DEFAULT,
-/// )?;
-///
+/// let len = lz4_hc::compress(data, &mut buf, lz4_hc::CLEVEL_DEFAULT)?;
 /// let compressed = &buf[..len];
 ///
-/// # let mut buf = [0u8; 2048];
+/// # let mut buf = [0u8; 256];
 /// # let len = lz4::decompress(
 /// #     compressed,
 /// #     &mut buf[..data.len()],
 /// # )?;
-/// # assert_eq!(&buf[..len], data.as_bytes());
+/// # assert_eq!(&buf[..len], &data[..]);
 /// # Ok::<(), std::io::Error>(())
 /// ```
 pub fn compress(src: &[u8], dst: &mut [u8], level: i32) -> Result<usize> {
@@ -59,6 +50,26 @@ pub fn compress(src: &[u8], dst: &mut [u8], level: i32) -> Result<usize> {
 }
 
 /// Compresses data into a slice as much as possible.
+///
+/// # Example
+///
+/// ```
+/// use lzzzz::{lz4, lz4_hc};
+///
+/// let data = b"The quick brown fox jumps over the lazy dog.";
+/// let mut buf = [0u8; 16];
+///
+/// let (src_len, dst_len) = lz4_hc::compress_partial(data, &mut buf, lz4_hc::CLEVEL_DEFAULT)?;
+/// let compressed = &buf[..dst_len];
+///
+/// # let mut buf = [0u8; 256];
+/// # let len = lz4::decompress(
+/// #     compressed,
+/// #     &mut buf[..data.len()],
+/// # )?;
+/// # assert_eq!(&buf[..len], &data[..src_len]);
+/// # Ok::<(), std::io::Error>(())
+/// ```
 pub fn compress_partial(src: &[u8], dst: &mut [u8], level: i32) -> Result<(usize, usize)> {
     if src.is_empty() || dst.is_empty() {
         return Ok((0, 0));
@@ -70,55 +81,23 @@ pub fn compress_partial(src: &[u8], dst: &mut [u8], level: i32) -> Result<(usize
 
 /// Appends compressed data to `Vec<u8>`.
 ///
-/// In this function, [`CompressionMode::Partial`] has no special meaning and
-/// is same as [`CompressionMode::Default`].
-///
-/// [`CompressionMode::Partial`]: ./enum.CompressionMode.html#variant.Partial
-/// [`CompressionMode::Default`]: ./enum.CompressionMode.html#variant.Default
-///
-/// # Examples
-///
-/// ### Basic usage
-///
-/// Compress data into the `Vec<u8>` with the default compression mode/level.
+/// # Example
 ///
 /// ```
-/// use lzzzz::lz4_hc;
+/// use lzzzz::{lz4, lz4_hc};
 ///
-/// let data = "So we beat on, boats against the current, borne back ceaselessly into the past.";
+/// let data = b"The quick brown fox jumps over the lazy dog.";
 /// let mut buf = Vec::new();
 ///
-/// lz4_hc::compress_to_vec(data.as_bytes(), &mut buf, lz4_hc::CLEVEL_DEFAULT)?;
+/// lz4_hc::compress_to_vec(data, &mut buf, lz4_hc::CLEVEL_DEFAULT)?;
 ///
-/// # use lzzzz::lz4;
 /// # let compressed = &buf;
-/// # let mut buf = [0u8; 2048];
-/// # let len = lzzzz::lz4::decompress(
+/// # let mut buf = [0u8; 256];
+/// # let len = lz4::decompress(
 /// #     compressed,
 /// #     &mut buf[..data.len()],
 /// # )?;
-/// # assert_eq!(&buf[..len], data.as_bytes());
-/// # Ok::<(), std::io::Error>(())
-/// ```
-///
-/// ### Higher compression level
-///
-/// ```
-/// use lzzzz::lz4_hc;
-///
-/// let data = "It was not till they had examined the rings that they recognized who it was.";
-/// let mut buf = Vec::new();
-///
-/// lz4_hc::compress_to_vec(data.as_bytes(), &mut buf, lz4_hc::CLEVEL_MAX)?;
-///
-/// # use lzzzz::lz4;
-/// # let compressed = &buf;
-/// # let mut buf = [0u8; 2048];
-/// # let len = lzzzz::lz4::decompress(
-/// #     compressed,
-/// #     &mut buf[..data.len()],
-/// # )?;
-/// # assert_eq!(&buf[..len], data.as_bytes());
+/// # assert_eq!(&buf[..len], &data[..]);
 /// # Ok::<(), std::io::Error>(())
 /// ```
 pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, level: i32) -> Result<usize> {
