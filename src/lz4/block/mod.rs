@@ -137,10 +137,7 @@ pub fn decompress(src: &[u8], dst: &mut [u8]) -> Result<usize> {
 ///
 /// lz4::decompress_partial(&data[..], &mut buf[..], ORIGINAL_SIZE)?;
 ///
-/// assert_eq!(
-///     &buf[..],
-///     &b"The quick brown fox jump"[..]
-/// );
+/// assert_eq!(&buf[..], &b"The quick brown fox jump"[..]);
 /// # Ok::<(), std::io::Error>(())
 /// ```
 pub fn decompress_partial(src: &[u8], dst: &mut [u8], original_size: usize) -> Result<usize> {
@@ -156,7 +153,7 @@ pub fn decompress_partial(src: &[u8], dst: &mut [u8], original_size: usize) -> R
 ///
 /// const ORIGINAL_SIZE: usize = 44;
 /// const COMPRESSED_DATA: &str = "DywAFFAgZG9nLg==";
-/// const DICT_DATA : &[u8] = b"The quick brown fox jumps over the lazy cat.";
+/// const DICT_DATA: &[u8] = b"The quick brown fox jumps over the lazy cat.";
 ///
 /// let data = base64::decode(COMPRESSED_DATA).unwrap();
 /// let mut buf = [0u8; ORIGINAL_SIZE];

@@ -18,6 +18,23 @@ mod compress {
             assert_eq!(decomp_buf, src);
         });
     }
+
+    fn aaa() -> Result<(), std::io::Error> {
+        use lzzzz::lz4;
+
+        const ORIGINAL_SIZE: usize = 44;
+        const COMPRESSED_DATA: &str =
+            "8B1UaGUgcXVpY2sgYnJvd24gZm94IGp1bXBzIG92ZXIgdGhlIGxhenkgZG9nLg==";
+
+        let data = base64::decode(COMPRESSED_DATA).unwrap();
+
+        let mut decomp = lz4::Decompressor::new()?;
+        let result = decomp.next(&data[..], ORIGINAL_SIZE)?;
+
+        assert_eq!(result, &b"The quick brown fox jumps over the lazy dog."[..]);
+        // Ok::<(), std::io::Error>(())
+        Ok(())
+    }
 }
 
 mod compress_to_vec {

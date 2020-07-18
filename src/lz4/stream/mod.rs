@@ -8,6 +8,27 @@ use api::{CompressionContext, DecompressionContext};
 use std::{borrow::Cow, cmp, collections::LinkedList, pin::Pin};
 
 /// Streaming LZ4 compressor.
+///
+/// # Example
+///
+/// ```
+/// use lzzzz::lz4;
+///
+/// let data = b"The quick brown fox jumps over the lazy dog.";
+/// let mut buf = [0u8; 256];
+///
+/// // The slice should have enough capacity.
+/// assert!(buf.len() >= lz4::max_compressed_size(data.len()));
+///
+/// let mut comp = lz4::Compressor::new()?;
+/// let len = comp.next(data, &mut buf, lz4::ACC_LEVEL_DEFAULT)?;
+/// let compressed = &buf[..len];
+///
+/// # let mut buf = [0u8; 256];
+/// # let len = lz4::decompress(compressed, &mut buf[..data.len()])?;
+/// # assert_eq!(&buf[..len], &data[..]);
+/// # Ok::<(), std::io::Error>(())
+/// ```
 pub struct Compressor<'a> {
     ctx: CompressionContext,
     dict: Pin<Cow<'a, [u8]>>,
@@ -74,6 +95,24 @@ impl<'a> Compressor<'a> {
 }
 
 /// Streaming LZ4 decompressor.
+///
+/// # Example
+///
+/// ```
+/// use lzzzz::lz4;
+///
+/// const ORIGINAL_SIZE: usize = 44;
+/// const COMPRESSED_DATA: &str =
+///     "8B1UaGUgcXVpY2sgYnJvd24gZm94IGp1bXBzIG92ZXIgdGhlIGxhenkgZG9nLg==";
+///
+/// let data = base64::decode(COMPRESSED_DATA).unwrap();
+///
+/// let mut decomp = lz4::Decompressor::new()?;
+/// let result = decomp.next(&data[..], ORIGINAL_SIZE)?;
+///
+/// assert_eq!(result, &b"The quick brown fox jumps over the lazy dog."[..]);
+/// # Ok::<(), std::io::Error>(())
+/// ```
 pub struct Decompressor<'a> {
     ctx: DecompressionContext,
     cache: LinkedList<Vec<u8>>,
