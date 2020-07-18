@@ -20,14 +20,13 @@ pub const fn max_compressed_size(original_size: usize) -> usize {
 ///
 /// The returned value is the number of bytes written into `dst`.
 ///
-/// # Examples
+/// # Example
 ///
-/// Compress data with the default compression mode:
 /// ```
 /// use lzzzz::lz4;
 ///
-/// let data = b"As soon as they had strength, they arose, joined hands again, and went on.";
-/// let mut buf = [0u8; 2048];
+/// let data = b"The quick brown fox jumps over the lazy dog.";
+/// let mut buf = [0u8; 256];
 ///
 /// // The slice should have enough capacity.
 /// assert!(buf.len() >= lz4::max_compressed_size(data.len()));
@@ -35,7 +34,7 @@ pub const fn max_compressed_size(original_size: usize) -> usize {
 /// let len = lz4::compress(data, &mut buf, lz4::ACC_LEVEL_DEFAULT)?;
 /// let compressed = &buf[..len];
 ///
-/// # let mut buf = [0u8; 2048];
+/// # let mut buf = [0u8; 256];
 /// # let len = lz4::decompress(compressed, &mut buf[..data.len()])?;
 /// # assert_eq!(&buf[..len], &data[..]);
 /// # Ok::<(), std::io::Error>(())
@@ -65,65 +64,17 @@ pub fn compress(src: &[u8], dst: &mut [u8], acc: i32) -> Result<usize> {
 
 /// Appends compressed data to `Vec<u8>`.
 ///
-/// # Examples
-///
-/// ### Basic usage
-///
-/// Compress data into the `Vec<u8>` with the default compression mode.
+/// # Example
 ///
 /// ```
 /// use lzzzz::lz4;
 ///
-/// let data = "En vérité, ne ferait-on pas, pour moins que cela, le Tour du Monde ?";
+/// let data = b"The quick brown fox jumps over the lazy dog.";
 /// let mut buf = Vec::new();
 ///
-/// lz4::compress_to_vec(data.as_bytes(), &mut buf, lz4::ACC_LEVEL_DEFAULT)?;
-/// # let compressed = &buf;
-/// # let mut buf = [0u8; 2048];
-/// # let len = lz4::decompress(compressed, &mut buf[..data.len()])?;
-/// # assert_eq!(&buf[..len], data.as_bytes());
-/// # Ok::<(), std::io::Error>(())
-/// ```
-///
-/// ### Preserving header
-///
-/// This function doesn't clear the content of `dst`.
-///
-/// ```
-/// use lzzzz::lz4;
-///
-/// let header = b"Gladius Dei super terram";
-/// let mut buf = Vec::from(&header[..]);
-///
-/// let data = b"Cito et velociter!";
 /// lz4::compress_to_vec(data, &mut buf, lz4::ACC_LEVEL_DEFAULT)?;
-/// assert!(buf.starts_with(header) && buf.len() > header.len());
-///
-/// # let compressed = &buf[header.len()..];
-/// # let mut buf = [0u8; 2048];
-/// # let len = lz4::decompress(compressed, &mut buf[..data.len()])?;
-/// # assert_eq!(&buf[..len], &data[..]);
-/// # Ok::<(), std::io::Error>(())
-/// ```
-///
-/// ### Accelerated compression mode
-///
-/// Faster, but less effective compression.
-/// See [`CompressionMode::Acceleration`] for details.
-///
-/// [`CompressionMode::Acceleration`]:
-/// ./enum.CompressionMode.html#variant.Acceleration
-///
-/// ```
-/// use lzzzz::lz4;
-///
-/// let data = b"QUATRE HEURES.";
-/// let mut buf = Vec::new();
-///
-/// lz4::compress_to_vec(data, &mut buf, 20)?;
-///
 /// # let compressed = &buf;
-/// # let mut buf = [0u8; 2048];
+/// # let mut buf = [0u8; 256];
 /// # let len = lz4::decompress(compressed, &mut buf[..data.len()])?;
 /// # assert_eq!(&buf[..len], &data[..]);
 /// # Ok::<(), std::io::Error>(())
@@ -146,45 +97,24 @@ pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, acc: i32) -> Result<usize>
 ///
 /// The returned value is the number of bytes written into `dst`.
 ///
-/// # Examples
-///
-/// ### Basic usage
+/// # Example
 ///
 /// ```
 /// use lzzzz::lz4;
 ///
-/// const ORIGINAL_SIZE: usize = 47;
-/// let data = base64::decode("cVNvdXRoLXMGAGF3ZXN0LCAMAAMHADAtZWETAKBlYXN0LiAuLi4g").unwrap();
+/// const ORIGINAL_SIZE: usize = 44;
+/// const COMPRESSED_DATA: &str =
+///     "8B1UaGUgcXVpY2sgYnJvd24gZm94IGp1bXBzIG92ZXIgdGhlIGxhenkgZG9nLg==";
 ///
+/// let data = base64::decode(COMPRESSED_DATA).unwrap();
 /// let mut buf = [0u8; ORIGINAL_SIZE];
+///
 /// lz4::decompress(&data[..], &mut buf[..])?;
 ///
 /// assert_eq!(
 ///     &buf[..],
-///     &b"South-south-west, south, south-east, east. ... "[..]
+///     &b"The quick brown fox jumps over the lazy dog."[..]
 /// );
-/// # Ok::<(), std::io::Error>(())
-/// ```
-///
-/// ### Partial decompression
-///
-/// ```
-/// use lzzzz::lz4;
-///
-/// const ORIGINAL_SIZE: usize = 239;
-///
-/// // Tha latter part of the compressed data is ommited because
-/// // we don't need the full plain text.
-/// let data = [
-///     240, 16, 65, 108, 98, 46, 32, 84, 104, 101, 32, 119, 101, 105, 103, 104, 116, 32, 111, 102,
-///     32, 116, 104, 105, 115, 32, 115, 97, 100, 32, 116, 105, 109, 24, 0, 245, 20, 32, 109, 117,
-///     115,
-/// ];
-///
-/// let mut buf = [0u8; 30];
-/// lz4::decompress_partial(&data[..], &mut buf[..], ORIGINAL_SIZE)?;
-///
-/// assert_eq!(&buf[..], b"Alb. The weight of this sad ti");
 /// # Ok::<(), std::io::Error>(())
 /// ```
 pub fn decompress(src: &[u8], dst: &mut [u8]) -> Result<usize> {
@@ -192,11 +122,53 @@ pub fn decompress(src: &[u8], dst: &mut [u8]) -> Result<usize> {
 }
 
 /// Decompresses a LZ4 block as much as possible.
+///
+/// # Example
+///
+/// ```
+/// use lzzzz::lz4;
+///
+/// const ORIGINAL_SIZE: usize = 44;
+/// const COMPRESSED_DATA: &str =
+///     "8B1UaGUgcXVpY2sgYnJvd24gZm94IGp1bXBzIG92ZXIgdGhlIGxhenkgZG9nLg==";
+///
+/// let data = base64::decode(COMPRESSED_DATA).unwrap();
+/// let mut buf = [0u8; 24];
+///
+/// lz4::decompress_partial(&data[..], &mut buf[..], ORIGINAL_SIZE)?;
+///
+/// assert_eq!(
+///     &buf[..],
+///     &b"The quick brown fox jump"[..]
+/// );
+/// # Ok::<(), std::io::Error>(())
+/// ```
 pub fn decompress_partial(src: &[u8], dst: &mut [u8], original_size: usize) -> Result<usize> {
     api::decompress_safe_partial(src, dst, original_size)
 }
 
 /// Decompresses a LZ4 block with a dictionary.
+///
+/// # Example
+///
+/// ```
+/// use lzzzz::lz4;
+///
+/// const ORIGINAL_SIZE: usize = 44;
+/// const COMPRESSED_DATA: &str = "DywAFFAgZG9nLg==";
+/// const DICT_DATA : &[u8] = b"The quick brown fox jumps over the lazy cat.";
+///
+/// let data = base64::decode(COMPRESSED_DATA).unwrap();
+/// let mut buf = [0u8; ORIGINAL_SIZE];
+///
+/// lz4::decompress_with_dict(&data[..], &mut buf[..], DICT_DATA)?;
+///
+/// assert_eq!(
+///     &buf[..],
+///     &b"The quick brown fox jumps over the lazy dog."[..]
+/// );
+/// # Ok::<(), std::io::Error>(())
+/// ```
 pub fn decompress_with_dict(src: &[u8], dst: &mut [u8], dict: &[u8]) -> Result<usize> {
     api::decompress_safe_using_dict(src, dst, dict)
 }
