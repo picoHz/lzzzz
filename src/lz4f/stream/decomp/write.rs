@@ -3,7 +3,7 @@ use std::{borrow::Cow, io::Write};
 
 /// The [`Write`]-based streaming decompressor.
 ///
-/// # Examples
+/// # Example
 ///
 /// ```
 /// # use std::env;

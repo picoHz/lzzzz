@@ -12,7 +12,7 @@ use tokio::io::{AsyncBufRead, AsyncRead, AsyncReadExt};
 
 /// The [`AsyncBufRead`]-based streaming decompressor.
 ///
-/// # Examples
+/// # Example
 ///
 /// ```
 /// # use std::env;

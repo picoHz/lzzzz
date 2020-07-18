@@ -12,7 +12,7 @@ use tokio::io::AsyncWrite;
 
 /// The [`AsyncWrite`]-based streaming compressor.
 ///
-/// # Examples
+/// # Example
 ///
 /// ```
 /// # use std::env;

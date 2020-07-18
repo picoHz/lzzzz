@@ -4,7 +4,7 @@ use std::io::{BufReader, Read};
 
 /// The [`Read`]-based streaming compressor.
 ///
-/// # Examples
+/// # Example
 ///
 /// ```
 /// # use std::env;

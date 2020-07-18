@@ -7,7 +7,7 @@ use std::{
 
 /// The [`BufRead`]-based streaming decompressor.
 ///
-/// # Examples
+/// # Example
 ///
 /// ```
 /// # use std::env;

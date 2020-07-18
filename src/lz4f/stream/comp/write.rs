@@ -4,7 +4,7 @@ use std::io::Write;
 
 /// The [`Write`]-based streaming compressor.
 ///
-/// # Examples
+/// # Example
 ///
 /// ```
 /// # use std::env;

@@ -7,7 +7,7 @@ use std::{
 
 /// The [`Read`]-based streaming decompressor.
 ///
-/// # Examples
+/// # Example
 ///
 /// ```
 /// # use std::env;

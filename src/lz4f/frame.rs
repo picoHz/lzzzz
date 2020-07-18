@@ -23,21 +23,24 @@ pub fn max_compressed_size(original_size: usize, prefs: &Preferences) -> usize {
 /// If `dst.len()` is smaller than `lz4::max_compressed_size(src.len())`,
 /// this function may fail.
 ///
-/// # Examples
+/// # Example
 ///
 /// Compress data with the default compression mode:
 /// ```
 /// use lzzzz::lz4f;
 ///
-/// let data = b"As soon as they had strength, they arose, joined hands again, and went on.";
-/// let mut buf = [0u8; 131_072];
 /// let prefs = lz4f::Preferences::default();
+/// let data = b"The quick brown fox jumps over the lazy dog.";
+/// let mut buf = [0u8; 2048];
 ///
 /// // The slice should have enough capacity.
 /// assert!(buf.len() >= lz4f::max_compressed_size(data.len(), &prefs));
 ///
 /// let len = lz4f::compress(data, &mut buf, &prefs)?;
 /// let compressed = &buf[..len];
+/// # let mut buf = Vec::new();
+/// # lz4f::decompress_to_vec(compressed, &mut buf)?;
+/// # assert_eq!(buf.as_slice(), &data[..]);
 /// # Ok::<(), std::io::Error>(())
 /// ```
 pub fn compress(src: &[u8], dst: &mut [u8], prefs: &Preferences) -> Result<usize> {
@@ -46,29 +49,21 @@ pub fn compress(src: &[u8], dst: &mut [u8], prefs: &Preferences) -> Result<usize
 
 /// Appends a compressed frame to Vec<u8>.
 ///
-/// # Examples
+/// # Example
 ///
-/// Compress data into the `Vec<u8>` with the default preferences:
+/// Compress data with the default compression mode:
 /// ```
 /// use lzzzz::lz4f;
 ///
+/// let prefs = lz4f::Preferences::default();
+/// let data = b"The quick brown fox jumps over the lazy dog.";
 /// let mut buf = Vec::new();
-/// lz4f::compress_to_vec(b"Hello world!", &mut buf, &lz4f::Preferences::default());
 ///
-/// let mut buf2 = vec![b'x'];
-/// lz4f::decompress_to_vec(&buf, &mut buf2)?;
-/// assert_eq!(buf2.as_slice(), &b"xHello world!"[..]);
-/// # Ok::<(), std::io::Error>(())
-/// ```
-///
-/// This function doesn't clear the content of `Vec<u8>`:
-/// ```
-/// use lzzzz::lz4f;
-///
-/// let header = &b"Compressed data:"[..];
-/// let mut buf = Vec::from(header);
-/// lz4f::compress_to_vec(b"Hello world!", &mut buf, &lz4f::Preferences::default())?;
-/// assert!(buf.starts_with(header));
+/// let len = lz4f::compress_to_vec(data, &mut buf, &prefs)?;
+/// let compressed = &buf;
+/// # let mut buf = Vec::new();
+/// # lz4f::decompress_to_vec(compressed, &mut buf)?;
+/// # assert_eq!(buf.as_slice(), &data[..]);
 /// # Ok::<(), std::io::Error>(())
 /// ```
 pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, prefs: &Preferences) -> Result<usize> {
@@ -84,6 +79,26 @@ pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, prefs: &Preferences) -> Re
 }
 
 /// Decompresses a LZ4 frame.
+///
+/// # Example
+///
+/// ```
+/// use lzzzz::lz4f;
+///
+/// const COMPRESSED_DATA: &str =
+///     "BCJNGGBAgiwAAIBUaGUgcXVpY2sgYnJvd24gZm94IGp1bXBzIG92ZXIgdGhlIGxhenkgZG9nLgAAAAA=";
+///
+/// let data = base64::decode(COMPRESSED_DATA).unwrap();
+/// let mut buf = Vec::new();
+///
+/// lz4f::decompress_to_vec(&data[..], &mut buf)?;
+///
+/// assert_eq!(
+///     &buf[..],
+///     &b"The quick brown fox jumps over the lazy dog."[..]
+/// );
+/// # Ok::<(), std::io::Error>(())
+/// ```
 pub fn decompress_to_vec(src: &[u8], dst: &mut Vec<u8>) -> Result<usize> {
     let header_len = dst.len();
     let mut src_offset = 0;

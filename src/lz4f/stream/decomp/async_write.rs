@@ -13,7 +13,7 @@ use tokio::io::AsyncWrite;
 
 /// The [`AsyncWrite`]-based streaming decompressor.
 ///
-/// # Examples
+/// # Example
 ///
 /// ```
 /// # use std::env;
