@@ -46,10 +46,12 @@ mod compress_to_vec {
     #[test]
     fn default() {
         lz4_hc_test_set().par_bridge().for_each(|(src, level)| {
-            let mut comp_buf = Vec::new();
+            let header = &b"HEADER"[..];
+            let mut comp_buf = Vec::from(header);
             let mut decomp_buf = vec![0; src.len()];
-            let len = lz4_hc::compress_to_vec(&src, &mut comp_buf, level).unwrap();
-            lz4::decompress(&comp_buf[..len], &mut decomp_buf).unwrap();
+            lz4_hc::compress_to_vec(&src, &mut comp_buf, level).unwrap();
+            assert!(comp_buf.starts_with(header));
+            lz4::decompress(&comp_buf[header.len()..], &mut decomp_buf).unwrap();
             assert_eq!(decomp_buf, src);
         });
     }
