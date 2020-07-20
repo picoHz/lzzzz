@@ -1,30 +1,23 @@
-<h1 align="center">lzzzz</h1>
-<div align="center">
- <strong>
-   Yet another liblz4 binding for Rust.
- </strong>
-</div>
+# lzzzz
 
-<br/>
+Yet another liblz4 binding for Rust.
 
-Lzzzz provides high-level liblz4 wrapper API.
-
-# Features
+## Features
 
 - LZ4
     - Compression (Block / Streaming)
     - Decompression (Block / Streaming)
-    - Custom Dictinary
+    - Custom Dictionary
 - LZ4_HC 
     - Compression
-    - Custom dictinary
+    - Custom Dictionary
 - LZ4F 
     - Compression (Block / Streaming)
     - Decompression (Block / Streaming)
-    - Custom Dictinary
-    - Asynchronous I/O (Optional)
+    - Custom Dictionary
+    - Asynchronous I/O (`tokio-io` feature)
 
-## Asynchronous I/O feature
+### Asynchronous I/O
 
 The `tokio-io` feature flag enables asynchronous LZ4F streaming compressors and decompressors.
 
