@@ -9,13 +9,14 @@ Yet another [liblz4](https://github.com/lz4/lz4) binding for Rust.
     - Decompression (Block / Streaming)
     - Custom Dictionary
 - LZ4_HC 
-    - Compression
+    - Compression (Block / Streaming)
     - Custom Dictionary
 - LZ4F 
     - Compression (Block / Streaming)
     - Decompression (Block / Streaming)
     - Custom Dictionary
-    - Asynchronous I/O (`tokio-io` optional feature)
+    - Streaming I/O (`Read` / `BufRead` / `Write`)
+    - [optional] Asynchronous I/O (`Read` / `BufRead` / `Write`)
 
 ### Asynchronous I/O
 
