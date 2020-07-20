@@ -23,7 +23,10 @@ With `tokio` feature, `AsyncRead`, `AsyncBufRead` and `AsyncWrite` are also supp
 - LZ4F Compression/Decompression
 - LZ4F Streaming Compression/Decompression (Reader/Writer)
 
+# Asynchronous I/O feature
 
-## Features
+The `tokio-io` feature flag enables asynchronous streaming compressors and decompressors.
 
-- **tokio-io :** Add `AsyncRead`, `AsyncBufRead` and `AsyncWrite` support for streams.
+```toml
+lzzzz = { version = "...", features = ["tokio-io"] }
+```
