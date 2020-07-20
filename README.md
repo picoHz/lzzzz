@@ -12,8 +12,8 @@ Yet another [liblz4](https://github.com/lz4/lz4) binding for Rust.
     - Compression (Block / Streaming)
     - Custom Dictionary
 - LZ4F 
-    - Compression (Block / Streaming)
-    - Decompression (Block / Streaming)
+    - Compression
+    - Decompression
     - Custom Dictionary
     - Streaming I/O (`Read` / `BufRead` / `Write`)
     - [optional] Asynchronous I/O (`Read` / `BufRead` / `Write`)
@@ -24,4 +24,22 @@ The `tokio-io` feature flag enables asynchronous LZ4F streaming compressors and 
 
 ```toml
 lzzzz = { version = "0.1", features = ["tokio-io"] }
+```
+
+## Usage
+
+```toml
+[dependencies]
+lzzzz = "0.1"
+```
+
+## Example
+
+```rust
+use lzzzz::lz4;
+
+let data = b"The quick brown fox jumps over the lazy dog.";
+let mut buf = Vec::new();
+
+lz4::compress_to_vec(data, &mut buf, lz4::ACC_LEVEL_DEFAULT)?;
 ```
