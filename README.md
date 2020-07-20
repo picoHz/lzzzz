@@ -1,6 +1,6 @@
 # lzzzz
 
-Yet another liblz4 binding for Rust.
+Yet another [liblz4](https://github.com/lz4/lz4) binding for Rust.
 
 ## Features
 
