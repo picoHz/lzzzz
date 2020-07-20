@@ -15,7 +15,7 @@ Yet another liblz4 binding for Rust.
     - Compression (Block / Streaming)
     - Decompression (Block / Streaming)
     - Custom Dictionary
-    - Asynchronous I/O (`tokio-io` feature)
+    - Asynchronous I/O (`tokio-io` optional feature)
 
 ### Asynchronous I/O
 
