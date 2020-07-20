@@ -7,26 +7,27 @@
 
 <br/>
 
-[![Build Status](https://dev.azure.com/picoHz/lzzzz/_apis/build/status/lzzzz-CI?branchName=master)](https://dev.azure.com/picoHz/lzzzz/_build/latest?definitionId=2&branchName=master)
+Lzzzz provides high-level liblz4 wrapper API.
 
-- **Designed for Rust:** Lzzzz is a high-level wrapper of liblz4 provides comprehensible API complies with Rust's manner without losing performance and flexibility. You have no concern about memory management and concurrency safety.
+# Features
 
-- **Various Modes:** `LZ4`, `LZ4_HC`, `LZ4F`, `LZ4 Streaming`, `LZ4_HC Streaming` and `LZ4F Streaming` are supported.
+- LZ4
+    - Compression (Block / Streaming)
+    - Decompression (Block / Streaming)
+    - Custom Dictinary
+- LZ4_HC 
+    - Compression
+    - Custom dictinary
+- LZ4F 
+    - Compression (Block / Streaming)
+    - Decompression (Block / Streaming)
+    - Custom Dictinary
+    - Asynchronous I/O (Optional)
 
-- **Flexible Streaming:** All the compressor/decompressor streams support `Read`, `BufRead` and `Write` operations. 
-With `tokio` feature, `AsyncRead`, `AsyncBufRead` and `AsyncWrite` are also supported.
+## Asynchronous I/O feature
 
-- LZ4 Block Compression/Decompression
-- LZ4 Streaming Compression/Decompression (Reader/Writer)
-- LZ4_HC Block Compression
-- LZ4_HC Streaming Compression (Reader/Writer)
-- LZ4F Compression/Decompression
-- LZ4F Streaming Compression/Decompression (Reader/Writer)
-
-# Asynchronous I/O feature
-
-The `tokio-io` feature flag enables asynchronous streaming compressors and decompressors.
+The `tokio-io` feature flag enables asynchronous LZ4F streaming compressors and decompressors.
 
 ```toml
-lzzzz = { version = "...", features = ["tokio-io"] }
+lzzzz = { version = "0.1", features = ["tokio-io"] }
 ```
