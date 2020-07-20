@@ -22,7 +22,7 @@ lzzzz = "0.1"
     - Compression
     - Decompression
     - Custom Dictionary
-    - Streaming I/O (`AsyncRead` / `AsyncBufRead` / `AsyncWrite`)
+    - Streaming I/O (`Read` / `BufRead` / `Write`)
     - [optional] Asynchronous I/O (`AsyncRead` / `AsyncBufRead` / `AsyncWrite`)
 
 ### Asynchronous I/O
