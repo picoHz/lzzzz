@@ -15,8 +15,8 @@ Yet another [liblz4](https://github.com/lz4/lz4) binding for Rust.
     - Compression
     - Decompression
     - Custom Dictionary
-    - Streaming I/O (`Read` / `BufRead` / `Write`)
-    - [optional] Asynchronous I/O (`Read` / `BufRead` / `Write`)
+    - Streaming I/O (`AsyncRead` / `AsyncBufRead` / `AsyncWrite`)
+    - [optional] Asynchronous I/O (`AsyncRead` / `AsyncBufRead` / `AsyncWrite`)
 
 ### Asynchronous I/O
 
