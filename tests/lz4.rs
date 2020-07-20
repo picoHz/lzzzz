@@ -39,6 +39,17 @@ mod decompress {
     use super::*;
 
     #[test]
+    fn default() {
+        lz4_test_set().par_bridge().for_each(|(src, mode)| {
+            let mut comp_buf = Vec::new();
+            let mut decomp_buf = vec![0; src.len()];
+            lz4::compress_to_vec(&src, &mut comp_buf, mode).unwrap();
+            lz4::decompress(&comp_buf, &mut decomp_buf).unwrap();
+            assert_eq!(src, &decomp_buf);
+        });
+    }
+
+    #[test]
     fn partial() {
         lz4_test_set()
             .map(|(src, mode)| (0..20).map(move |n| (src.clone(), mode, 16 << n)))
@@ -51,5 +62,17 @@ mod decompress {
                 lz4::decompress_partial(&comp_buf, &mut decomp_buf, src.len()).unwrap();
                 assert!(src.starts_with(&decomp_buf));
             });
+    }
+
+    #[test]
+    fn with_dict() {
+        lz4_test_set().par_bridge().for_each(|(src, mode)| {
+            let mut comp_buf = Vec::new();
+            let mut decomp_buf = vec![0; src.len()];
+            let mut comp = lz4::Compressor::with_dict(src.as_ref()).unwrap();
+            comp.next_to_vec(&src, &mut comp_buf, mode).unwrap();
+            lz4::decompress_with_dict(&comp_buf, &mut decomp_buf, &src).unwrap();
+            assert_eq!(src, &decomp_buf);
+        });
     }
 }
