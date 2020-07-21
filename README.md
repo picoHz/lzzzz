@@ -38,6 +38,8 @@ lzzzz = { version = "0.1", features = ["tokio-io"] }
 
 ## Example
 
+**Block Mode**
+
 ```rust
 use lzzzz::{lz4, lz4_hc, lz4f};
 
@@ -54,4 +56,13 @@ lz4_hc::compress_to_vec(data, &mut comp, lz4_hc::CLEVEL_DEFAULT)?;
 // LZ4/LZ4_HC decompression
 let mut decomp = vec![0; data.len()];
 lz4::decompress(&comp, &mut decomp)?;
+
+// LZ4F compression
+let prefs = lz4f::Preferences::default();
+let mut comp = Vec::new();
+lz4f::compress_to_vec(data, &mut comp, &prefs)?;
+
+// LZ4F decompression
+let mut decomp = Vec::new();
+lz4f::decompress_to_vec(&comp, &mut decomp)?;
 ```
