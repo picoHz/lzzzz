@@ -4,6 +4,8 @@ Yet another [liblz4](https://github.com/lz4/lz4) binding for Rust.
 
 ## Usage
 
+Add this to your `Cargo.toml`:
+
 ```toml
 [dependencies]
 lzzzz = "0.1"
@@ -41,12 +43,15 @@ use lzzzz::{lz4, lz4_hc, lz4f};
 
 let data = b"The quick brown fox jumps over the lazy dog.";
 
-let mut compressed = Vec::new();
-lz4::compress_to_vec(data, &mut compressed, lz4::ACC_LEVEL_DEFAULT)?;
+// LZ4 compression
+let mut comp = Vec::new();
+lz4::compress_to_vec(data, &mut comp, lz4::ACC_LEVEL_DEFAULT)?;
 
-let mut compressed = Vec::new();
-lz4_hc::compress_to_vec(data, &mut compressed, lz4_hc::CLEVEL_DEFAULT)?;
+// LZ4_HC compression
+let mut comp = Vec::new();
+lz4_hc::compress_to_vec(data, &mut comp, lz4_hc::CLEVEL_DEFAULT)?;
 
-let mut decompressed = vec![0; data.len()];
-lz4::decompress(&compressed, &mut decompressed)?;
+// LZ4/LZ4_HC decompression
+let mut decomp = vec![0; data.len()];
+lz4::decompress(&comp, &mut decomp)?;
 ```
