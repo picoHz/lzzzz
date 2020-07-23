@@ -66,21 +66,21 @@ impl<'a> Compressor<'a> {
             .set_favor_dec_speed(dec_speed == FavorDecSpeed::Enabled);
     }
 
-    /// TODO
+    /// Performs LZ4_HC streaming compression.
     pub fn next(&mut self, src: &[u8], dst: &mut [u8]) -> Result<usize> {
         let result = self.ctx.next(&src, dst)?;
         self.save_dict();
         Ok(result)
     }
 
-    /// TODO
+    /// Compresses data into a slice as much as possible.
     pub fn next_partial(&mut self, src: &[u8], dst: &mut [u8]) -> Result<(usize, usize)> {
         let result = self.ctx.next_partial(&src, dst)?;
         self.save_dict();
         Ok(result)
     }
 
-    /// TODO
+    /// Appends a compressed frame to Vec<u8>.
     pub fn next_to_vec(&mut self, src: &[u8], dst: &mut Vec<u8>) -> Result<usize> {
         let orig_len = dst.len();
         dst.reserve(lz4::max_compressed_size(src.len()));
