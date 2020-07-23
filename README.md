@@ -87,7 +87,9 @@ comp.next_to_vec(data, &mut buf)?;
 // LZ4/LZ4_HC decompression
 let mut decomp = lz4::Decompressor::new()?;
 let result = decomp.next(&data, data.len())?;
+```
 
+```rust
 use lzzzz::lz4f::{WriteCompressor, ReadDecompressor};
 use std::{fs::File, io::prelude::*};
 
