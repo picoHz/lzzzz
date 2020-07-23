@@ -76,12 +76,17 @@ impl<'a, W: AsyncWrite + Unpin> AsyncWriteDecompressor<'a, W> {
         self.inner.set_dict(dict);
     }
 
-    /// TODO
+    /// Returns `FrameInfo` if the frame header is already decoded.
+    /// Otherwise, returns `None`.
     pub fn frame_info(&self) -> Option<FrameInfo> {
         self.inner.frame_info()
     }
 
-    /// TODO
+    /// Sets the 'header-only' mode.
+    ///
+    /// When the 'header-only' mode is enabled, the decompressor doesn't
+    /// consume the frame body and `poll_write()` always returns `Ok(0)`
+    /// if the frame header is already decoded.
     pub fn decode_header_only(&mut self, flag: bool) {
         self.inner.decode_header_only(flag);
     }
