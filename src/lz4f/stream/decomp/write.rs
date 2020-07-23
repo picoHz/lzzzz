@@ -49,10 +49,12 @@ impl<'a, W: Write> WriteDecompressor<'a, W> {
         self.inner.set_dict(dict);
     }
 
+    /// TODO
     pub fn frame_info(&self) -> Option<FrameInfo> {
         self.inner.frame_info()
     }
 
+    /// TODO
     pub fn decode_header_only(&mut self, flag: bool) {
         self.inner.decode_header_only(flag);
     }

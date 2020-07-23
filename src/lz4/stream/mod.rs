@@ -58,6 +58,7 @@ impl<'a> Compressor<'a> {
         Ok(comp)
     }
 
+    /// TODO
     pub fn next(&mut self, src: &[u8], dst: &mut [u8], acc: i32) -> Result<usize> {
         let src_is_empty = src.is_empty();
 
@@ -76,6 +77,7 @@ impl<'a> Compressor<'a> {
         }
     }
 
+    /// TODO
     pub fn next_to_vec(&mut self, src: &[u8], dst: &mut Vec<u8>, acc: i32) -> Result<usize> {
         let orig_len = dst.len();
         dst.reserve(lz4::max_compressed_size(src.len()));
@@ -146,6 +148,7 @@ impl<'a> Decompressor<'a> {
         Ok(decomp)
     }
 
+    /// TODO
     pub fn next(&mut self, src: &[u8], original_size: usize) -> Result<&[u8]> {
         if self
             .cache

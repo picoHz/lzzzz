@@ -105,7 +105,11 @@ let mut buf = Vec::new();
 r.read_to_end(&mut buf)?;
 ```
 
+<<<<<<< Updated upstream
 **Asynchronous Streaming Mode (Requirs `tokio-io` feature flag)**
+=======
+**Asynchronous Streaming Mode (Needs `tokio-io` feature flag)**
+>>>>>>> Stashed changes
 
 ```rust
 use lzzzz::lz4f::{AsyncWriteCompressor, AsyncReadDecompressor};

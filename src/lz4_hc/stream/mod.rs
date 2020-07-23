@@ -66,12 +66,14 @@ impl<'a> Compressor<'a> {
             .set_favor_dec_speed(dec_speed == FavorDecSpeed::Enabled);
     }
 
+    /// TODO
     pub fn next(&mut self, src: &[u8], dst: &mut [u8]) -> Result<usize> {
         let result = self.ctx.next(&src, dst)?;
         self.save_dict();
         Ok(result)
     }
 
+    /// TODO
     pub fn next_partial(&mut self, src: &[u8], dst: &mut [u8]) -> Result<(usize, usize)> {
         let result = self.ctx.next_partial(&src, dst)?;
         self.save_dict();
