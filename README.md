@@ -36,7 +36,7 @@ The `tokio-io` feature flag enables asynchronous LZ4F streaming compressors and 
 lzzzz = { version = "0.1", features = ["tokio-io"] }
 ```
 
-## Example
+## Examples
 
 **Block Mode**
 
