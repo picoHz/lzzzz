@@ -9,6 +9,8 @@ categories = ["compression", "api-bindings"]
 repository = "https://github.com/picoHz/lzzzz"
 homepage = "https://github.com/picoHz/lzzzz"
 documentation = "https://docs.rs/lzzzz"
+license = "MIT"
+readme = "README.md"
 license-file = "LICENSE"
 include = ["src/**/*", "build.rs", "vendor/liblz4/*", "Cargo.toml"]
 
