@@ -96,7 +96,7 @@ use std::{fs::File, io::prelude::*};
 // LZ4F Write-based compression
 let mut f = File::create("foo.lz4")?;
 let mut w = WriteCompressor::new(&mut f, Default::default())?;
-w.write_all(b"hello, world!")?;
+w.write_all(b"Hello world!")?;
 
 // LZ4F Read-based decompression
 let mut f = File::open("foo.lz4")?;
@@ -114,7 +114,7 @@ use tokio::{fs::File, prelude::*};
 // LZ4F AsyncWrite-based compression
 let mut f = File::create("foo.lz4").await?;
 let mut w = AsyncWriteCompressor::new(&mut f, Default::default())?;
-w.write_all(b"hello, world!").await?;
+w.write_all(b"Hello world!").await?;
 w.shutdown().await?;
 
 // LZ4F AsyncRead-based decompression
