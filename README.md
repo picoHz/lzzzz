@@ -66,3 +66,58 @@ lz4f::compress_to_vec(data, &mut comp, &prefs)?;
 let mut decomp = Vec::new();
 lz4f::decompress_to_vec(&comp, &mut decomp)?;
 ```
+
+**Streaming Mode**
+
+```rust
+use lzzzz::{lz4, lz4_hc};
+
+let data = b"The quick brown fox jumps over the lazy dog.";
+
+// LZ4 compression
+let mut comp = lz4::Compressor::new()?;
+let mut buf = Vec::new();
+comp.next_to_vec(data, &mut buf, lz4::ACC_LEVEL_DEFAULT)?;
+
+// LZ4_HC compression
+let mut comp = lz4_hc::Compressor::new()?;
+let mut buf = Vec::new();
+comp.next_to_vec(data, &mut buf)?;
+
+// LZ4/LZ4_HC decompression
+let mut decomp = lz4::Decompressor::new()?;
+let result = decomp.next(&data, data.len())?;
+
+use lzzzz::lz4f::{WriteCompressor, ReadDecompressor};
+use std::{fs::File, io::prelude::*};
+
+// LZ4F Write-based compression
+let mut f = File::create("foo.lz4")?;
+let mut w = WriteCompressor::new(&mut f, Default::default())?;
+w.write_all(b"hello, world!")?;
+
+// LZ4F Read-based decompression
+let mut f = File::open("foo.lz4")?;
+let mut r = ReadDecompressor::new(&mut f)?;
+let mut buf = Vec::new();
+r.read_to_end(&mut buf)?;
+```
+
+**Asynchronous Streaming Mode**
+
+```rust
+use lzzzz::lz4f::{AsyncWriteCompressor, AsyncReadDecompressor};
+use tokio::{fs::File, prelude::*};
+
+// LZ4F AsyncWrite-based compression
+let mut f = File::create("foo.lz4").await?;
+let mut w = AsyncWriteCompressor::new(&mut f, Default::default())?;
+w.write_all(b"hello, world!").await?;
+w.shutdown().await?;
+
+// LZ4F AsyncRead-based decompression
+let mut f = File::open("foo.lz4").await?;
+let mut r = AsyncReadDecompressor::new(&mut f)?;
+let mut buf = Vec::new();
+r.read_to_end(&mut buf).await?;
+```
