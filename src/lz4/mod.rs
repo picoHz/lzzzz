@@ -3,7 +3,6 @@
 //! # Acceleration factor
 //! Larger value increases the processing speed in exchange for the
 //! loss of compression ratio.
-//! `ACC_LEVEL_DEFAULT`
 
 mod binding;
 mod block;
