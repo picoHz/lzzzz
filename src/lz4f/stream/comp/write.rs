@@ -19,7 +19,7 @@ use std::io::Write;
 /// let mut f = File::create("foo.lz4")?;
 /// let mut w = WriteCompressor::new(&mut f, Default::default())?;
 ///
-/// w.write_all(b"hello, world!")?;
+/// w.write_all(b"Hello world!")?;
 /// # Ok::<(), std::io::Error>(())
 /// ```
 ///

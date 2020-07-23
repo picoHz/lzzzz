@@ -28,7 +28,7 @@ use tokio::io::AsyncWrite;
 /// let mut f = File::create("foo.lz4").await?;
 /// let mut w = AsyncWriteCompressor::new(&mut f, Default::default())?;
 ///
-/// w.write_all(b"hello, world!").await?;
+/// w.write_all(b"Hello world!").await?;
 ///
 /// // You have to call shutdown() to finalize the frame.
 /// w.shutdown().await?;
