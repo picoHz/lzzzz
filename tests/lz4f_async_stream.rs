@@ -359,6 +359,34 @@ mod async_write_decompressor {
     }
 
     #[tokio::test]
+    async fn decode_header_only() {
+        join_all(lz4f_test_set().map(|(src, prefs)| async move {
+            let mut comp_buf = Vec::new();
+            let mut decomp_buf = Vec::new();
+            assert_eq!(
+                lz4f::compress_to_vec(&src, &mut comp_buf, &prefs).unwrap(),
+                comp_buf.len()
+            );
+            {
+                let mut w = AsyncWriteDecompressor::new(&mut decomp_buf).unwrap();
+                assert!(w.frame_info().is_none());
+                w.decode_header_only(true);
+
+                let mut header_len = 0;
+                while w.frame_info().is_none() {
+                    header_len += w.write(&comp_buf[header_len..]).await.unwrap();
+                }
+
+                assert_eq!(w.write(&comp_buf).await.unwrap(), 0);
+                w.decode_header_only(false);
+                w.write_all(&comp_buf[header_len..]).await.unwrap();
+            }
+            assert_eq!(decomp_buf, src);
+        }))
+        .await;
+    }
+
+    #[tokio::test]
     async fn dictionary() {
         join_all(lz4f_test_set().map(|(src, prefs)| async move {
             let mut comp_buf = Vec::new();
