@@ -43,7 +43,7 @@ lzzzz = { version = "0.2", features = ["tokio-io"] }
 
 ## Examples
 
-**Block Mode**
+### Block Mode
 
 ```rust
 use lzzzz::{lz4, lz4_hc, lz4f};
@@ -72,7 +72,7 @@ let mut decomp = Vec::new();
 lz4f::decompress_to_vec(&comp, &mut decomp)?;
 ```
 
-**Streaming Mode**
+### Streaming Mode
 
 ```rust
 use lzzzz::{lz4, lz4_hc};
@@ -110,7 +110,9 @@ let mut buf = Vec::new();
 r.read_to_end(&mut buf)?;
 ```
 
-**Asynchronous Streaming Mode (Requires `tokio-io` feature flag)**
+### Asynchronous Streaming Mode
+
+Requires `tokio-io` feature flag
 
 ```rust
 use lzzzz::lz4f::{AsyncWriteCompressor, AsyncReadDecompressor};
