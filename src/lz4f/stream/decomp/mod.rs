@@ -26,6 +26,12 @@ use crate::{
 };
 use std::{borrow::Cow, cmp, mem, mem::MaybeUninit, pin::Pin, ptr};
 
+#[derive(Clone, Copy, PartialEq)]
+struct DictPtr(*const u8, usize);
+
+#[allow(unsafe_code)]
+unsafe impl Send for DictPtr {}
+
 enum State {
     Header {
         header: [u8; LZ4F_HEADER_SIZE_MAX],
@@ -33,7 +39,7 @@ enum State {
     },
     Body {
         frame_info: FrameInfo,
-        comp_dict: Option<(*const u8, usize)>,
+        comp_dict: Option<DictPtr>,
     },
 }
 
@@ -147,12 +153,12 @@ impl<'a> Decompressor<'a> {
         }
     }
 
-    fn dict_ptr(&self) -> (*const u8, usize) {
+    fn dict_ptr(&self) -> DictPtr {
         let dict = &self.dict;
         if dict.is_empty() {
-            (ptr::null(), 0)
+            DictPtr(ptr::null(), 0)
         } else {
-            (dict.as_ptr(), dict.len())
+            DictPtr(dict.as_ptr(), dict.len())
         }
     }
 

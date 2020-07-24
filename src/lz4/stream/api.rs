@@ -22,6 +22,8 @@ pub struct CompressionContext {
     stream: Stream,
 }
 
+unsafe impl Send for CompressionContext {}
+
 impl CompressionContext {
     pub fn new() -> Result<Self> {
         let mut stream = MaybeUninit::<LZ4Stream>::uninit();
@@ -97,6 +99,8 @@ impl Drop for CompressionContext {
 pub struct DecompressionContext {
     stream: NonNull<LZ4DecStream>,
 }
+
+unsafe impl Send for DecompressionContext {}
 
 impl DecompressionContext {
     pub fn new() -> Result<Self> {

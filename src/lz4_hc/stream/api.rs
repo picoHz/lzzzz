@@ -12,6 +12,8 @@ pub struct CompressionContext {
     stream: NonNull<LZ4StreamHC>,
 }
 
+unsafe impl Send for CompressionContext {}
+
 impl CompressionContext {
     pub fn new() -> Result<Self> {
         let ptr = unsafe { NonNull::new(binding::LZ4_createStreamHC()) };

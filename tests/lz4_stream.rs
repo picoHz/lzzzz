@@ -1,9 +1,13 @@
 use lzzzz::lz4;
 use rand::{distributions::Standard, rngs::SmallRng, Rng, SeedableRng};
 use rayon::{iter::ParallelBridge, prelude::*};
+use static_assertions::assert_impl_all;
 
 mod common;
 use common::lz4_stream_test_set;
+
+assert_impl_all!(lz4::Compressor: Send);
+assert_impl_all!(lz4::Decompressor: Send);
 
 mod compressor {
     use super::*;

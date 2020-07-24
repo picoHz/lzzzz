@@ -3,9 +3,19 @@
 use futures::future::join_all;
 use lzzzz::{lz4f, lz4f::*};
 use rand::{distributions::Standard, rngs::SmallRng, Rng, SeedableRng};
+use static_assertions::assert_impl_all;
+use tokio::fs::File;
+use tokio::io::BufReader;
 
 mod common;
 use common::lz4f_test_set;
+
+assert_impl_all!(lz4f::AsyncBufReadCompressor<BufReader<File>>: Send);
+assert_impl_all!(lz4f::AsyncReadCompressor<File>: Send);
+assert_impl_all!(lz4f::AsyncWriteCompressor<File>: Send);
+assert_impl_all!(lz4f::AsyncBufReadDecompressor<BufReader<File>>: Send);
+assert_impl_all!(lz4f::AsyncReadDecompressor<File>: Send);
+assert_impl_all!(lz4f::AsyncWriteDecompressor<File>: Send);
 
 mod async_read_compressor {
     use super::*;

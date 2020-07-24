@@ -20,6 +20,8 @@ pub struct CompressionContext {
     dict: Option<Dictionary>,
 }
 
+unsafe impl Send for CompressionContext {}
+
 impl CompressionContext {
     pub fn new(dict: Option<Dictionary>) -> Result<Self> {
         let ctx = MaybeUninit::<*mut LZ4FCompressionCtx>::uninit();
@@ -117,6 +119,8 @@ impl Drop for CompressionContext {
 pub struct DecompressionContext {
     ctx: NonNull<LZ4FDecompressionCtx>,
 }
+
+unsafe impl Send for DecompressionContext {}
 
 impl DecompressionContext {
     pub fn new() -> Result<Self> {

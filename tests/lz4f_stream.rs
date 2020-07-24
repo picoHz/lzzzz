@@ -1,10 +1,19 @@
 use lzzzz::{lz4f, lz4f::*};
 use rand::{distributions::Standard, rngs::SmallRng, Rng, SeedableRng};
 use rayon::{iter::ParallelBridge, prelude::*};
-use std::io::prelude::*;
+use static_assertions::assert_impl_all;
+use std::fs::File;
+use std::io::{prelude::*, BufReader};
 
 mod common;
 use common::lz4f_test_set;
+
+assert_impl_all!(lz4f::BufReadCompressor<BufReader<File>>: Send);
+assert_impl_all!(lz4f::ReadCompressor<File>: Send);
+assert_impl_all!(lz4f::WriteCompressor<File>: Send);
+assert_impl_all!(lz4f::BufReadDecompressor<BufReader<File>>: Send);
+assert_impl_all!(lz4f::ReadDecompressor<File>: Send);
+assert_impl_all!(lz4f::WriteDecompressor<File>: Send);
 
 mod write_compressor {
     use super::*;
