@@ -13,6 +13,9 @@ license = "MIT"
 readme = "README.md"
 include = ["src/**/*", "build.rs", "vendor/liblz4/*", "Cargo.toml"]
 
+[badges]
+azure-devops = { project = "picoHz/lzzzz", pipeline = "picoHz.lzzzz" }
+
 [package.metadata.docs.rs]
 all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
