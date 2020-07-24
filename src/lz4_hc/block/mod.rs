@@ -49,7 +49,7 @@ pub fn compress(src: &[u8], dst: &mut [u8], level: i32) -> Result<usize> {
     }
 }
 
-/// Compresses data into a slice as much as possible.
+/// Compresses data until the destination slice fills up.
 ///
 /// # Example
 ///

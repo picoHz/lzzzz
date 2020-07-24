@@ -73,7 +73,7 @@ impl<'a> Compressor<'a> {
         Ok(result)
     }
 
-    /// Compresses data into a slice as much as possible.
+    /// Compresses data until the destination slice fills up.
     pub fn next_partial(&mut self, src: &[u8], dst: &mut [u8]) -> Result<(usize, usize)> {
         let result = self.ctx.next_partial(&src, dst)?;
         self.save_dict();

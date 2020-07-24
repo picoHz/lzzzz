@@ -121,7 +121,7 @@ pub fn decompress(src: &[u8], dst: &mut [u8]) -> Result<usize> {
     api::decompress_safe(src, dst)
 }
 
-/// Decompresses a LZ4 block as much as possible.
+/// Decompresses a LZ4 block until the destination slice fills up.
 ///
 /// # Example
 ///
