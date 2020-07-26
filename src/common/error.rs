@@ -35,7 +35,7 @@ impl Error {
         Self { kind }
     }
 
-    /// Return the corresponding `ErrorKind` for this error.
+    /// Returns the corresponding `ErrorKind` for this error.
     pub const fn kind(self) -> ErrorKind {
         self.kind
     }

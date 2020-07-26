@@ -87,7 +87,7 @@ impl<'a> Compressor<'a> {
 
     /// Appends a compressed frame to Vec<u8>.
     ///
-    /// Returns the number of bytes appended to `Vec<u8>`.
+    /// Returns the number of bytes appended to the given `Vec<u8>`.
     pub fn next_to_vec(&mut self, src: &[u8], dst: &mut Vec<u8>) -> Result<usize> {
         let orig_len = dst.len();
         dst.reserve(lz4::max_compressed_size(src.len()));

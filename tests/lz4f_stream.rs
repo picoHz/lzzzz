@@ -2,8 +2,10 @@ use lzzzz::{lz4f, lz4f::*};
 use rand::{distributions::Standard, rngs::SmallRng, Rng, SeedableRng};
 use rayon::{iter::ParallelBridge, prelude::*};
 use static_assertions::assert_impl_all;
-use std::fs::File;
-use std::io::{prelude::*, BufReader};
+use std::{
+    fs::File,
+    io::{prelude::*, BufReader},
+};
 
 mod common;
 use common::lz4f_test_set;

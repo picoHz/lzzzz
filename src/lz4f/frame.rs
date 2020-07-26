@@ -4,7 +4,7 @@ use super::{api, Result};
 use crate::{common::DEFAULT_BUF_SIZE, lz4f::Preferences, Error, ErrorKind};
 use std::{cell::RefCell, ops::Deref};
 
-/// Calculates the maximum size of the compressed frame.
+/// Calculates the maximum size of the compressed output.
 ///
 /// If `original_size` is too large to compress, this returns `0`.
 ///
@@ -20,7 +20,7 @@ pub fn max_compressed_size(original_size: usize, prefs: &Preferences) -> usize {
 /// Performs LZ4F compression.
 ///
 /// Ensure that the destination slice have enough capacity.
-/// If `dst.len()` is smaller than `lz4::max_compressed_size(src.len())`,
+/// If `dst.len()` is smaller than `lz4f::max_compressed_size(src.len())`,
 /// this function may fail.
 ///
 /// Returns the number of bytes written into the destination buffer.
@@ -51,7 +51,7 @@ pub fn compress(src: &[u8], dst: &mut [u8], prefs: &Preferences) -> Result<usize
 
 /// Appends a compressed frame to Vec<u8>.
 ///
-/// Returns the number of bytes appended to `Vec<u8>`.
+/// Returns the number of bytes appended to the given `Vec<u8>`.
 ///
 /// # Example
 ///
@@ -84,7 +84,7 @@ pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, prefs: &Preferences) -> Re
 
 /// Decompresses a LZ4 frame.
 ///
-/// Returns the number of bytes appended to `Vec<u8>`.
+/// Returns the number of bytes appended to the given `Vec<u8>`.
 ///
 /// # Example
 ///

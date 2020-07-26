@@ -4,8 +4,7 @@ use futures::future::join_all;
 use lzzzz::{lz4f, lz4f::*};
 use rand::{distributions::Standard, rngs::SmallRng, Rng, SeedableRng};
 use static_assertions::assert_impl_all;
-use tokio::fs::File;
-use tokio::io::BufReader;
+use tokio::{fs::File, io::BufReader};
 
 mod common;
 use common::lz4f_test_set;

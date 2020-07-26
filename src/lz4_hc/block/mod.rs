@@ -86,7 +86,7 @@ pub fn compress_partial(src: &[u8], dst: &mut [u8], level: i32) -> Result<(usize
 
 /// Appends compressed data to `Vec<u8>`.
 ///
-/// Returns the number of bytes appended to `Vec<u8>`.
+/// Returns the number of bytes appended to the given `Vec<u8>`.
 ///
 /// # Example
 ///

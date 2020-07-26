@@ -4,7 +4,7 @@ use crate::{Error, ErrorKind, Result};
 use api::ExtState;
 use std::cmp;
 
-/// Calculates the maximum size of the compressed data.
+/// Calculates the maximum size of the compressed output.
 ///
 /// If `original_size` is too large to compress, this returns `0`.
 #[must_use]
@@ -64,7 +64,7 @@ pub fn compress(src: &[u8], dst: &mut [u8], acc: i32) -> Result<usize> {
 
 /// Appends compressed data to `Vec<u8>`.
 ///
-/// Returns the number of bytes appended to `Vec<u8>`.
+/// Returns the number of bytes appended to the given `Vec<u8>`.
 ///
 /// # Example
 ///
