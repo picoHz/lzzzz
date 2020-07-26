@@ -17,9 +17,6 @@ include = ["src/**/*", "build.rs", "vendor/liblz4/*", "Cargo.toml"]
 all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
-[badges]
-azure-devops = { project = "picoHz/lzzzz", pipeline = "picoHz.lzzzz" }
-
 [dependencies]
 pin-project = { version = "0.4.22", optional = true }
 tokio = { version = "0.2.22", optional = true }
