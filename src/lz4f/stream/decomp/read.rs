@@ -61,6 +61,11 @@ impl<'a, R: Read> ReadDecompressor<'a, R> {
     pub fn read_frame_info(&mut self) -> std::io::Result<FrameInfo> {
         self.inner.read_frame_info()
     }
+
+    /// Returns ownership of the reader.
+    pub fn into_inner(self) -> R {
+        self.inner.into_inner().into_inner()
+    }
 }
 
 impl<R: Read> Read for ReadDecompressor<'_, R> {

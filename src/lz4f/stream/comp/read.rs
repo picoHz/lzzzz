@@ -47,6 +47,11 @@ impl<R: Read> ReadCompressor<R> {
             inner: BufReadCompressor::with_dict(BufReader::new(reader), prefs, dict)?,
         })
     }
+
+    /// Returns ownership of the reader.
+    pub fn into_inner(self) -> R {
+        self.inner.into_inner().into_inner()
+    }
 }
 
 impl<R: Read> Read for ReadCompressor<R> {

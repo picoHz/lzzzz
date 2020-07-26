@@ -63,6 +63,11 @@ impl<'a, W: Write> WriteDecompressor<'a, W> {
     pub fn decode_header_only(&mut self, flag: bool) {
         self.inner.decode_header_only(flag);
     }
+
+    /// Returns ownership of the writer.
+    pub fn into_inner(self) -> W {
+        self.device
+    }
 }
 
 impl<W: Write> Write for WriteDecompressor<'_, W> {
