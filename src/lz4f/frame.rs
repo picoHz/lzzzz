@@ -23,6 +23,8 @@ pub fn max_compressed_size(original_size: usize, prefs: &Preferences) -> usize {
 /// If `dst.len()` is smaller than `lz4::max_compressed_size(src.len())`,
 /// this function may fail.
 ///
+/// Returns the number of bytes written into the destination buffer.
+///
 /// # Example
 ///
 /// Compress data with the default compression mode:
@@ -48,6 +50,8 @@ pub fn compress(src: &[u8], dst: &mut [u8], prefs: &Preferences) -> Result<usize
 }
 
 /// Appends a compressed frame to Vec<u8>.
+///
+/// Returns the number of bytes appended to `Vec<u8>`.
 ///
 /// # Example
 ///
@@ -79,6 +83,8 @@ pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, prefs: &Preferences) -> Re
 }
 
 /// Decompresses a LZ4 frame.
+///
+/// Returns the number of bytes appended to `Vec<u8>`.
 ///
 /// # Example
 ///

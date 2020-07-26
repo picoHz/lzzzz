@@ -67,6 +67,8 @@ impl<'a> Compressor<'a> {
     }
 
     /// Performs LZ4_HC streaming compression.
+    ///
+    /// Returns the number of bytes written into the destination buffer.
     pub fn next(&mut self, src: &[u8], dst: &mut [u8]) -> Result<usize> {
         let result = self.ctx.next(&src, dst)?;
         self.save_dict();
@@ -74,6 +76,9 @@ impl<'a> Compressor<'a> {
     }
 
     /// Compresses data until the destination slice fills up.
+    ///
+    /// The first `usize` of the returned value represents the number of bytes written into the
+    /// destination buffer, and the other represents the number of bytes read from the source buffer.
     pub fn next_partial(&mut self, src: &[u8], dst: &mut [u8]) -> Result<(usize, usize)> {
         let result = self.ctx.next_partial(&src, dst)?;
         self.save_dict();
@@ -81,6 +86,8 @@ impl<'a> Compressor<'a> {
     }
 
     /// Appends a compressed frame to Vec<u8>.
+    ///
+    /// Returns the number of bytes appended to `Vec<u8>`.
     pub fn next_to_vec(&mut self, src: &[u8], dst: &mut Vec<u8>) -> Result<usize> {
         let orig_len = dst.len();
         dst.reserve(lz4::max_compressed_size(src.len()));

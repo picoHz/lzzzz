@@ -59,6 +59,8 @@ impl<'a> Compressor<'a> {
     }
 
     /// Performs LZ4 streaming compression.
+    ///
+    /// Returns the number of bytes written into the destination buffer.
     pub fn next(&mut self, src: &[u8], dst: &mut [u8], acc: i32) -> Result<usize> {
         let src_is_empty = src.is_empty();
 
@@ -78,6 +80,8 @@ impl<'a> Compressor<'a> {
     }
 
     /// Appends compressed data to Vec<u8>.
+    ///
+    /// Returns the number of bytes appended to `Vec<u8>`.
     pub fn next_to_vec(&mut self, src: &[u8], dst: &mut Vec<u8>, acc: i32) -> Result<usize> {
         let orig_len = dst.len();
         dst.reserve(lz4::max_compressed_size(src.len()));

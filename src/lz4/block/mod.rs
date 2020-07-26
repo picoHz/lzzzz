@@ -18,7 +18,7 @@ pub const fn max_compressed_size(original_size: usize) -> usize {
 /// If `dst.len()` is smaller than `lz4::max_compressed_size(src.len())`,
 /// this function may fail.
 ///
-/// The returned value is the number of bytes written into `dst`.
+/// Returns the number of bytes written into the destination buffer.
 ///
 /// # Example
 ///
@@ -64,6 +64,8 @@ pub fn compress(src: &[u8], dst: &mut [u8], acc: i32) -> Result<usize> {
 
 /// Appends compressed data to `Vec<u8>`.
 ///
+/// Returns the number of bytes appended to `Vec<u8>`.
+///
 /// # Example
 ///
 /// ```
@@ -95,7 +97,7 @@ pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, acc: i32) -> Result<usize>
 ///
 /// The length of the destination slice must be equal to the original data length.
 ///
-/// The returned value is the number of bytes written into `dst`.
+/// Returns the number of bytes written into the destination buffer.
 ///
 /// # Example
 ///
@@ -123,6 +125,8 @@ pub fn decompress(src: &[u8], dst: &mut [u8]) -> Result<usize> {
 
 /// Decompresses a LZ4 block until the destination slice fills up.
 ///
+/// Returns the number of bytes written into the destination buffer.
+///
 /// # Example
 ///
 /// ```
@@ -145,6 +149,8 @@ pub fn decompress_partial(src: &[u8], dst: &mut [u8], original_size: usize) -> R
 }
 
 /// Decompresses a LZ4 block with a dictionary.
+///
+/// Returns the number of bytes written into the destination buffer.
 ///
 /// # Example
 ///

@@ -9,6 +9,8 @@ use api::ExtState;
 /// If `dst.len()` is smaller than `lz4::max_compressed_size(src.len())`,
 /// this function may fail.
 ///
+/// Returns the number of bytes written into the destination buffer.
+///
 /// # Example
 ///
 /// ```
@@ -51,6 +53,9 @@ pub fn compress(src: &[u8], dst: &mut [u8], level: i32) -> Result<usize> {
 
 /// Compresses data until the destination slice fills up.
 ///
+/// The first `usize` of the returned value represents the number of bytes written into the
+/// destination buffer, and the other represents the number of bytes read from the source buffer.
+///
 /// # Example
 ///
 /// ```
@@ -80,6 +85,8 @@ pub fn compress_partial(src: &[u8], dst: &mut [u8], level: i32) -> Result<(usize
 }
 
 /// Appends compressed data to `Vec<u8>`.
+///
+/// Returns the number of bytes appended to `Vec<u8>`.
 ///
 /// # Example
 ///
