@@ -4,6 +4,7 @@
 [![Crates.io](https://img.shields.io/crates/v/lzzzz.svg)](https://crates.io/crates/lzzzz)
 [![GitHub license](https://img.shields.io/github/license/picoHz/lzzzz.svg)](https://github.com/picoHz/lzzzz/blob/master/LICENSE)
 [![Rustdoc](https://img.shields.io/badge/doc-rustdoc-green.svg)](https://docs.rs/lzzzz)
+![Rust](https://github.com/picoHz/lzzzz/workflows/Rust/badge.svg)
 [![Build Status](https://dev.azure.com/picoHz/lzzzz/_apis/build/status/picoHz.lzzzz?branchName=master)](https://dev.azure.com/picoHz/lzzzz/_build/latest?definitionId=4&branchName=master)
 
 Yet another [liblz4](https://github.com/lz4/lz4) binding for Rust.
@@ -16,6 +17,8 @@ Add this to your `Cargo.toml`:
 [dependencies]
 lzzzz = "0.2"
 ```
+
+[API Documentation](https://docs.rs/lzzzz)
 
 ## Features
 
