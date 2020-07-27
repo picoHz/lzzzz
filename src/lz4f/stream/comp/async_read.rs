@@ -1,13 +1,15 @@
-#![cfg(feature = "tokio-io")]
+#![cfg(feature = "async-io")]
 
 use super::{AsyncBufReadCompressor, Dictionary, Preferences};
 use crate::lz4f::Result;
+use async_std::io::BufReader;
+use futures_lite::AsyncRead;
 use pin_project::pin_project;
 use std::{
+    io,
     pin::Pin,
     task::{Context, Poll},
 };
-use tokio::io::{AsyncRead, BufReader};
 
 /// The [`AsyncRead`]-based streaming compressor.
 ///
@@ -23,24 +25,23 @@ use tokio::io::{AsyncRead, BufReader};
 /// #
 /// # tmp_dir.child("foo.txt").write_str("Hello").unwrap();
 /// #
-/// # let mut rt = tokio::runtime::Runtime::new().unwrap();
-/// # rt.block_on(async {
+/// # smol::run(async {
 /// use lzzzz::lz4f::AsyncReadCompressor;
-/// use tokio::{fs::File, prelude::*};
+/// use async_std::{fs::File, prelude::*};
 ///
 /// let mut f = File::open("foo.txt").await?;
 /// let mut r = AsyncReadCompressor::new(&mut f, Default::default())?;
 ///
 /// let mut buf = Vec::new();
 /// r.read_to_end(&mut buf).await?;
-/// # Ok::<(), tokio::io::Error>(())
+/// # Ok::<(), std::io::Error>(())
 /// # }).unwrap();
 /// # tmp_dir.close().unwrap();
 /// ```
 ///
-/// [`AsyncRead`]: https://docs.rs/tokio/latest/tokio/io/trait.AsyncRead.html
+/// [`AsyncRead`]: https://docs.rs/futures-io/0.3.5/futures_io/trait.AsyncRead.html
 
-#[cfg_attr(docsrs, doc(cfg(feature = "tokio-io")))]
+#[cfg_attr(docsrs, doc(cfg(feature = "async-io")))]
 #[pin_project]
 pub struct AsyncReadCompressor<R: AsyncRead + Unpin> {
     #[pin]
@@ -68,7 +69,7 @@ impl<R: AsyncRead + Unpin> AsyncRead for AsyncReadCompressor<R> {
         self: Pin<&mut Self>,
         cx: &mut Context,
         buf: &mut [u8],
-    ) -> Poll<tokio::io::Result<usize>> {
+    ) -> Poll<io::Result<usize>> {
         self.project().inner.poll_read(cx, buf)
     }
 }

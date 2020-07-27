@@ -1,14 +1,14 @@
-#![cfg(feature = "tokio-io")]
+#![cfg(feature = "async-io")]
 
 use super::{Compressor, Dictionary, Preferences};
 use crate::lz4f::Result;
+use futures_lite::{AsyncBufRead, AsyncRead};
 use pin_project::pin_project;
 use std::{
-    cmp,
+    cmp, io,
     pin::Pin,
     task::{Context, Poll},
 };
-use tokio::io::{AsyncBufRead, AsyncRead};
 
 /// The [`AsyncBufRead`]-based streaming compressor.
 ///
@@ -24,10 +24,9 @@ use tokio::io::{AsyncBufRead, AsyncRead};
 /// #
 /// # tmp_dir.child("foo.txt").write_str("Hello").unwrap();
 /// #
-/// # let mut rt = tokio::runtime::Runtime::new().unwrap();
-/// # rt.block_on(async {
+/// # smol::run(async {
 /// use lzzzz::lz4f::AsyncBufReadCompressor;
-/// use tokio::{fs::File, io::BufReader, prelude::*};
+/// use async_std::{fs::File, io::BufReader, prelude::*};
 ///
 /// let mut f = File::open("foo.txt").await?;
 /// let mut b = BufReader::new(f);
@@ -35,14 +34,14 @@ use tokio::io::{AsyncBufRead, AsyncRead};
 ///
 /// let mut buf = Vec::new();
 /// r.read_to_end(&mut buf).await?;
-/// # Ok::<(), tokio::io::Error>(())
+/// # Ok::<(), std::io::Error>(())
 /// # }).unwrap();
 /// # tmp_dir.close().unwrap();
 /// ```
 ///
-/// [`AsyncBufRead`]: https://docs.rs/tokio/latest/tokio/io/trait.AsyncBufRead.html
+/// [`AsyncBufRead`]: https://docs.rs/futures-io/0.3.5/futures_io/trait.AsyncBufRead.html
 
-#[cfg_attr(docsrs, doc(cfg(feature = "tokio-io")))]
+#[cfg_attr(docsrs, doc(cfg(feature = "async-io")))]
 #[pin_project]
 pub struct AsyncBufReadCompressor<R: AsyncBufRead + Unpin> {
     #[pin]
@@ -82,7 +81,7 @@ impl<R: AsyncBufRead + Unpin> AsyncBufReadCompressor<R> {
         })
     }
 
-    fn fill_buf(self: Pin<&mut Self>, cx: &mut Context) -> Poll<tokio::io::Result<()>> {
+    fn fill_buf(self: Pin<&mut Self>, cx: &mut Context) -> Poll<io::Result<()>> {
         let mut me = self.project();
         let inner_buf = match me.device.as_mut().poll_fill_buf(cx) {
             Poll::Pending => {
@@ -113,7 +112,7 @@ impl<R: AsyncBufRead + Unpin> AsyncRead for AsyncBufReadCompressor<R> {
         mut self: Pin<&mut Self>,
         cx: &mut Context,
         buf: &mut [u8],
-    ) -> Poll<tokio::io::Result<usize>> {
+    ) -> Poll<io::Result<usize>> {
         let mut me = Pin::new(&mut *self);
         if let State::None = me.state {
             me.state = State::Read;
@@ -138,7 +137,7 @@ impl<R: AsyncBufRead + Unpin> AsyncRead for AsyncBufReadCompressor<R> {
 }
 
 impl<R: AsyncBufRead + Unpin> AsyncBufRead for AsyncBufReadCompressor<R> {
-    fn poll_fill_buf(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<tokio::io::Result<&[u8]>> {
+    fn poll_fill_buf(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<io::Result<&[u8]>> {
         let mut me = Pin::new(&mut *self);
         if let State::None = me.state {
             me.state = State::FillBuf;

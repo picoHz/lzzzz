@@ -37,11 +37,11 @@ lzzzz = "0.3"
 
 ### Asynchronous I/O
 
-The `tokio-io` feature flag enables asynchronous LZ4F streaming compressors and decompressors.
+The `async-io` feature flag enables asynchronous LZ4F streaming compressors and decompressors.
 
 ```toml
 [dependencies]
-lzzzz = { version = "0.3", features = ["tokio-io"] }
+lzzzz = { version = "0.3", features = ["async-io"] }
 ```
 
 ## Examples
@@ -115,17 +115,17 @@ r.read_to_end(&mut buf)?;
 
 ### Asynchronous Streaming Mode
 
-Requires `tokio-io` feature flag
+Requires `async-io` feature flag
 
 ```rust
 use lzzzz::lz4f::{AsyncWriteCompressor, AsyncReadDecompressor};
-use tokio::{fs::File, prelude::*};
+use async_std::{fs::File, prelude::*};
 
 // LZ4F AsyncWrite-based compression
 let mut f = File::create("foo.lz4").await?;
 let mut w = AsyncWriteCompressor::new(&mut f, Default::default())?;
 w.write_all(b"Hello world!").await?;
-w.shutdown().await?;
+w.close().await?;
 
 // LZ4F AsyncRead-based decompression
 let mut f = File::open("foo.lz4").await?;

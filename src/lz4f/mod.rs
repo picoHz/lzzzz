@@ -2,10 +2,10 @@
 //!
 //! # Asynchronous I/O
 //!
-//! The `tokio-io` feature flag enables asynchronous streaming compressors and decompressors.
+//! The `async-io` feature flag enables asynchronous streaming compressors and decompressors.
 //!
 //! ```toml
-//! lzzzz = { version = "...", features = ["tokio-io"] }
+//! lzzzz = { version = "...", features = ["async-io"] }
 //! ```
 
 mod api;
