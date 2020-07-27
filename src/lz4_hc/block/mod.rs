@@ -53,8 +53,8 @@ pub fn compress(src: &[u8], dst: &mut [u8], level: i32) -> Result<usize> {
 
 /// Compresses data until the destination slice fills up.
 ///
-/// The first `usize` of the returned value represents the number of bytes written into the
-/// destination buffer, and the other represents the number of bytes read from the source buffer.
+/// The first `usize` of the returned value represents the number of bytes read from the
+/// source buffer, and the other represents the number of bytes written into the destination buffer.
 ///
 /// # Example
 ///

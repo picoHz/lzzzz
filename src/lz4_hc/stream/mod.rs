@@ -77,8 +77,8 @@ impl<'a> Compressor<'a> {
 
     /// Compresses data until the destination slice fills up.
     ///
-    /// The first `usize` of the returned value represents the number of bytes written into the
-    /// destination buffer, and the other represents the number of bytes read from the source buffer.
+    /// The first `usize` of the returned value represents the number of bytes read from the
+    /// source buffer, and the other represents the number of bytes written into the destination buffer.
     pub fn next_partial(&mut self, src: &[u8], dst: &mut [u8]) -> Result<(usize, usize)> {
         let result = self.ctx.next_partial(&src, dst)?;
         self.save_dict();
