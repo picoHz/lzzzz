@@ -76,6 +76,11 @@ impl<'a, R: BufRead> BufReadDecompressor<'a, R> {
             self.inner.decode_header_only(false);
         }
     }
+
+    /// Returns ownership of the reader.
+    pub fn into_inner(self) -> R {
+        self.device
+    }
 }
 
 impl<R: BufRead> Read for BufReadDecompressor<'_, R> {

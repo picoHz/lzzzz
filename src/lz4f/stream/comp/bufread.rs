@@ -57,6 +57,11 @@ impl<R: BufRead> BufReadCompressor<R> {
             consumed: 0,
         })
     }
+
+    /// Returns ownership of the reader.
+    pub fn into_inner(self) -> R {
+        self.device
+    }
 }
 
 impl<R: BufRead> Read for BufReadCompressor<R> {
