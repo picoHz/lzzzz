@@ -19,7 +19,8 @@ rustdoc-args = ["--cfg", "docsrs"]
 
 [dependencies]
 pin-project = { version = "0.4.22", optional = true }
-tokio = { version = "0.2.22", optional = true }
+async-std = { version = "1.6", optional = true }
+futures-lite = { version = "0.1.10", optional = true }
 
 [dev-dependencies]
 assert_fs = "1.0.0"
@@ -30,10 +31,10 @@ lazy_static = "1.4.0"
 rand = { version = "0.7.3", features = ["small_rng"] }
 rayon = "1.3.1"
 static_assertions = "1.1.0"
-tokio = { version = "0.2.22", features = ["fs", "rt-core", "rt-threaded", "macros"] }
+smol = "0.3.3"
 
 [build-dependencies]
 cc = { version = "1.0.58", features = ["parallel"] }
 
 [features]
-tokio-io = ["tokio/io-util", "pin-project"]
+async-io = ["async-std", "pin-project", "futures-lite"]

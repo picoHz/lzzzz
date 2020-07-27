@@ -10,7 +10,7 @@ pub use bufread::*;
 pub use read::*;
 pub use write::*;
 
-#[cfg(feature = "tokio-io")]
+#[cfg(feature = "async-io")]
 pub use {async_bufread::*, async_read::*, async_write::*};
 
 use crate::{

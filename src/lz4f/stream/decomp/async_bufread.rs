@@ -1,15 +1,16 @@
-#![cfg(feature = "tokio-io")]
+#![cfg(feature = "async-io")]
 
 use super::Decompressor;
 use crate::common::DEFAULT_BUF_SIZE;
 use crate::lz4f::{FrameInfo, Result};
+use futures_lite::{AsyncBufRead, AsyncRead, AsyncReadExt};
 use pin_project::pin_project;
 use std::{
     borrow::Cow,
+    io,
     pin::Pin,
     task::{Context, Poll},
 };
-use tokio::io::{AsyncBufRead, AsyncRead, AsyncReadExt};
 
 /// The [`AsyncBufRead`]-based streaming decompressor.
 ///
@@ -27,10 +28,9 @@ use tokio::io::{AsyncBufRead, AsyncRead, AsyncReadExt};
 /// # lzzzz::lz4f::compress_to_vec(b"Hello world!", &mut buf, &Default::default()).unwrap();
 /// # tmp_dir.child("foo.lz4").write_binary(&buf).unwrap();
 /// #
-/// # let mut rt = tokio::runtime::Runtime::new().unwrap();
-/// # rt.block_on(async {
+/// # smol::run(async {
 /// use lzzzz::lz4f::AsyncBufReadDecompressor;
-/// use tokio::{fs::File, io::BufReader, prelude::*};
+/// use async_std::{fs::File, io::BufReader, prelude::*};
 ///
 /// let mut f = File::open("foo.lz4").await?;
 /// let mut b = BufReader::new(f);
@@ -39,14 +39,14 @@ use tokio::io::{AsyncBufRead, AsyncRead, AsyncReadExt};
 /// let mut buf = Vec::new();
 /// r.read_frame_info().await?;
 /// r.read_to_end(&mut buf).await?;
-/// # Ok::<(), tokio::io::Error>(())
+/// # Ok::<(), std::io::Error>(())
 /// # }).unwrap();
 /// # tmp_dir.close().unwrap();
 /// ```
 ///
-/// [`AsyncBufRead`]: https://docs.rs/tokio/latest/tokio/io/trait.AsyncBufRead.html
+/// [`AsyncBufRead`]: https://docs.rs/futures-io/0.3.5/futures_io/trait.AsyncBufRead.html
 
-#[cfg_attr(docsrs, doc(cfg(feature = "tokio-io")))]
+#[cfg_attr(docsrs, doc(cfg(feature = "async-io")))]
 #[pin_project]
 pub struct AsyncBufReadDecompressor<'a, R: AsyncBufRead + Unpin> {
     #[pin]
@@ -81,7 +81,7 @@ impl<'a, R: AsyncBufRead + Unpin> AsyncBufReadDecompressor<'a, R> {
     ///
     /// Calling this function before any `AsyncRead` or `AsyncBufRead` operations
     /// does not consume the frame body.
-    pub async fn read_frame_info(&mut self) -> tokio::io::Result<FrameInfo> {
+    pub async fn read_frame_info(&mut self) -> io::Result<FrameInfo> {
         loop {
             if let Some(frame) = self.inner.frame_info() {
                 return Ok(frame);
@@ -92,7 +92,7 @@ impl<'a, R: AsyncBufRead + Unpin> AsyncBufReadDecompressor<'a, R> {
         }
     }
 
-    fn fill_buf(self: Pin<&mut Self>, cx: &mut Context) -> Poll<tokio::io::Result<()>> {
+    fn fill_buf(self: Pin<&mut Self>, cx: &mut Context) -> Poll<io::Result<()>> {
         let mut me = self.project();
 
         let orig_len = me.buf.len();
@@ -141,7 +141,7 @@ impl<'a, R: AsyncBufRead + Unpin> AsyncRead for AsyncBufReadDecompressor<'a, R> 
         mut self: Pin<&mut Self>,
         cx: &mut Context,
         buf: &mut [u8],
-    ) -> Poll<tokio::io::Result<usize>> {
+    ) -> Poll<io::Result<usize>> {
         if let Poll::Pending = Pin::new(&mut *self).fill_buf(cx)? {
             Poll::Pending
         } else {
@@ -159,7 +159,7 @@ impl<'a, R: AsyncBufRead + Unpin> AsyncRead for AsyncBufReadDecompressor<'a, R> 
 }
 
 impl<'a, R: AsyncBufRead + Unpin> AsyncBufRead for AsyncBufReadDecompressor<'a, R> {
-    fn poll_fill_buf(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<tokio::io::Result<&[u8]>> {
+    fn poll_fill_buf(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<io::Result<&[u8]>> {
         if let Poll::Pending = Pin::new(&mut *self).fill_buf(cx)? {
             Poll::Pending
         } else {

@@ -1,14 +1,15 @@
-#![cfg(feature = "tokio-io")]
+#![cfg(feature = "async-io")]
 
 use super::{Compressor, Dictionary, Preferences};
 use crate::lz4f::Result;
+use futures_lite::AsyncWrite;
 use pin_project::pin_project;
 use std::{
+    io,
     marker::Unpin,
     pin::Pin,
     task::{Context, Poll},
 };
-use tokio::io::AsyncWrite;
 
 /// The [`AsyncWrite`]-based streaming compressor.
 ///
@@ -20,26 +21,26 @@ use tokio::io::AsyncWrite;
 /// # use lzzzz::{Error, Result};
 /// # let tmp_dir = assert_fs::TempDir::new().unwrap().into_persistent();
 /// # env::set_current_dir(tmp_dir.path()).unwrap();
-/// # let mut rt = tokio::runtime::Runtime::new().unwrap();
-/// # rt.block_on(async {
+/// # smol::run(async {
 /// use lzzzz::lz4f::AsyncWriteCompressor;
-/// use tokio::{fs::File, prelude::*};
+/// use futures_lite::*;
+/// use async_std::fs::File;
 ///
 /// let mut f = File::create("foo.lz4").await?;
 /// let mut w = AsyncWriteCompressor::new(&mut f, Default::default())?;
 ///
 /// w.write_all(b"Hello world!").await?;
 ///
-/// // You have to call shutdown() to finalize the frame.
-/// w.shutdown().await?;
-/// # Ok::<(), tokio::io::Error>(())
+/// // You have to call close() to finalize the frame.
+/// w.close().await?;
+/// # Ok::<(), std::io::Error>(())
 /// # }).unwrap();
 /// # tmp_dir.close().unwrap();
 /// ```
 ///
-/// [`AsyncWrite`]: https://docs.rs/tokio/latest/tokio/io/trait.AsyncWrite.html
+/// [`AsyncWrite`]: https://docs.rs/futures-io/0.3.5/futures_io/trait.AsyncWrite.html
 
-#[cfg_attr(docsrs, doc(cfg(feature = "tokio-io")))]
+#[cfg_attr(docsrs, doc(cfg(feature = "async-io")))]
 #[pin_project]
 pub struct AsyncWriteCompressor<W: AsyncWrite + Unpin> {
     #[pin]
@@ -77,7 +78,7 @@ impl<W: AsyncWrite + Unpin> AsyncWriteCompressor<W> {
         })
     }
 
-    fn write_buffer(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<tokio::io::Result<()>> {
+    fn write_buffer(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<io::Result<()>> {
         let me = self.project();
         if let Poll::Ready(len) = me.device.poll_write(cx, &me.inner.buf()[*me.consumed..])? {
             *me.consumed += len;
@@ -99,7 +100,7 @@ impl<W: AsyncWrite + Unpin> AsyncWrite for AsyncWriteCompressor<W> {
         mut self: Pin<&mut Self>,
         cx: &mut Context,
         buf: &[u8],
-    ) -> Poll<tokio::io::Result<usize>> {
+    ) -> Poll<io::Result<usize>> {
         let mut me = Pin::new(&mut *self);
         if let State::None = me.state {
             me.inner.update(buf, false)?;
@@ -116,7 +117,7 @@ impl<W: AsyncWrite + Unpin> AsyncWrite for AsyncWriteCompressor<W> {
         Poll::Pending
     }
 
-    fn poll_flush(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<tokio::io::Result<()>> {
+    fn poll_flush(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<io::Result<()>> {
         let mut me = Pin::new(&mut *self);
         if let State::None = me.state {
             me.inner.flush(false)?;
@@ -133,7 +134,7 @@ impl<W: AsyncWrite + Unpin> AsyncWrite for AsyncWriteCompressor<W> {
         Poll::Pending
     }
 
-    fn poll_shutdown(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<tokio::io::Result<()>> {
+    fn poll_close(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<io::Result<()>> {
         let mut me = Pin::new(&mut *self);
         if let State::None = me.state {
             me.inner.end(false)?;
