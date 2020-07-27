@@ -47,7 +47,7 @@ impl<W: Write> WriteCompressor<W> {
         })
     }
 
-    /// Returns the owndership of the writer, fnishing the stream in the process.
+    /// Returns the ownership of the writer, finishing the stream in the process.
     pub fn into_inner(mut self) -> W {
         let _ = self.end();
         self.device.take().unwrap()
