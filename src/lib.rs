@@ -1,4 +1,4 @@
-//! Yet another liblz4 binding for Rust. 😴
+//! Full-featured liblz4 binding for Rust. 😴
 
 #![deny(unsafe_code)]
 #![deny(clippy::all)]

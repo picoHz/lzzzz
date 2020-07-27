@@ -6,7 +6,7 @@
 [![Rustdoc](https://img.shields.io/badge/doc-rustdoc-green.svg)](https://docs.rs/lzzzz)
 ![Rust](https://github.com/picoHz/lzzzz/workflows/Rust/badge.svg)
 
-Yet another [liblz4](https://github.com/lz4/lz4) binding for Rust.
+Full-featured [liblz4](https://github.com/lz4/lz4) binding for Rust.
 
 ## Usage
 
