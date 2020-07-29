@@ -1,6 +1,7 @@
 #![cfg(feature = "async-io")]
 
 use super::Decompressor;
+use crate::common::DEFAULT_BUF_SIZE;
 use crate::lz4f::{FrameInfo, Result};
 use futures_lite::{AsyncBufRead, AsyncRead, AsyncReadExt};
 use pin_project::pin_project;
@@ -51,6 +52,8 @@ pub struct AsyncBufReadDecompressor<'a, R: AsyncBufRead + Unpin> {
     #[pin]
     device: R,
     inner: Decompressor<'a>,
+    buf: Vec<u8>,
+    inner_consumed: usize,
     consumed: usize,
 }
 
@@ -60,6 +63,8 @@ impl<'a, R: AsyncBufRead + Unpin> AsyncBufReadDecompressor<'a, R> {
         Ok(Self {
             device: reader,
             inner: Decompressor::new()?,
+            buf: Vec::with_capacity(DEFAULT_BUF_SIZE),
+            inner_consumed: 0,
             consumed: 0,
         })
     }
@@ -89,19 +94,45 @@ impl<'a, R: AsyncBufRead + Unpin> AsyncBufReadDecompressor<'a, R> {
 
     fn fill_buf(self: Pin<&mut Self>, cx: &mut Context) -> Poll<io::Result<()>> {
         let mut me = self.project();
-        let inner_buf = match me.device.as_mut().poll_fill_buf(cx) {
+
+        let orig_len = me.buf.len();
+        #[allow(unsafe_code)]
+        unsafe {
+            me.buf.set_len(me.buf.capacity());
+        }
+
+        let len = me.device.as_mut().poll_read(cx, &mut me.buf[orig_len..]);
+        me.buf.resize(
+            orig_len
+                + match len {
+                    Poll::Ready(Ok(len)) => len,
+                    _ => 0,
+                },
+            0,
+        );
+
+        match len {
             Poll::Pending => {
                 if me.inner.buf().is_empty() {
                     return Poll::Pending;
                 } else {
-                    Ok(&[][..])
+                    Ok(0)
                 }
             }
             Poll::Ready(r) => r,
         }?;
-        let consumed = me.inner.decompress(inner_buf)?;
-        me.device.as_mut().consume(consumed);
-        Poll::Ready(Ok(()))
+
+        *me.inner_consumed += me.inner.decompress(&me.buf[*me.inner_consumed..])?;
+        if *me.inner_consumed >= me.buf.len() {
+            *me.inner_consumed = 0;
+            me.buf.clear();
+        }
+
+        if me.inner.frame_info().is_none() {
+            Poll::Pending
+        } else {
+            Poll::Ready(Ok(()))
+        }
     }
 }
 
