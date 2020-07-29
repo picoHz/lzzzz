@@ -14,7 +14,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-lzzzz = "0.3"
+lzzzz = "0.4"
 ```
 
 [API Documentation](https://docs.rs/lzzzz)
@@ -41,7 +41,7 @@ The `async-io` feature flag enables asynchronous LZ4F streaming compressors and 
 
 ```toml
 [dependencies]
-lzzzz = { version = "0.3", features = ["async-io"] }
+lzzzz = { version = "0.4", features = ["async-io"] }
 ```
 
 ## Examples
