@@ -340,6 +340,26 @@ mod async_bufread_decompressor {
         }))
         .await;
     }
+
+    #[tokio::test]
+    async fn small_buffer() {
+        join_all(lz4f_test_set().map(|(src, prefs)| async move {
+            let mut comp_buf = Vec::new();
+            let mut decomp_buf = Vec::new();
+            assert_eq!(
+                lz4f::compress_to_vec(&src, &mut comp_buf, &prefs).unwrap(),
+                comp_buf.len()
+            );
+            {
+                let mut src = comp_buf.as_slice();
+                let mut src = BufReader::with_capacity(1, &mut src);
+                let mut r = AsyncBufReadDecompressor::new(&mut src).unwrap();
+                r.read_to_end(&mut decomp_buf).await.unwrap();
+            }
+            assert_eq!(decomp_buf, src);
+        }))
+        .await;
+    }
 }
 
 mod async_write_decompressor {
