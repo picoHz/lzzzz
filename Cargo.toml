@@ -18,8 +18,8 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [dependencies]
-pin-project = { version = "0.4.22", optional = true }
-async-std = { version = "1.6", optional = true }
+pin-project = { version = "0.4.23", optional = true }
+async-std = { version = "1.6.2", optional = true }
 futures-lite = { version = "0.1.10", optional = true }
 
 [dev-dependencies]
