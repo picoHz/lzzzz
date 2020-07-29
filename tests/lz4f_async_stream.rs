@@ -366,7 +366,7 @@ mod async_bufread_decompressor {
     }
 
     #[test]
-    async fn small_buffer() {
+    fn small_buffer() {
         join_all(lz4f_test_set().map(|(src, prefs)| async move {
             let mut comp_buf = Vec::new();
             let mut decomp_buf = Vec::new();
