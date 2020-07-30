@@ -52,8 +52,8 @@ use std::{
 #[pin_project]
 pub struct AsyncBufReadDecompressor<'a, R: AsyncBufRead + Unpin> {
     #[pin]
-    pub(super) device: R,
-    inner: Decompressor<'a>,
+    pub(super) inner: R,
+    decomp: Decompressor<'a>,
     buf: Vec<u8>,
     inner_consumed: usize,
     consumed: usize,
@@ -63,8 +63,8 @@ impl<'a, R: AsyncBufRead + Unpin> AsyncBufReadDecompressor<'a, R> {
     /// Creates a new `AsyncBufReadDecompressor<R>`.
     pub fn new(reader: R) -> Result<Self> {
         Ok(Self {
-            device: reader,
-            inner: Decompressor::new()?,
+            inner: reader,
+            decomp: Decompressor::new()?,
             buf: Vec::with_capacity(DEFAULT_BUF_SIZE),
             inner_consumed: 0,
             consumed: 0,
@@ -76,7 +76,7 @@ impl<'a, R: AsyncBufRead + Unpin> AsyncBufReadDecompressor<'a, R> {
     where
         D: Into<Cow<'a, [u8]>>,
     {
-        self.inner.set_dict(dict);
+        self.decomp.set_dict(dict);
     }
 
     /// Reads the frame header asynchronously and returns `FrameInfo`.
@@ -85,12 +85,12 @@ impl<'a, R: AsyncBufRead + Unpin> AsyncBufReadDecompressor<'a, R> {
     /// does not consume the frame body.
     pub async fn read_frame_info(&mut self) -> io::Result<FrameInfo> {
         loop {
-            if let Some(frame) = self.inner.frame_info() {
+            if let Some(frame) = self.decomp.frame_info() {
                 return Ok(frame);
             }
-            self.inner.decode_header_only(true);
+            self.decomp.decode_header_only(true);
             let _ = self.read(&mut []).await?;
-            self.inner.decode_header_only(false);
+            self.decomp.decode_header_only(false);
         }
     }
 
@@ -103,7 +103,7 @@ impl<'a, R: AsyncBufRead + Unpin> AsyncBufReadDecompressor<'a, R> {
             me.buf.set_len(me.buf.capacity());
         }
 
-        let len = me.device.as_mut().poll_read(cx, &mut me.buf[orig_len..]);
+        let len = me.inner.as_mut().poll_read(cx, &mut me.buf[orig_len..]);
         me.buf.resize(
             orig_len
                 + match len {
@@ -115,7 +115,7 @@ impl<'a, R: AsyncBufRead + Unpin> AsyncBufReadDecompressor<'a, R> {
 
         match len {
             Poll::Pending => {
-                if me.inner.buf().is_empty() {
+                if me.decomp.buf().is_empty() {
                     return Poll::Pending;
                 } else {
                     Ok(0)
@@ -124,13 +124,13 @@ impl<'a, R: AsyncBufRead + Unpin> AsyncBufReadDecompressor<'a, R> {
             Poll::Ready(r) => r,
         }?;
 
-        *me.inner_consumed += me.inner.decompress(&me.buf[*me.inner_consumed..])?;
+        *me.inner_consumed += me.decomp.decompress(&me.buf[*me.inner_consumed..])?;
         if *me.inner_consumed >= me.buf.len() {
             *me.inner_consumed = 0;
             me.buf.clear();
         }
 
-        if me.inner.frame_info().is_none() {
+        if me.decomp.frame_info().is_none() {
             Poll::Pending
         } else {
             Poll::Ready(Ok(()))
@@ -144,7 +144,7 @@ where
 {
     fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt.debug_struct("AsyncBufReadDecompressor")
-            .field("reader", &self.device)
+            .field("reader", &self.inner)
             .finish()
     }
 }
@@ -159,11 +159,11 @@ impl<'a, R: AsyncBufRead + Unpin> AsyncRead for AsyncBufReadDecompressor<'a, R> 
             Poll::Pending
         } else {
             let me = self.project();
-            let len = std::cmp::min(buf.len(), me.inner.buf().len() - *me.consumed);
-            buf[..len].copy_from_slice(&me.inner.buf()[*me.consumed..][..len]);
+            let len = std::cmp::min(buf.len(), me.decomp.buf().len() - *me.consumed);
+            buf[..len].copy_from_slice(&me.decomp.buf()[*me.consumed..][..len]);
             *me.consumed += len;
-            if *me.consumed >= me.inner.buf().len() {
-                me.inner.clear_buf();
+            if *me.consumed >= me.decomp.buf().len() {
+                me.decomp.clear_buf();
                 *me.consumed = 0;
             }
             Poll::Ready(Ok(len))
@@ -177,15 +177,15 @@ impl<'a, R: AsyncBufRead + Unpin> AsyncBufRead for AsyncBufReadDecompressor<'a, 
             Poll::Pending
         } else {
             let me = self.project();
-            Poll::Ready(Ok(&me.inner.buf()[*me.consumed..]))
+            Poll::Ready(Ok(&me.decomp.buf()[*me.consumed..]))
         }
     }
 
     fn consume(self: Pin<&mut Self>, amt: usize) {
         let me = self.project();
         *me.consumed += amt;
-        if *me.consumed >= me.inner.buf().len() {
-            me.inner.clear_buf();
+        if *me.consumed >= me.decomp.buf().len() {
+            me.decomp.clear_buf();
             *me.consumed = 0;
         }
     }

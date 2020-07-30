@@ -28,16 +28,16 @@ use std::{borrow::Cow, fmt, io::Write};
 /// [`Write`]: https://doc.rust-lang.org/std/io/trait.Write.html
 
 pub struct WriteDecompressor<'a, W: Write> {
-    device: W,
-    inner: Decompressor<'a>,
+    inner: W,
+    decomp: Decompressor<'a>,
 }
 
 impl<'a, W: Write> WriteDecompressor<'a, W> {
     /// Creates a new `WriteDecompressor<W>`.
     pub fn new(writer: W) -> Result<Self> {
         Ok(Self {
-            device: writer,
-            inner: Decompressor::new()?,
+            inner: writer,
+            decomp: Decompressor::new()?,
         })
     }
 
@@ -46,13 +46,13 @@ impl<'a, W: Write> WriteDecompressor<'a, W> {
     where
         D: Into<Cow<'a, [u8]>>,
     {
-        self.inner.set_dict(dict);
+        self.decomp.set_dict(dict);
     }
 
     /// Returns `FrameInfo` if the frame header is already decoded.
     /// Otherwise, returns `None`.
     pub fn frame_info(&self) -> Option<FrameInfo> {
-        self.inner.frame_info()
+        self.decomp.frame_info()
     }
 
     /// Sets the 'header-only' mode.
@@ -61,12 +61,12 @@ impl<'a, W: Write> WriteDecompressor<'a, W> {
     /// consume the frame body and `write()` always returns `Ok(0)`
     /// if the frame header is already decoded.
     pub fn decode_header_only(&mut self, flag: bool) {
-        self.inner.decode_header_only(flag);
+        self.decomp.decode_header_only(flag);
     }
 
     /// Returns ownership of the writer.
     pub fn into_inner(self) -> W {
-        self.device
+        self.inner
     }
 }
 
@@ -76,20 +76,20 @@ where
 {
     fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt.debug_struct("WriteDecompressor")
-            .field("writer", &self.device)
+            .field("writer", &self.inner)
             .finish()
     }
 }
 
 impl<W: Write> Write for WriteDecompressor<'_, W> {
     fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
-        let report = self.inner.decompress(buf)?;
-        self.device.write_all(self.inner.buf())?;
-        self.inner.clear_buf();
+        let report = self.decomp.decompress(buf)?;
+        self.inner.write_all(self.decomp.buf())?;
+        self.decomp.clear_buf();
         Ok(report)
     }
 
     fn flush(&mut self) -> std::io::Result<()> {
-        self.device.flush()
+        self.inner.flush()
     }
 }

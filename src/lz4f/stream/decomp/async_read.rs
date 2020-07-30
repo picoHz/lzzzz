@@ -82,7 +82,7 @@ where
 {
     fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt.debug_struct("AsyncReadDecompressor")
-            .field("reader", &self.inner.device.get_ref())
+            .field("reader", &self.inner.inner.get_ref())
             .finish()
     }
 }

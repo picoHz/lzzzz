@@ -44,8 +44,8 @@ use std::{
 #[pin_project]
 pub struct AsyncWriteDecompressor<'a, W: AsyncWrite + Unpin> {
     #[pin]
-    device: W,
-    inner: Decompressor<'a>,
+    inner: W,
+    decomp: Decompressor<'a>,
     consumed: usize,
     state: State,
 }
@@ -61,8 +61,8 @@ impl<'a, W: AsyncWrite + Unpin> AsyncWriteDecompressor<'a, W> {
     /// Creates a new `AsyncWriteDecompressor<W>`.
     pub fn new(writer: W) -> Result<Self> {
         Ok(Self {
-            device: writer,
-            inner: Decompressor::new()?,
+            inner: writer,
+            decomp: Decompressor::new()?,
             consumed: 0,
             state: State::None,
         })
@@ -73,13 +73,13 @@ impl<'a, W: AsyncWrite + Unpin> AsyncWriteDecompressor<'a, W> {
     where
         D: Into<Cow<'a, [u8]>>,
     {
-        self.inner.set_dict(dict);
+        self.decomp.set_dict(dict);
     }
 
     /// Returns `FrameInfo` if the frame header is already decoded.
     /// Otherwise, returns `None`.
     pub fn frame_info(&self) -> Option<FrameInfo> {
-        self.inner.frame_info()
+        self.decomp.frame_info()
     }
 
     /// Sets the 'header-only' mode.
@@ -88,19 +88,19 @@ impl<'a, W: AsyncWrite + Unpin> AsyncWriteDecompressor<'a, W> {
     /// consume the frame body and `poll_write()` always returns `Ok(0)`
     /// if the frame header is already decoded.
     pub fn decode_header_only(&mut self, flag: bool) {
-        self.inner.decode_header_only(flag);
+        self.decomp.decode_header_only(flag);
     }
 
     fn write_buffer(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<io::Result<()>> {
         let me = self.project();
-        if let Poll::Ready(len) = me.device.poll_write(cx, &me.inner.buf()[*me.consumed..])? {
+        if let Poll::Ready(len) = me.inner.poll_write(cx, &me.decomp.buf()[*me.consumed..])? {
             *me.consumed += len;
-            if *me.consumed >= me.inner.buf().len() {
+            if *me.consumed >= me.decomp.buf().len() {
                 *me.consumed = 0;
-                me.inner.clear_buf();
+                me.decomp.clear_buf();
             }
         }
-        if me.inner.buf().is_empty() {
+        if me.decomp.buf().is_empty() {
             Poll::Ready(Ok(()))
         } else {
             Poll::Pending
@@ -114,7 +114,7 @@ where
 {
     fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt.debug_struct("AsyncWriteDecompressor")
-            .field("writer", &self.device)
+            .field("writer", &self.inner)
             .finish()
     }
 }
@@ -127,7 +127,7 @@ impl<W: AsyncWrite + Unpin> AsyncWrite for AsyncWriteDecompressor<'_, W> {
     ) -> Poll<io::Result<usize>> {
         let mut me = Pin::new(&mut *self);
         if let State::None = me.state {
-            me.state = State::Write(me.inner.decompress(buf)?);
+            me.state = State::Write(me.decomp.decompress(buf)?);
         } else if let State::Shutdown = me.state {
             return Poll::Ready(Ok(0));
         }

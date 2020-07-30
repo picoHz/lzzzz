@@ -70,8 +70,8 @@ where
 {
     fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt.debug_struct("AsyncReadCompressor")
-            .field("reader", &self.inner.device.get_ref())
-            .field("prefs", &self.inner.inner.prefs())
+            .field("reader", &self.inner.inner.get_ref())
+            .field("prefs", &self.inner.comp.prefs())
             .finish()
     }
 }

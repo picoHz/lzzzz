@@ -45,8 +45,8 @@ use std::{
 #[pin_project]
 pub struct AsyncBufReadCompressor<R: AsyncBufRead + Unpin> {
     #[pin]
-    pub(super) device: R,
-    pub(super) inner: Compressor,
+    pub(super) inner: R,
+    pub(super) comp: Compressor,
     consumed: usize,
     closed: bool,
     state: State,
@@ -62,8 +62,8 @@ impl<R: AsyncBufRead + Unpin> AsyncBufReadCompressor<R> {
     /// Creates a new `AsyncBufReadCompressor<R>`.
     pub fn new(reader: R, prefs: Preferences) -> Result<Self> {
         Ok(Self {
-            device: reader,
-            inner: Compressor::new(prefs, None)?,
+            inner: reader,
+            comp: Compressor::new(prefs, None)?,
             consumed: 0,
             closed: false,
             state: State::None,
@@ -73,8 +73,8 @@ impl<R: AsyncBufRead + Unpin> AsyncBufReadCompressor<R> {
     /// Creates a new `AsyncBufReadCompressor<R>` with a dictionary.
     pub fn with_dict(reader: R, prefs: Preferences, dict: Dictionary) -> Result<Self> {
         Ok(Self {
-            device: reader,
-            inner: Compressor::new(prefs, Some(dict))?,
+            inner: reader,
+            comp: Compressor::new(prefs, Some(dict))?,
             consumed: 0,
             closed: false,
             state: State::None,
@@ -83,9 +83,9 @@ impl<R: AsyncBufRead + Unpin> AsyncBufReadCompressor<R> {
 
     fn fill_buf(self: Pin<&mut Self>, cx: &mut Context) -> Poll<io::Result<()>> {
         let mut me = self.project();
-        let inner_buf = match me.device.as_mut().poll_fill_buf(cx) {
+        let inner_buf = match me.inner.as_mut().poll_fill_buf(cx) {
             Poll::Pending => {
-                if me.inner.buf().is_empty() {
+                if me.comp.buf().is_empty() {
                     return Poll::Pending;
                 } else {
                     Ok(&[][..])
@@ -95,14 +95,14 @@ impl<R: AsyncBufRead + Unpin> AsyncBufReadCompressor<R> {
         }?;
         if inner_buf.is_empty() {
             if !*me.closed {
-                me.inner.end(false)?;
+                me.comp.end(false)?;
                 *me.closed = true;
             }
         } else {
-            me.inner.update(inner_buf, false)?;
+            me.comp.update(inner_buf, false)?;
         }
         let len = inner_buf.len();
-        me.device.as_mut().consume(len);
+        me.inner.as_mut().consume(len);
         Poll::Ready(Ok(()))
     }
 }
@@ -113,8 +113,8 @@ where
 {
     fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt.debug_struct("AsyncBufReadCompressor")
-            .field("reader", &self.device)
-            .field("prefs", &self.inner.prefs())
+            .field("reader", &self.inner)
+            .field("prefs", &self.comp.prefs())
             .finish()
     }
 }
@@ -134,11 +134,11 @@ impl<R: AsyncBufRead + Unpin> AsyncRead for AsyncBufReadCompressor<R> {
                 let me = self.project();
                 *me.state = State::None;
                 r?;
-                let len = cmp::min(buf.len(), me.inner.buf().len() - *me.consumed);
-                buf[..len].copy_from_slice(&me.inner.buf()[*me.consumed..][..len]);
+                let len = cmp::min(buf.len(), me.comp.buf().len() - *me.consumed);
+                buf[..len].copy_from_slice(&me.comp.buf()[*me.consumed..][..len]);
                 *me.consumed += len;
-                if *me.consumed >= me.inner.buf().len() {
-                    me.inner.clear_buf();
+                if *me.consumed >= me.comp.buf().len() {
+                    me.comp.clear_buf();
                     *me.consumed = 0;
                 }
                 return Poll::Ready(Ok(len));
@@ -159,7 +159,7 @@ impl<R: AsyncBufRead + Unpin> AsyncBufRead for AsyncBufReadCompressor<R> {
                 let me = self.project();
                 *me.state = State::None;
                 r?;
-                return Poll::Ready(Ok(&me.inner.buf()[*me.consumed..]));
+                return Poll::Ready(Ok(&me.comp.buf()[*me.consumed..]));
             }
         }
         Poll::Pending
@@ -168,8 +168,8 @@ impl<R: AsyncBufRead + Unpin> AsyncBufRead for AsyncBufReadCompressor<R> {
     fn consume(self: Pin<&mut Self>, amt: usize) {
         let me = self.project();
         *me.consumed += amt;
-        if *me.consumed >= me.inner.buf().len() {
-            me.inner.clear_buf();
+        if *me.consumed >= me.comp.buf().len() {
+            me.comp.clear_buf();
             *me.consumed = 0;
         }
     }

@@ -26,38 +26,38 @@ use std::{fmt, io::Write};
 /// [`Write`]: https://doc.rust-lang.org/std/io/trait.Write.html
 
 pub struct WriteCompressor<W: Write> {
-    device: Option<W>,
-    inner: Compressor,
+    inner: Option<W>,
+    comp: Compressor,
 }
 
 impl<W: Write> WriteCompressor<W> {
     /// Creates a new `WriteCompressor<W>`.
     pub fn new(writer: W, prefs: Preferences) -> Result<Self> {
         Ok(Self {
-            device: Some(writer),
-            inner: Compressor::new(prefs, None)?,
+            inner: Some(writer),
+            comp: Compressor::new(prefs, None)?,
         })
     }
 
     /// Creates a new `WriteCompressor<W>` with a dictionary.
     pub fn with_dict(writer: W, prefs: Preferences, dict: Dictionary) -> Result<Self> {
         Ok(Self {
-            device: Some(writer),
-            inner: Compressor::new(prefs, Some(dict))?,
+            inner: Some(writer),
+            comp: Compressor::new(prefs, Some(dict))?,
         })
     }
 
     /// Returns the ownership of the writer, finishing the stream in the process.
     pub fn into_inner(mut self) -> W {
         let _ = self.end();
-        self.device.take().unwrap()
+        self.inner.take().unwrap()
     }
 
     fn end(&mut self) -> std::io::Result<()> {
-        if let Some(device) = &mut self.device {
-            self.inner.end(false)?;
-            device.write_all(self.inner.buf())?;
-            self.inner.clear_buf();
+        if let Some(device) = &mut self.inner {
+            self.comp.end(false)?;
+            device.write_all(self.comp.buf())?;
+            self.comp.clear_buf();
             device.flush()?;
         }
 
@@ -71,24 +71,24 @@ where
 {
     fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt.debug_struct("WriteCompressor")
-            .field("writer", &self.device)
-            .field("prefs", &self.inner.prefs())
+            .field("writer", &self.inner)
+            .field("prefs", &self.comp.prefs())
             .finish()
     }
 }
 
 impl<W: Write> Write for WriteCompressor<W> {
     fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
-        self.inner.update(buf, false)?;
-        self.device.as_mut().unwrap().write_all(self.inner.buf())?;
-        self.inner.clear_buf();
+        self.comp.update(buf, false)?;
+        self.inner.as_mut().unwrap().write_all(self.comp.buf())?;
+        self.comp.clear_buf();
         Ok(buf.len())
     }
 
     fn flush(&mut self) -> std::io::Result<()> {
-        self.inner.flush(false)?;
-        self.device.as_mut().unwrap().write_all(self.inner.buf())?;
-        self.device.as_mut().unwrap().flush()
+        self.comp.flush(false)?;
+        self.inner.as_mut().unwrap().write_all(self.comp.buf())?;
+        self.inner.as_mut().unwrap().flush()
     }
 }
 

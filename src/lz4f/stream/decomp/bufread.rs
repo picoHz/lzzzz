@@ -40,8 +40,8 @@ use std::{
 /// [`BufRead`]: https://doc.rust-lang.org/std/io/trait.BufRead.html
 
 pub struct BufReadDecompressor<'a, R: BufRead> {
-    pub(super) device: R,
-    inner: Decompressor<'a>,
+    pub(super) inner: R,
+    decomp: Decompressor<'a>,
     consumed: usize,
 }
 
@@ -49,8 +49,8 @@ impl<'a, R: BufRead> BufReadDecompressor<'a, R> {
     /// Creates a new `BufReadDecompressor<R>`.
     pub fn new(reader: R) -> Result<Self> {
         Ok(Self {
-            device: reader,
-            inner: Decompressor::new()?,
+            inner: reader,
+            decomp: Decompressor::new()?,
             consumed: 0,
         })
     }
@@ -60,7 +60,7 @@ impl<'a, R: BufRead> BufReadDecompressor<'a, R> {
     where
         D: Into<Cow<'a, [u8]>>,
     {
-        self.inner.set_dict(dict);
+        self.decomp.set_dict(dict);
     }
 
     /// Reads the frame header and returns `FrameInfo`.
@@ -69,18 +69,18 @@ impl<'a, R: BufRead> BufReadDecompressor<'a, R> {
     /// does not consume the frame body.
     pub fn read_frame_info(&mut self) -> std::io::Result<FrameInfo> {
         loop {
-            if let Some(frame) = self.inner.frame_info() {
+            if let Some(frame) = self.decomp.frame_info() {
                 return Ok(frame);
             }
-            self.inner.decode_header_only(true);
+            self.decomp.decode_header_only(true);
             let _ = self.read(&mut [])?;
-            self.inner.decode_header_only(false);
+            self.decomp.decode_header_only(false);
         }
     }
 
     /// Returns ownership of the reader.
     pub fn into_inner(self) -> R {
-        self.device
+        self.inner
     }
 }
 
@@ -90,7 +90,7 @@ where
 {
     fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt.debug_struct("BufReadDecompressor")
-            .field("reader", &self.device)
+            .field("reader", &self.inner)
             .finish()
     }
 }
@@ -98,19 +98,19 @@ where
 impl<R: BufRead> Read for BufReadDecompressor<'_, R> {
     fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
         loop {
-            let inner_buf = self.device.fill_buf()?;
-            let consumed = self.inner.decompress(inner_buf)?;
-            self.device.consume(consumed);
+            let inner_buf = self.inner.fill_buf()?;
+            let consumed = self.decomp.decompress(inner_buf)?;
+            self.inner.consume(consumed);
             if consumed == 0 {
                 break;
             }
         }
 
-        let len = std::cmp::min(buf.len(), self.inner.buf().len() - self.consumed);
-        buf[..len].copy_from_slice(&self.inner.buf()[self.consumed..][..len]);
+        let len = std::cmp::min(buf.len(), self.decomp.buf().len() - self.consumed);
+        buf[..len].copy_from_slice(&self.decomp.buf()[self.consumed..][..len]);
         self.consumed += len;
-        if self.consumed >= self.inner.buf().len() {
-            self.inner.clear_buf();
+        if self.consumed >= self.decomp.buf().len() {
+            self.decomp.clear_buf();
             self.consumed = 0;
         }
         Ok(len)
@@ -120,13 +120,13 @@ impl<R: BufRead> Read for BufReadDecompressor<'_, R> {
 impl<R: BufRead> BufRead for BufReadDecompressor<'_, R> {
     fn fill_buf(&mut self) -> std::io::Result<&[u8]> {
         let _ = self.read(&mut [])?;
-        Ok(&self.inner.buf()[self.consumed..])
+        Ok(&self.decomp.buf()[self.consumed..])
     }
 
     fn consume(&mut self, amt: usize) {
         self.consumed += amt;
-        if self.consumed >= self.inner.buf().len() {
-            self.inner.clear_buf();
+        if self.consumed >= self.decomp.buf().len() {
+            self.decomp.clear_buf();
             self.consumed = 0;
         }
     }
