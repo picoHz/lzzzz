@@ -5,7 +5,7 @@ use crate::lz4f::Result;
 use futures_lite::{AsyncBufRead, AsyncRead};
 use pin_project::pin_project;
 use std::{
-    cmp, io,
+    cmp, fmt, io,
     pin::Pin,
     task::{Context, Poll},
 };
@@ -25,8 +25,8 @@ use std::{
 /// # tmp_dir.child("foo.txt").write_str("Hello").unwrap();
 /// #
 /// # smol::run(async {
-/// use lzzzz::lz4f::AsyncBufReadCompressor;
 /// use async_std::{fs::File, io::BufReader, prelude::*};
+/// use lzzzz::lz4f::AsyncBufReadCompressor;
 ///
 /// let mut f = File::open("foo.txt").await?;
 /// let mut b = BufReader::new(f);
@@ -45,8 +45,8 @@ use std::{
 #[pin_project]
 pub struct AsyncBufReadCompressor<R: AsyncBufRead + Unpin> {
     #[pin]
-    device: R,
-    inner: Compressor,
+    pub(super) device: R,
+    pub(super) inner: Compressor,
     consumed: usize,
     closed: bool,
     state: State,
@@ -104,6 +104,18 @@ impl<R: AsyncBufRead + Unpin> AsyncBufReadCompressor<R> {
         let len = inner_buf.len();
         me.device.as_mut().consume(len);
         Poll::Ready(Ok(()))
+    }
+}
+
+impl<R> fmt::Debug for AsyncBufReadCompressor<R>
+where
+    R: AsyncBufRead + Unpin + fmt::Debug,
+{
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt.debug_struct("AsyncBufReadCompressor")
+            .field("reader", &self.device)
+            .field("prefs", &self.inner.prefs())
+            .finish()
     }
 }
 

@@ -6,7 +6,7 @@ use futures_lite::AsyncWrite;
 use pin_project::pin_project;
 use std::{
     borrow::Cow,
-    io,
+    fmt, io,
     marker::Unpin,
     pin::Pin,
     task::{Context, Poll},
@@ -23,8 +23,8 @@ use std::{
 /// # let tmp_dir = assert_fs::TempDir::new().unwrap().into_persistent();
 /// # env::set_current_dir(tmp_dir.path()).unwrap();
 /// # smol::run(async {
-/// use lzzzz::lz4f::{compress_to_vec, AsyncWriteDecompressor};
 /// use async_std::{fs::File, prelude::*};
+/// use lzzzz::lz4f::{compress_to_vec, AsyncWriteDecompressor};
 ///
 /// let mut f = File::create("foo.txt").await?;
 /// let mut w = AsyncWriteDecompressor::new(&mut f)?;
@@ -105,6 +105,17 @@ impl<'a, W: AsyncWrite + Unpin> AsyncWriteDecompressor<'a, W> {
         } else {
             Poll::Pending
         }
+    }
+}
+
+impl<W> fmt::Debug for AsyncWriteDecompressor<'_, W>
+where
+    W: AsyncWrite + Unpin + fmt::Debug,
+{
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt.debug_struct("AsyncWriteDecompressor")
+            .field("writer", &self.device)
+            .finish()
     }
 }
 

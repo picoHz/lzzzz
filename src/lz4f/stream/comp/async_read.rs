@@ -6,7 +6,7 @@ use async_std::io::BufReader;
 use futures_lite::AsyncRead;
 use pin_project::pin_project;
 use std::{
-    io,
+    fmt, io,
     pin::Pin,
     task::{Context, Poll},
 };
@@ -26,8 +26,8 @@ use std::{
 /// # tmp_dir.child("foo.txt").write_str("Hello").unwrap();
 /// #
 /// # smol::run(async {
-/// use lzzzz::lz4f::AsyncReadCompressor;
 /// use async_std::{fs::File, prelude::*};
+/// use lzzzz::lz4f::AsyncReadCompressor;
 ///
 /// let mut f = File::open("foo.txt").await?;
 /// let mut r = AsyncReadCompressor::new(&mut f, Default::default())?;
@@ -61,6 +61,18 @@ impl<R: AsyncRead + Unpin> AsyncReadCompressor<R> {
         Ok(Self {
             inner: AsyncBufReadCompressor::with_dict(BufReader::new(reader), prefs, dict)?,
         })
+    }
+}
+
+impl<R> fmt::Debug for AsyncReadCompressor<R>
+where
+    R: AsyncRead + Unpin + fmt::Debug,
+{
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt.debug_struct("AsyncReadCompressor")
+            .field("reader", &self.inner.device.get_ref())
+            .field("prefs", &self.inner.inner.prefs())
+            .finish()
     }
 }
 

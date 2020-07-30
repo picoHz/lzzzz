@@ -1,6 +1,9 @@
 use super::{Compressor, Dictionary, Preferences};
 use crate::lz4f::Result;
-use std::io::{BufRead, Read};
+use std::{
+    fmt,
+    io::{BufRead, Read},
+};
 
 /// The [`BufRead`]-based streaming compressor.
 ///
@@ -34,8 +37,8 @@ use std::io::{BufRead, Read};
 /// [`BufRead`]: https://doc.rust-lang.org/std/io/trait.BufRead.html
 
 pub struct BufReadCompressor<R: BufRead> {
-    device: R,
-    inner: Compressor,
+    pub(super) device: R,
+    pub(super) inner: Compressor,
     consumed: usize,
 }
 
@@ -61,6 +64,18 @@ impl<R: BufRead> BufReadCompressor<R> {
     /// Returns ownership of the reader.
     pub fn into_inner(self) -> R {
         self.device
+    }
+}
+
+impl<R> fmt::Debug for BufReadCompressor<R>
+where
+    R: BufRead + fmt::Debug,
+{
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt.debug_struct("BufReadCompressor")
+            .field("reader", &self.device)
+            .field("prefs", &self.inner.prefs())
+            .finish()
     }
 }
 

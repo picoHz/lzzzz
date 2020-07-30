@@ -5,7 +5,7 @@ use crate::lz4f::Result;
 use futures_lite::AsyncWrite;
 use pin_project::pin_project;
 use std::{
-    io,
+    fmt, io,
     marker::Unpin,
     pin::Pin,
     task::{Context, Poll},
@@ -22,9 +22,9 @@ use std::{
 /// # let tmp_dir = assert_fs::TempDir::new().unwrap().into_persistent();
 /// # env::set_current_dir(tmp_dir.path()).unwrap();
 /// # smol::run(async {
-/// use lzzzz::lz4f::AsyncWriteCompressor;
-/// use futures_lite::*;
 /// use async_std::fs::File;
+/// use futures_lite::*;
+/// use lzzzz::lz4f::AsyncWriteCompressor;
 ///
 /// let mut f = File::create("foo.lz4").await?;
 /// let mut w = AsyncWriteCompressor::new(&mut f, Default::default())?;
@@ -92,6 +92,18 @@ impl<W: AsyncWrite + Unpin> AsyncWriteCompressor<W> {
         } else {
             Poll::Pending
         }
+    }
+}
+
+impl<W> fmt::Debug for AsyncWriteCompressor<W>
+where
+    W: AsyncWrite + Unpin + fmt::Debug,
+{
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt.debug_struct("AsyncWriteCompressor")
+            .field("writer", &self.device)
+            .field("prefs", &self.inner.prefs())
+            .finish()
     }
 }
 

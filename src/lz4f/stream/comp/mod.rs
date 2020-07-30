@@ -37,6 +37,10 @@ impl Compressor {
         })
     }
 
+    pub fn prefs(&self) -> &Preferences {
+        &self.prefs
+    }
+
     fn begin(&mut self) -> Result<()> {
         if let State::Created = self.state {
             assert!(self.buffer.is_empty());

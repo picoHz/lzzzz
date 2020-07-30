@@ -1,13 +1,15 @@
 #![cfg(feature = "async-io")]
 
 use super::Decompressor;
-use crate::common::DEFAULT_BUF_SIZE;
-use crate::lz4f::{FrameInfo, Result};
+use crate::{
+    common::DEFAULT_BUF_SIZE,
+    lz4f::{FrameInfo, Result},
+};
 use futures_lite::{AsyncBufRead, AsyncRead, AsyncReadExt};
 use pin_project::pin_project;
 use std::{
     borrow::Cow,
-    io,
+    fmt, io,
     pin::Pin,
     task::{Context, Poll},
 };
@@ -29,8 +31,8 @@ use std::{
 /// # tmp_dir.child("foo.lz4").write_binary(&buf).unwrap();
 /// #
 /// # smol::run(async {
-/// use lzzzz::lz4f::AsyncBufReadDecompressor;
 /// use async_std::{fs::File, io::BufReader, prelude::*};
+/// use lzzzz::lz4f::AsyncBufReadDecompressor;
 ///
 /// let mut f = File::open("foo.lz4").await?;
 /// let mut b = BufReader::new(f);
@@ -50,7 +52,7 @@ use std::{
 #[pin_project]
 pub struct AsyncBufReadDecompressor<'a, R: AsyncBufRead + Unpin> {
     #[pin]
-    device: R,
+    pub(super) device: R,
     inner: Decompressor<'a>,
     buf: Vec<u8>,
     inner_consumed: usize,
@@ -133,6 +135,17 @@ impl<'a, R: AsyncBufRead + Unpin> AsyncBufReadDecompressor<'a, R> {
         } else {
             Poll::Ready(Ok(()))
         }
+    }
+}
+
+impl<R> fmt::Debug for AsyncBufReadDecompressor<'_, R>
+where
+    R: AsyncBufRead + Unpin + fmt::Debug,
+{
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt.debug_struct("AsyncBufReadDecompressor")
+            .field("reader", &self.device)
+            .finish()
     }
 }
 

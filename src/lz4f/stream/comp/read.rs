@@ -1,6 +1,9 @@
 use super::{BufReadCompressor, Dictionary, Preferences};
 use crate::lz4f::Result;
-use std::io::{BufReader, Read};
+use std::{
+    fmt,
+    io::{BufReader, Read},
+};
 
 /// The [`Read`]-based streaming compressor.
 ///
@@ -51,6 +54,18 @@ impl<R: Read> ReadCompressor<R> {
     /// Returns ownership of the reader.
     pub fn into_inner(self) -> R {
         self.inner.into_inner().into_inner()
+    }
+}
+
+impl<R> fmt::Debug for ReadCompressor<R>
+where
+    R: Read + fmt::Debug,
+{
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt.debug_struct("ReadCompressor")
+            .field("reader", &self.inner.device.get_ref())
+            .field("prefs", &self.inner.inner.prefs())
+            .finish()
     }
 }
 

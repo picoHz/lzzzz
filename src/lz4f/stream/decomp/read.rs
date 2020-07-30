@@ -2,6 +2,7 @@ use super::BufReadDecompressor;
 use crate::lz4f::{FrameInfo, Result};
 use std::{
     borrow::Cow,
+    fmt,
     io::{BufReader, Read},
 };
 
@@ -36,6 +37,17 @@ use std::{
 
 pub struct ReadDecompressor<'a, R: Read> {
     inner: BufReadDecompressor<'a, BufReader<R>>,
+}
+
+impl<R> fmt::Debug for ReadDecompressor<'_, R>
+where
+    R: Read + fmt::Debug,
+{
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt.debug_struct("ReadDecompressor")
+            .field("reader", &self.inner.device.get_ref())
+            .finish()
+    }
 }
 
 impl<'a, R: Read> ReadDecompressor<'a, R> {

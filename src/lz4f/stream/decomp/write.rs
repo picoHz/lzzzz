@@ -1,5 +1,5 @@
 use crate::lz4f::{Decompressor, FrameInfo, Result};
-use std::{borrow::Cow, io::Write};
+use std::{borrow::Cow, fmt, io::Write};
 
 /// The [`Write`]-based streaming decompressor.
 ///
@@ -67,6 +67,17 @@ impl<'a, W: Write> WriteDecompressor<'a, W> {
     /// Returns ownership of the writer.
     pub fn into_inner(self) -> W {
         self.device
+    }
+}
+
+impl<W> fmt::Debug for WriteDecompressor<'_, W>
+where
+    W: Write + fmt::Debug,
+{
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt.debug_struct("WriteDecompressor")
+            .field("writer", &self.device)
+            .finish()
     }
 }
 

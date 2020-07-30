@@ -2,6 +2,7 @@ use super::Decompressor;
 use crate::lz4f::{FrameInfo, Result};
 use std::{
     borrow::Cow,
+    fmt,
     io::{BufRead, Read},
 };
 
@@ -39,7 +40,7 @@ use std::{
 /// [`BufRead`]: https://doc.rust-lang.org/std/io/trait.BufRead.html
 
 pub struct BufReadDecompressor<'a, R: BufRead> {
-    device: R,
+    pub(super) device: R,
     inner: Decompressor<'a>,
     consumed: usize,
 }
@@ -80,6 +81,17 @@ impl<'a, R: BufRead> BufReadDecompressor<'a, R> {
     /// Returns ownership of the reader.
     pub fn into_inner(self) -> R {
         self.device
+    }
+}
+
+impl<R> fmt::Debug for BufReadDecompressor<'_, R>
+where
+    R: BufRead + fmt::Debug,
+{
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt.debug_struct("BufReadDecompressor")
+            .field("reader", &self.device)
+            .finish()
     }
 }
 

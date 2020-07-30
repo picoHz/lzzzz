@@ -7,7 +7,7 @@ use futures_lite::AsyncRead;
 use pin_project::pin_project;
 use std::{
     borrow::Cow,
-    io,
+    fmt, io,
     pin::Pin,
     task::{Context, Poll},
 };
@@ -29,8 +29,8 @@ use std::{
 /// # tmp_dir.child("foo.lz4").write_binary(&buf).unwrap();
 /// #
 /// # smol::run(async {
-/// use lzzzz::lz4f::AsyncReadDecompressor;
 /// use async_std::{fs::File, prelude::*};
+/// use lzzzz::lz4f::AsyncReadDecompressor;
 ///
 /// let mut f = File::open("foo.lz4").await?;
 /// let mut r = AsyncReadDecompressor::new(&mut f)?;
@@ -73,6 +73,17 @@ impl<'a, R: AsyncRead + Unpin> AsyncReadDecompressor<'a, R> {
     /// does not consume the frame body.
     pub async fn read_frame_info(&mut self) -> io::Result<FrameInfo> {
         self.inner.read_frame_info().await
+    }
+}
+
+impl<R> fmt::Debug for AsyncReadDecompressor<'_, R>
+where
+    R: AsyncRead + Unpin + fmt::Debug,
+{
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt.debug_struct("AsyncReadDecompressor")
+            .field("reader", &self.inner.device.get_ref())
+            .finish()
     }
 }
 

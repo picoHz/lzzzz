@@ -1,6 +1,6 @@
 use super::{Compressor, Dictionary, Preferences};
 use crate::lz4f::Result;
-use std::io::Write;
+use std::{fmt, io::Write};
 
 /// The [`Write`]-based streaming compressor.
 ///
@@ -62,6 +62,18 @@ impl<W: Write> WriteCompressor<W> {
         }
 
         Ok(())
+    }
+}
+
+impl<W> fmt::Debug for WriteCompressor<W>
+where
+    W: Write + fmt::Debug,
+{
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt.debug_struct("WriteCompressor")
+            .field("writer", &self.device)
+            .field("prefs", &self.inner.prefs())
+            .finish()
     }
 }
 
