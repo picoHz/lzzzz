@@ -1,8 +1,8 @@
 #![cfg(feature = "async-io")]
 
-use super::Decompressor;
+use super::{super::comp::WRITER_INVALID_STATE, Decompressor};
 use crate::lz4f::{FrameInfo, Result};
-use futures_lite::AsyncWrite;
+use futures_lite::{ready, AsyncWrite};
 use pin_project::pin_project;
 use std::{
     borrow::Cow,
@@ -54,6 +54,7 @@ enum State {
     None,
     Write(usize),
     Flush,
+    Close,
     Shutdown,
 }
 
@@ -97,7 +98,7 @@ impl<'a, W: AsyncWrite + Unpin> AsyncWriteDecompressor<'a, W> {
     }
 
     /// Returns a shared reference to the writer.
-    pub fn get_ref(&mut self) -> &W {
+    pub fn get_ref(&self) -> &W {
         &self.inner
     }
 
@@ -106,19 +107,38 @@ impl<'a, W: AsyncWrite + Unpin> AsyncWriteDecompressor<'a, W> {
         self.inner
     }
 
-    fn write_buffer(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<io::Result<()>> {
-        let me = self.project();
-        if let Poll::Ready(len) = me.inner.poll_write(cx, &me.decomp.buf()[*me.consumed..])? {
-            *me.consumed += len;
-            if *me.consumed >= me.decomp.buf().len() {
-                *me.consumed = 0;
-                me.decomp.clear_buf();
+    fn poll_write_all(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<io::Result<()>> {
+        loop {
+            let me = self.as_mut().project();
+            let size = ready!(me.inner.poll_write(cx, &me.decomp.buf()[*me.consumed..]))?;
+            self.consumed += size;
+            if self.consumed >= self.decomp.buf().len() {
+                debug_assert_eq!(self.consumed, self.decomp.buf().len());
+                self.consumed = 0;
+                self.decomp.clear_buf();
+                return Poll::Ready(Ok(()));
             }
         }
-        if me.decomp.buf().is_empty() {
-            Poll::Ready(Ok(()))
-        } else {
-            Poll::Pending
+    }
+
+    fn poll_state(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<io::Result<usize>> {
+        loop {
+            match self.state {
+                State::Write(size) => {
+                    ready!(self.as_mut().poll_write_all(cx))?;
+                    self.state = State::None;
+                    return Poll::Ready(Ok(size));
+                }
+                State::Flush => {
+                    ready!(self.as_mut().project().inner.poll_flush(cx))?;
+                    self.state = State::None;
+                }
+                State::Close => {
+                    ready!(self.as_mut().project().inner.poll_close(cx))?;
+                    self.state = State::Shutdown;
+                }
+                State::None | State::Shutdown => return Poll::Ready(Ok(0)),
+            }
         }
     }
 }
@@ -140,49 +160,47 @@ impl<W: AsyncWrite + Unpin> AsyncWrite for AsyncWriteDecompressor<'_, W> {
         cx: &mut Context<'_>,
         buf: &[u8],
     ) -> Poll<io::Result<usize>> {
-        let mut me = Pin::new(&mut *self);
-        if let State::None = me.state {
-            me.state = State::Write(me.decomp.decompress(buf)?);
-        } else if let State::Shutdown = me.state {
-            return Poll::Ready(Ok(0));
-        }
-        if let State::Write(len) = me.state {
-            if let Poll::Ready(_) = me.as_mut().write_buffer(cx)? {
-                me.state = State::None;
-                return Poll::Ready(Ok(len));
+        match self.state {
+            State::None => {
+                self.state = State::Write(self.decomp.decompress(buf)?);
+            }
+            State::Write(_) | State::Shutdown => (),
+            _ => {
+                let err = io::Error::new(io::ErrorKind::Other, WRITER_INVALID_STATE);
+                return Poll::Ready(Err(err));
             }
         }
-        Poll::Pending
+
+        self.poll_state(cx)
     }
 
     fn poll_flush(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<io::Result<()>> {
-        let mut me = Pin::new(&mut *self);
-        if let State::None = me.state {
-            me.state = State::Flush;
-        } else if let State::Shutdown = me.state {
-            return Poll::Ready(Ok(()));
-        }
-        if let State::Flush = me.state {
-            if let Poll::Ready(_) = me.as_mut().write_buffer(cx)? {
-                me.state = State::None;
-                return Poll::Ready(Ok(()));
+        match self.state {
+            State::None => {
+                self.state = State::Flush;
+            }
+            State::Flush | State::Shutdown => (),
+            _ => {
+                let err = io::Error::new(io::ErrorKind::Other, WRITER_INVALID_STATE);
+                return Poll::Ready(Err(err));
             }
         }
-        Poll::Pending
+
+        self.poll_state(cx).map_ok(|_| ())
     }
 
     fn poll_close(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<io::Result<()>> {
-        let mut me = Pin::new(&mut *self);
-        if let State::None = me.state {
-            me.state = State::Shutdown;
-        } else if let State::Shutdown = me.state {
-            return Poll::Ready(Ok(()));
-        }
-        if let State::Shutdown = me.state {
-            if let Poll::Ready(_) = me.as_mut().write_buffer(cx)? {
-                return Poll::Ready(Ok(()));
+        match self.state {
+            State::None => {
+                self.state = State::Close;
+            }
+            State::Close | State::Shutdown => (),
+            _ => {
+                let err = io::Error::new(io::ErrorKind::Other, WRITER_INVALID_STATE);
+                return Poll::Ready(Err(err));
             }
         }
-        Poll::Pending
+
+        self.poll_state(cx).map_ok(|_| ())
     }
 }

@@ -1,10 +1,16 @@
 #![cfg(feature = "async-io")]
 
 use async_std::{fs::File, io::BufReader};
-use futures::future::join_all;
+use futures::{future::join_all, io::AsyncWrite};
+use futures_test::task::noop_context;
 use lzzzz::{lz4f, lz4f::*};
 use rand::{distributions::Standard, rngs::SmallRng, Rng, SeedableRng};
 use static_assertions::assert_impl_all;
+use std::{
+    io,
+    pin::Pin,
+    task::{Context, Poll},
+};
 
 mod common;
 use common::lz4f_test_set;
@@ -15,6 +21,46 @@ assert_impl_all!(lz4f::AsyncWriteCompressor<File>: Send);
 assert_impl_all!(lz4f::AsyncBufReadDecompressor<BufReader<File>>: Send);
 assert_impl_all!(lz4f::AsyncReadDecompressor<File>: Send);
 assert_impl_all!(lz4f::AsyncWriteDecompressor<File>: Send);
+
+struct Byte(Option<u8>);
+
+impl Byte {
+    fn new() -> Self {
+        Byte(None)
+    }
+
+    fn take(&mut self) -> Option<u8> {
+        self.0.take()
+    }
+}
+
+impl AsyncWrite for Byte {
+    fn poll_write(
+        mut self: Pin<&mut Self>,
+        _: &mut Context<'_>,
+        buf: &[u8],
+    ) -> Poll<io::Result<usize>> {
+        match self.0 {
+            None => {
+                if buf.is_empty() {
+                    Poll::Ready(Ok(0))
+                } else {
+                    self.0.replace(buf[0]);
+                    Poll::Ready(Ok(1))
+                }
+            }
+            Some(_) => Poll::Pending,
+        }
+    }
+
+    fn poll_flush(self: Pin<&mut Self>, _: &mut Context<'_>) -> Poll<io::Result<()>> {
+        Poll::Ready(Ok(()))
+    }
+
+    fn poll_close(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<io::Result<()>> {
+        self.poll_flush(cx)
+    }
+}
 
 mod async_read_compressor {
     use super::*;
@@ -145,7 +191,7 @@ mod async_bufread_compressor {
 mod async_write_compressor {
     use super::*;
     use futures::future::join_all;
-    use futures_lite::AsyncWriteExt;
+    use futures_lite::{AsyncWrite, AsyncWriteExt};
     use lzzzz::lz4f::AsyncWriteCompressor;
 
     #[test]
@@ -158,6 +204,64 @@ mod async_write_compressor {
                     let mut w = AsyncWriteCompressor::new(&mut comp_buf, prefs).unwrap();
                     w.write_all(&src).await.unwrap();
                     w.close().await.unwrap();
+                }
+                assert_eq!(
+                    lz4f::decompress_to_vec(&comp_buf, &mut decomp_buf).unwrap(),
+                    decomp_buf.len()
+                );
+                assert_eq!(decomp_buf, src);
+            }))
+            .await;
+        })
+    }
+
+    #[test]
+    fn small_buffer() {
+        smol::run(async {
+            join_all(lz4f_test_set().map(|(mut src, prefs)| async move {
+                // This test is goddamn slow otherwise.
+                if src.len() > 2 << 16 {
+                    src.truncate(2 << 16);
+                }
+
+                let mut comp_buf = Vec::new();
+                let mut decomp_buf = Vec::new();
+                let mut cx = noop_context();
+                {
+                    let byte = Byte::new();
+                    let mut w = AsyncWriteCompressor::new(byte, prefs).unwrap();
+                    let mut total = 0;
+
+                    // Painfully write, byte by byte.
+                    while total < src.len() {
+                        let pin = Pin::new(&mut w);
+                        match pin.poll_write(&mut cx, &src[total..]) {
+                            Poll::Ready(Ok(size)) => {
+                                total += size;
+                            }
+                            Poll::Pending => (),
+                            Poll::Ready(Err(err)) => panic!("{}", err),
+                        }
+                        comp_buf.push(w.get_mut().take().unwrap());
+                    }
+
+                    // Painfully close, byte by byte.
+                    loop {
+                        let pin = Pin::new(&mut w);
+                        if let Poll::Ready(res) = pin.poll_close(&mut cx) {
+                            res.unwrap();
+                            comp_buf.push(w.get_mut().take().unwrap());
+                            break;
+                        }
+                        comp_buf.push(w.get_mut().take().unwrap());
+                    }
+
+                    // Now the writer should be closed.
+                    let pin = Pin::new(&mut w);
+                    match pin.poll_write(&mut cx, &mut [0u8]) {
+                        Poll::Ready(Ok(size)) => assert_eq!(size, 0),
+                        Poll::Ready(_) | Poll::Pending => unreachable!(),
+                    }
                 }
                 assert_eq!(
                     lz4f::decompress_to_vec(&comp_buf, &mut decomp_buf).unwrap(),
@@ -368,7 +472,12 @@ mod async_bufread_decompressor {
     #[test]
     fn small_buffer() {
         smol::run(async {
-            join_all(lz4f_test_set().map(|(src, prefs)| async move {
+            join_all(lz4f_test_set().map(|(mut src, prefs)| async move {
+                // This test is goddamn slow otherwise.
+                if src.len() > 2 << 16 {
+                    src.truncate(2 << 16);
+                }
+
                 let mut comp_buf = Vec::new();
                 let mut decomp_buf = Vec::new();
                 assert_eq!(
@@ -391,7 +500,7 @@ mod async_bufread_decompressor {
 mod async_write_decompressor {
     use super::*;
     use futures::future::join_all;
-    use futures_lite::AsyncWriteExt;
+    use futures_lite::{AsyncWrite, AsyncWriteExt};
     use lzzzz::lz4f::{AsyncWriteDecompressor, WriteCompressor};
     use std::io::Write;
 
@@ -530,6 +639,66 @@ mod async_write_decompressor {
                         lz4f::Error::Common(lzzzz::ErrorKind::FrameHeaderInvalid)
                     );
                 }
+            }))
+            .await;
+        })
+    }
+
+    #[test]
+    fn small_buffer() {
+        smol::run(async {
+            join_all(lz4f_test_set().map(|(mut src, prefs)| async move {
+                // This test is goddamn slow otherwise.
+                if src.len() > 2 << 16 {
+                    src.truncate(2 << 16);
+                }
+
+                let mut comp_buf = Vec::new();
+                let mut decomp_buf = Vec::new();
+                let mut cx = noop_context();
+                assert_eq!(
+                    lz4f::compress_to_vec(&src, &mut comp_buf, &prefs).unwrap(),
+                    comp_buf.len()
+                );
+                {
+                    let byte = Byte::new();
+                    let mut w = AsyncWriteDecompressor::new(byte).unwrap();
+                    let mut total = 0;
+
+                    while total < comp_buf.len() {
+                        let pin = Pin::new(&mut w);
+                        match pin.poll_write(&mut cx, &comp_buf[total..]) {
+                            Poll::Ready(Ok(size)) => {
+                                total += size;
+                            }
+                            Poll::Pending => (),
+                            Poll::Ready(Err(err)) => panic!("{}", err),
+                        }
+
+                        decomp_buf.push(w.get_mut().take().unwrap());
+                    }
+                    loop {
+                        let pin = Pin::new(&mut w);
+                        match pin.poll_close(&mut cx) {
+                            Poll::Ready(res) => {
+                                res.unwrap();
+                                assert!(w.get_mut().take().is_none());
+                                break;
+                            }
+                            Poll::Pending => {
+                                decomp_buf.push(w.get_mut().take().unwrap());
+                            }
+                        }
+                    }
+
+                    // Now the writer should be closed.
+                    let pin = Pin::new(&mut w);
+                    match pin.poll_write(&mut cx, &mut [0u8]) {
+                        Poll::Ready(Ok(size)) => assert_eq!(size, 0),
+                        Poll::Ready(_) | Poll::Pending => unreachable!(),
+                    }
+                }
+                assert_eq!(decomp_buf, src);
             }))
             .await;
         })

@@ -70,7 +70,7 @@ impl<'a, W: Write> WriteDecompressor<'a, W> {
     }
 
     /// Returns a shared reference to the writer.
-    pub fn get_ref(&mut self) -> &W {
+    pub fn get_ref(&self) -> &W {
         &self.inner
     }
 
