@@ -78,6 +78,16 @@ impl<'a, R: Read> ReadDecompressor<'a, R> {
     pub fn into_inner(self) -> R {
         self.inner.into_inner().into_inner()
     }
+
+    /// Returns a mutable reference to the reader.
+    pub fn get_mut(&mut self) -> &mut R {
+        self.inner.get_mut().get_mut()
+    }
+
+    /// Returns a shared reference to the reader.
+    pub fn get_ref(&mut self) -> &R {
+        self.inner.get_ref().get_ref()
+    }
 }
 
 impl<R: Read> Read for ReadDecompressor<'_, R> {

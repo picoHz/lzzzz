@@ -62,6 +62,21 @@ impl<R: AsyncRead + Unpin> AsyncReadCompressor<R> {
             inner: AsyncBufReadCompressor::with_dict(BufReader::new(reader), prefs, dict)?,
         })
     }
+
+    /// Returns a mutable reference to the reader.
+    pub fn get_mut(&mut self) -> &mut R {
+        self.inner.get_mut().get_mut()
+    }
+
+    /// Returns a shared reference to the reader.
+    pub fn get_ref(&mut self) -> &R {
+        self.inner.get_ref().get_ref()
+    }
+
+    /// Returns ownership of the reader.
+    pub fn into_inner(self) -> R {
+        self.inner.into_inner().into_inner()
+    }
 }
 
 impl<R> fmt::Debug for AsyncReadCompressor<R>
