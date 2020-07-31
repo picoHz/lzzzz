@@ -27,6 +27,6 @@ jobs:
       run: rustup install nightly
       if: matrix.toolchain == 'nightly'
     - name: Run clippy
-      run: cargo +${{ matrix.toolchain }} clippy --all-features --verbose
+      run: cargo clippy --all-features --verbose
     - name: Run tests
       run: cargo +${{ matrix.toolchain }} test --release --all-features --verbose
