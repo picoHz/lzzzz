@@ -82,6 +82,16 @@ impl<'a, R: BufRead> BufReadDecompressor<'a, R> {
     pub fn into_inner(self) -> R {
         self.inner
     }
+
+    /// Returns a mutable reference to the reader.
+    pub fn get_mut(&mut self) -> &mut R {
+        &mut self.inner
+    }
+
+    /// Returns a shared reference to the reader.
+    pub fn get_ref(&mut self) -> &R {
+        &self.inner
+    }
 }
 
 impl<R> fmt::Debug for BufReadDecompressor<'_, R>

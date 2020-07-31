@@ -74,6 +74,21 @@ impl<'a, R: AsyncRead + Unpin> AsyncReadDecompressor<'a, R> {
     pub async fn read_frame_info(&mut self) -> io::Result<FrameInfo> {
         self.inner.read_frame_info().await
     }
+
+    /// Returns a mutable reference to the reader.
+    pub fn get_mut(&mut self) -> &mut R {
+        self.inner.get_mut().get_mut()
+    }
+
+    /// Returns a shared reference to the reader.
+    pub fn get_ref(&mut self) -> &R {
+        self.inner.get_ref().get_ref()
+    }
+
+    /// Returns ownership of the reader.
+    pub fn into_inner(self) -> R {
+        self.inner.into_inner().into_inner()
+    }
 }
 
 impl<R> fmt::Debug for AsyncReadDecompressor<'_, R>

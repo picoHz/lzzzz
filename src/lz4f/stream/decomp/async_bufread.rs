@@ -94,6 +94,21 @@ impl<'a, R: AsyncBufRead + Unpin> AsyncBufReadDecompressor<'a, R> {
         }
     }
 
+    /// Returns a mutable reference to the reader.
+    pub fn get_mut(&mut self) -> &mut R {
+        &mut self.inner
+    }
+
+    /// Returns a shared reference to the reader.
+    pub fn get_ref(&mut self) -> &R {
+        &self.inner
+    }
+
+    /// Returns ownership of the reader.
+    pub fn into_inner(self) -> R {
+        self.inner
+    }
+
     fn fill_buf(self: Pin<&mut Self>, cx: &mut Context) -> Poll<io::Result<()>> {
         let mut me = self.project();
 

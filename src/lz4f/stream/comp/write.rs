@@ -47,6 +47,16 @@ impl<W: Write> WriteCompressor<W> {
         })
     }
 
+    /// Returns a mutable reference to the writer.
+    pub fn get_mut(&mut self) -> &mut W {
+        self.inner.as_mut().unwrap()
+    }
+
+    /// Returns a shared reference to the writer.
+    pub fn get_ref(&mut self) -> &W {
+        self.inner.as_ref().unwrap()
+    }
+
     /// Returns the ownership of the writer, finishing the stream in the process.
     pub fn into_inner(mut self) -> W {
         let _ = self.end();

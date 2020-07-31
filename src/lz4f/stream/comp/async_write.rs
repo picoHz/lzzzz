@@ -78,6 +78,21 @@ impl<W: AsyncWrite + Unpin> AsyncWriteCompressor<W> {
         })
     }
 
+    /// Returns a mutable reference to the writer.
+    pub fn get_mut(&mut self) -> &mut W {
+        &mut self.inner
+    }
+
+    /// Returns a shared reference to the writer.
+    pub fn get_ref(&mut self) -> &W {
+        &self.inner
+    }
+
+    /// Returns ownership of the writer.
+    pub fn into_inner(self) -> W {
+        self.inner
+    }
+
     fn write_buffer(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<io::Result<()>> {
         let me = self.project();
         if let Poll::Ready(len) = me.inner.poll_write(cx, &me.comp.buf()[*me.consumed..])? {
