@@ -90,30 +90,30 @@ impl<'a> Decompressor<'a> {
     pub fn decompress(&mut self, src: &[u8]) -> Result<usize> {
         let mut header_consumed = 0;
         if let State::Header {
-            mut header,
-            mut header_len,
+            ref mut header,
+            ref mut header_len,
         } = &mut self.state
         {
-            if header_len < LZ4F_MIN_SIZE_TO_KNOW_HEADER_LENGTH {
-                let len = cmp::min(LZ4F_MIN_SIZE_TO_KNOW_HEADER_LENGTH - header_len, src.len());
-                (&mut header[header_len..header_len + len]).copy_from_slice(&src[..len]);
-                header_len += len;
+            if *header_len < LZ4F_MIN_SIZE_TO_KNOW_HEADER_LENGTH {
+                let len = cmp::min(LZ4F_MIN_SIZE_TO_KNOW_HEADER_LENGTH - *header_len, src.len());
+                (&mut header[*header_len..*header_len + len]).copy_from_slice(&src[..len]);
+                *header_len += len;
                 header_consumed += len;
             }
-            if header_len >= LZ4F_MIN_SIZE_TO_KNOW_HEADER_LENGTH {
-                let src = &src[header_consumed..];
-                let exact_header_len = header_size(&header[..header_len]);
+            if *header_len >= LZ4F_MIN_SIZE_TO_KNOW_HEADER_LENGTH {
+                let exact_header_len = header_size(&header[..*header_len]);
                 if exact_header_len > LZ4F_HEADER_SIZE_MAX {
                     return Err(Error::new(ErrorKind::FrameHeaderInvalid).into());
                 }
-                if header_len < exact_header_len {
-                    let len = cmp::min(exact_header_len - header_len, src.len());
-                    (&mut header[header_len..header_len + len]).copy_from_slice(&src[..len]);
-                    header_len += len;
+                let src = &src[header_consumed..];
+                if *header_len < exact_header_len {
+                    let len = cmp::min(exact_header_len - *header_len, src.len());
+                    (&mut header[*header_len..*header_len + len]).copy_from_slice(&src[..len]);
+                    *header_len += len;
                     header_consumed += len;
                 }
-                if header_len >= exact_header_len {
-                    let (frame, rep) = self.ctx.get_frame_info(&header[..header_len])?;
+                if *header_len >= exact_header_len {
+                    let (frame, rep) = self.ctx.get_frame_info(&header[..*header_len])?;
                     header_consumed = cmp::min(header_consumed, rep);
 
                     self.state = State::Body {
@@ -122,6 +122,9 @@ impl<'a> Decompressor<'a> {
                     }
                 }
             }
+        }
+
+        if let State::Header { header, header_len } = self.state {
             if src.is_empty() {
                 self.ctx.get_frame_info(&header[..header_len])?;
             }
@@ -133,7 +136,10 @@ impl<'a> Decompressor<'a> {
 
         let src = &src[header_consumed..];
         let dict_ptr = self.dict_ptr();
-        if let State::Body { comp_dict, .. } = &mut self.state {
+        if let State::Body {
+            ref mut comp_dict, ..
+        } = &mut self.state
+        {
             if dict_ptr != *comp_dict.get_or_insert(dict_ptr) {
                 return Err(Error::new(ErrorKind::DictionaryChangedDuringDecompression).into());
             }
