@@ -108,7 +108,7 @@ impl FrameInfo {
         self.frame_type
     }
 
-    /// Returns the content checksum.
+    /// Returns the content size.
     pub const fn content_size(&self) -> usize {
         self.content_size as usize
     }
