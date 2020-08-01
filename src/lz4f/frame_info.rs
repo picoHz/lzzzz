@@ -98,7 +98,7 @@ impl FrameInfo {
         self.block_mode
     }
 
-    /// Returns the content size.
+    /// Returns the content checksum.
     pub const fn content_checksum(&self) -> ContentChecksum {
         self.content_checksum
     }
