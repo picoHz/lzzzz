@@ -53,7 +53,7 @@ impl<W: Write> WriteCompressor<W> {
     }
 
     /// Returns a shared reference to the writer.
-    pub fn get_ref(&mut self) -> &W {
+    pub fn get_ref(&self) -> &W {
         self.inner.as_ref().unwrap()
     }
 

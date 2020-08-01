@@ -85,7 +85,7 @@ impl<'a, R: Read> ReadDecompressor<'a, R> {
     }
 
     /// Returns a shared reference to the reader.
-    pub fn get_ref(&mut self) -> &R {
+    pub fn get_ref(&self) -> &R {
         self.inner.get_ref().get_ref()
     }
 }
