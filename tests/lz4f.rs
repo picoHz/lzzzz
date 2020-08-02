@@ -59,8 +59,8 @@ mod compress {
 
     #[test]
     fn content_size() {
-        lz4f_test_set().par_bridge().for_each(|(src, _prefs)| {
-            let prefs = PreferencesBuilder::new().content_size(1).build();
+        lz4f_test_set().par_bridge().for_each(|(src, prefs)| {
+            let prefs = PreferencesBuilder::from(prefs).content_size(1).build();
             let mut comp_buf = vec![0; lz4f::max_compressed_size(src.len(), &prefs)];
             let mut decomp_buf = Vec::new();
 
