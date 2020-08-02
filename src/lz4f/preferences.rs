@@ -198,6 +198,12 @@ impl PreferencesBuilder {
     }
 }
 
+impl From<Preferences> for PreferencesBuilder {
+    fn from(prefs: Preferences) -> Self {
+        Self { prefs }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::lz4f::{
