@@ -1,8 +1,10 @@
-//! LZ4 frame format.
+//! LZ4F compression and decompression.
 //!
-//! # Asynchronous I/O
+//! LZ4F: LZ4 Frame Format.
 //!
-//! The `async-io` feature flag enables asynchronous streaming compressors and decompressors.
+//! # Async I/O
+//!
+//! The `async-io` feature flag enables async streaming compressors and decompressors.
 //!
 //! ```toml
 //! lzzzz = { version = "...", features = ["async-io"] }

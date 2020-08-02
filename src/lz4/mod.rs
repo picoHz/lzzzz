@@ -1,4 +1,6 @@
-//! Extremely fast compression algorithm.
+//! LZ4 compression and decompression.
+//!
+//! LZ4: Extremely fast compression algorithm.
 //!
 //! # Acceleration factor
 //! Some functions take the 'acceleration factor' as `i32`.

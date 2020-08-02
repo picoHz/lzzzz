@@ -33,11 +33,11 @@ lzzzz = "0.4"
     - Decompression
     - Custom Dictionary
     - Streaming I/O (`Read` / `BufRead` / `Write`)
-    - [optional] Asynchronous I/O (`AsyncRead` / `AsyncBufRead` / `AsyncWrite`)
+    - [optional] Async I/O (`AsyncRead` / `AsyncBufRead` / `AsyncWrite`)
 
-### Asynchronous I/O
+### Async I/O
 
-The `async-io` feature flag enables asynchronous LZ4F streaming compressors and decompressors.
+The `async-io` feature flag enables async LZ4F streaming compressors and decompressors.
 
 ```toml
 [dependencies]
@@ -113,7 +113,7 @@ let mut buf = Vec::new();
 r.read_to_end(&mut buf)?;
 ```
 
-### Asynchronous Streaming Mode
+### Async Streaming Mode
 
 Requires `async-io` feature flag
 

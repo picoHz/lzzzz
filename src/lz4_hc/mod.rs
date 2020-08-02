@@ -1,7 +1,9 @@
-//! High compression variant of LZ4.
+//! LZ4_HC compression.
+//!
+//! LZ4_HC: High compression variant of LZ4.
 //!
 //! # Decompression
-//! The `lz4_hc` module doesn't provide decompression functionalities.
+//! The `lz4_hc` module doesn't provide decompression functionality.
 //! Use the [`lz4`] module instead.
 //!
 //! [`lz4`]: ../lz4/index.html
