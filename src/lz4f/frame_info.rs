@@ -135,6 +135,10 @@ impl FrameInfo {
         self.content_checksum = checksum;
     }
 
+    pub(super) fn set_content_size(&mut self, size: usize) {
+        self.content_size = size as c_ulonglong;
+    }
+
     pub(super) fn set_dict_id(&mut self, dict_id: u32) {
         self.dict_id = dict_id as c_uint;
     }

@@ -85,6 +85,10 @@ impl Preferences {
         self.frame_info.set_content_checksum(checksum);
     }
 
+    pub(super) fn set_content_size(&mut self, size: usize) {
+        self.frame_info.set_content_size(size);
+    }
+
     pub(super) fn set_dict_id(&mut self, dict_id: u32) {
         self.frame_info.set_dict_id(dict_id);
     }
@@ -146,6 +150,15 @@ impl PreferencesBuilder {
     /// Sets the content checksum.
     pub fn content_checksum(&mut self, checksum: ContentChecksum) -> &mut Self {
         self.prefs.set_content_checksum(checksum);
+        self
+    }
+
+    /// Sets the content size.
+    ///
+    /// A value greater than 0 enables the content size field in the frame header and
+    /// automatically replaced with an actual content size.
+    pub fn content_size(&mut self, size: usize) -> &mut Self {
+        self.prefs.set_content_size(size);
         self
     }
 

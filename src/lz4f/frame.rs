@@ -46,7 +46,11 @@ pub fn max_compressed_size(original_size: usize, prefs: &Preferences) -> usize {
 /// # Ok::<(), std::io::Error>(())
 /// ```
 pub fn compress(src: &[u8], dst: &mut [u8], prefs: &Preferences) -> Result<usize> {
-    api::compress(src, dst, prefs)
+    let mut prefs = *prefs;
+    if prefs.frame_info().content_size() > 0 {
+        prefs.set_content_size(src.len());
+    }
+    api::compress(src, dst, &prefs)
 }
 
 /// Appends a compressed frame to Vec<u8>.

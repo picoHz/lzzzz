@@ -56,6 +56,27 @@ mod compress {
             );
         });
     }
+
+    #[test]
+    fn content_size() {
+        lz4f_test_set().par_bridge().for_each(|(src, _prefs)| {
+            let prefs = PreferencesBuilder::new().content_size(1).build();
+            let mut comp_buf = vec![0; lz4f::max_compressed_size(src.len(), &prefs)];
+            let mut decomp_buf = Vec::new();
+
+            let len = lz4f::compress(&src, &mut comp_buf, &prefs).unwrap();
+            comp_buf.resize_with(len, Default::default);
+            assert_eq!(
+                lz4f::decompress_to_vec(&comp_buf, &mut decomp_buf).unwrap(),
+                decomp_buf.len()
+            );
+            assert_eq!(decomp_buf, src);
+
+            let mut comp_buf = comp_buf.as_slice();
+            let mut r = ReadDecompressor::new(&mut comp_buf).unwrap();
+            assert_eq!(r.read_frame_info().unwrap().content_size(), src.len());
+        });
+    }
 }
 
 mod decompress_to_vec {
