@@ -57,7 +57,7 @@ impl<'a, W: Write> WriteDecompressor<'a, W> {
 
     /// Sets the 'header-only' mode.
     ///
-    /// When the 'header-only' mode is enabled, the decompressor doesn't
+    /// When the 'header-only' mode is enabled, `WriteDecompressor` doesn't
     /// consume the frame body and `write()` always returns `Ok(0)`
     /// if the frame header is already decoded.
     pub fn decode_header_only(&mut self, flag: bool) {

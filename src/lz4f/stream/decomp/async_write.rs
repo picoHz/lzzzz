@@ -85,7 +85,7 @@ impl<'a, W: AsyncWrite + Unpin> AsyncWriteDecompressor<'a, W> {
 
     /// Sets the 'header-only' mode.
     ///
-    /// When the 'header-only' mode is enabled, the decompressor doesn't
+    /// When the 'header-only' mode is enabled, `AsyncWriteDecompressor` doesn't
     /// consume the frame body and `poll_write()` always returns `Ok(0)`
     /// if the frame header is already decoded.
     pub fn decode_header_only(&mut self, flag: bool) {

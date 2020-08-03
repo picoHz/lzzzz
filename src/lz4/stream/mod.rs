@@ -79,7 +79,7 @@ impl<'a> Compressor<'a> {
         }
     }
 
-    /// Appends compressed data to Vec<u8>.
+    /// Appends compressed data to `Vec<u8>`.
     ///
     /// Returns the number of bytes appended to the given `Vec<u8>`.
     pub fn next_to_vec(&mut self, src: &[u8], dst: &mut Vec<u8>, acc: i32) -> Result<usize> {

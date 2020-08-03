@@ -2,6 +2,8 @@ use super::{api::DictionaryHandle, Result};
 use std::sync::Arc;
 
 /// A pre-compiled dictionary for the efficient compression.
+///
+/// `Dictionary` can be shared across threads safely.
 #[derive(Clone)]
 pub struct Dictionary(Arc<DictionaryHandle>);
 

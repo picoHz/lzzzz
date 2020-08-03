@@ -155,7 +155,7 @@ impl PreferencesBuilder {
 
     /// Sets the content size.
     ///
-    /// A value greater than 0 enables the content size field in the frame header and
+    /// A value greater than `0` enables the content size field in the frame header and
     /// automatically replaced with an actual content size.
     pub fn content_size(&mut self, size: usize) -> &mut Self {
         self.prefs.set_content_size(size);
