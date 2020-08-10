@@ -14,7 +14,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-lzzzz = "0.4"
+lzzzz = "0.5"
 ```
 
 [API Documentation](https://docs.rs/lzzzz)
@@ -33,11 +33,6 @@ lzzzz = "0.4"
     - Decompression
     - Custom Dictionary
     - Streaming I/O (`Read` / `BufRead` / `Write`)
-
-```toml
-[dependencies]
-lzzzz = { version = "0.4", features = ["async-io"] }
-```
 
 ## Examples
 
