@@ -1,7 +1,4 @@
 //! Streaming LZ4F compressors.
-mod async_bufread;
-mod async_read;
-mod async_write;
 mod bufread;
 mod read;
 mod write;
@@ -16,9 +13,6 @@ use crate::lz4f::{
     api::{CompressionContext, LZ4F_HEADER_SIZE_MAX},
     Dictionary, Preferences,
 };
-
-#[cfg(feature = "async-io")]
-pub use {async_bufread::*, async_read::*, async_write::*};
 
 pub(crate) struct Compressor {
     ctx: CompressionContext,
