@@ -1,12 +1,16 @@
-# lzzzz
+<div align="center">
+<img alt="lzzzz" src="lzzzz.png" height="80" />
 
+Full-featured [liblz4](https://github.com/lz4/lz4) binding for Rust.
 
 [![Crates.io](https://img.shields.io/crates/v/lzzzz.svg)](https://crates.io/crates/lzzzz)
 [![GitHub license](https://img.shields.io/github/license/picoHz/lzzzz.svg)](https://github.com/picoHz/lzzzz/blob/master/LICENSE)
 [![Rustdoc](https://img.shields.io/badge/doc-rustdoc-green.svg)](https://docs.rs/lzzzz)
 ![Rust](https://github.com/picoHz/lzzzz/workflows/Rust/badge.svg)
 
-Full-featured [liblz4](https://github.com/lz4/lz4) binding for Rust.
+</div>
+
+---
 
 ## Usage
 
