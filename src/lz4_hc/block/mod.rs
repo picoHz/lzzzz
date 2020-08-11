@@ -2,6 +2,7 @@ mod api;
 
 use crate::{lz4, Error, ErrorKind, Result};
 use api::ExtState;
+use std::{cmp, io::Cursor};
 
 /// Performs LZ4_HC block compression.
 ///
@@ -53,35 +54,44 @@ pub fn compress(src: &[u8], dst: &mut [u8], level: i32) -> Result<usize> {
 
 /// Compresses data until the destination slice fills up.
 ///
-/// The first `usize` of the returned value represents the number of bytes read from the
-/// source buffer, and the other represents the number of bytes written into the destination buffer.
+/// Returns the number of bytes written into the destination buffer.
 ///
 /// # Example
 ///
 /// ```
 /// use lzzzz::{lz4, lz4_hc};
+/// use std::io::Cursor;
 ///
 /// let data = b"The quick brown fox jumps over the lazy dog.";
 /// let mut buf = [0u8; 16];
 ///
-/// let (src_len, dst_len) = lz4_hc::compress_partial(data, &mut buf, lz4_hc::CLEVEL_DEFAULT)?;
-/// let compressed = &buf[..dst_len];
+/// let mut src = Cursor::new(&data[..]);
+/// let len = lz4_hc::compress_partial(&mut src, &mut buf, lz4_hc::CLEVEL_DEFAULT)?;
+/// let compressed = &buf[..len];
 ///
 /// # let mut buf = [0u8; 256];
 /// # let len = lz4::decompress(
 /// #     compressed,
 /// #     &mut buf[..data.len()],
 /// # )?;
-/// # assert_eq!(&buf[..len], &data[..src_len]);
+/// # assert_eq!(&buf[..len], &data[..src.position() as usize]);
 /// # Ok::<(), std::io::Error>(())
 /// ```
-pub fn compress_partial(src: &[u8], dst: &mut [u8], level: i32) -> Result<(usize, usize)> {
-    if src.is_empty() || dst.is_empty() {
-        return Ok((0, 0));
+pub fn compress_partial<T>(src: &mut Cursor<T>, dst: &mut [u8], level: i32) -> Result<usize>
+where
+    T: AsRef<[u8]>,
+{
+    let src_ref = src.get_ref().as_ref();
+    let pos = cmp::min(src_ref.len(), src.position() as usize);
+    let src_ref = &src_ref[pos..];
+    if src_ref.is_empty() || dst.is_empty() {
+        return Ok(0);
     }
-    Ok(ExtState::with(|state, _| {
-        api::compress_dest_size(&mut state.borrow_mut(), src, dst, level)
-    }))
+    let (src_len, dst_len) = ExtState::with(|state, _| {
+        api::compress_dest_size(&mut state.borrow_mut(), src_ref, dst, level)
+    });
+    src.set_position(src.position() + src_len as u64);
+    Ok(dst_len)
 }
 
 /// Appends compressed data to `Vec<u8>`.

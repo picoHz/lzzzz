@@ -2,7 +2,7 @@ mod api;
 
 use crate::{common::DICTIONARY_SIZE, lz4, lz4_hc::FavorDecSpeed, Result};
 use api::CompressionContext;
-use std::{borrow::Cow, pin::Pin};
+use std::{borrow::Cow, cmp, io::Cursor, pin::Pin};
 
 /// Streaming LZ4_HC compressor.
 ///
@@ -77,12 +77,18 @@ impl<'a> Compressor<'a> {
 
     /// Compresses data until the destination slice fills up.
     ///
-    /// The first `usize` of the returned value represents the number of bytes read from the
-    /// source buffer, and the other represents the number of bytes written into the destination buffer.
-    pub fn next_partial(&mut self, src: &[u8], dst: &mut [u8]) -> Result<(usize, usize)> {
-        let result = self.ctx.next_partial(&src, dst)?;
+    /// Returns the number of bytes written into the destination buffer.
+    pub fn next_partial<T>(&mut self, src: &mut Cursor<T>, dst: &mut [u8]) -> Result<usize>
+    where
+        T: AsRef<[u8]>,
+    {
+        let src_ref = src.get_ref().as_ref();
+        let pos = cmp::min(src_ref.len(), src.position() as usize);
+        let src_ref = &src_ref[pos..];
+        let (src_len, dst_len) = self.ctx.next_partial(src_ref, dst)?;
+        src.set_position(src.position() + src_len as u64);
         self.save_dict();
-        Ok(result)
+        Ok(dst_len)
     }
 
     /// Appends a compressed frame to Vec<u8>.
