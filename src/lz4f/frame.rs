@@ -8,7 +8,8 @@ use std::{cell::RefCell, ops::Deref};
 ///
 /// If `original_size` is too large to compress, this returns `0`.
 ///
-/// Returned values are reliable only for [`compress`] or [`compress_to_vec`]. [Streaming compressors](comp/index.html) may produce larger compressed frames.
+/// Returned values are reliable only for [`compress`] or [`compress_to_vec`].
+/// Streaming compressors may produce larger compressed frames.
 ///
 /// [`compress`]: fn.compress.html
 /// [`compress_to_vec`]: fn.compress_to_vec.html
