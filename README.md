@@ -1,7 +1,7 @@
 <div align="center">
 <img alt="lzzzz" src="lzzzz.png" height="80" />
 
-Full-featured [liblz4](https://github.com/lz4/lz4) binding for Rust.
+Full-featured [liblz4](https://github.com/lz4/lz4) binding for Rust
 
 [![Crates.io](https://img.shields.io/crates/v/lzzzz.svg)](https://crates.io/crates/lzzzz)
 [![GitHub license](https://img.shields.io/github/license/picoHz/lzzzz.svg)](https://github.com/picoHz/lzzzz/blob/master/LICENSE)
@@ -28,9 +28,11 @@ lzzzz = "0.5"
 - LZ4
     - Compression (Block / Streaming)
     - Decompression (Block / Streaming)
+    - Partial Decompression
     - Custom Dictionary
 - LZ4_HC 
     - Compression (Block / Streaming)
+    - Partial Compression
     - Custom Dictionary
 - LZ4F 
     - Compression
