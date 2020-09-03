@@ -94,12 +94,12 @@ let result = decomp.next(&data, data.len())?;
 ```
 
 ```rust
-use lzzzz::lz4f::{WriteCompressor, ReadDecompressor};
+use lzzzz::lz4f::{WriteCompressor, ReadDecompressor, Preferences};
 use std::{fs::File, io::prelude::*};
 
 // LZ4F Write-based compression
 let mut f = File::create("foo.lz4")?;
-let mut w = WriteCompressor::new(&mut f, Default::default())?;
+let mut w = WriteCompressor::new(&mut f, Preferences::default())?;
 w.write_all(b"Hello world!")?;
 
 // LZ4F Read-based decompression
