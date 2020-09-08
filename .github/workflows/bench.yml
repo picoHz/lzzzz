@@ -1,0 +1,30 @@
+name: Bench
+
+on: [push, pull_request]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  bench:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-latest]
+        toolchain: [stable, nightly]
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/cache@v2
+      with:
+        path: |
+          ~/.rustup/toolchains/nightly-*
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-${{ matrix.toolchain }}-cargo-bench-${{ hashFiles('**/Cargo.lock') }}
+    - name: Install nightly toolchain
+      run: rustup install nightly
+      if: matrix.toolchain == 'nightly'
+    - name: Run bench
+      run: cargo +${{ matrix.toolchain }} bench --all-features 

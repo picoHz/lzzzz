@@ -25,6 +25,19 @@ lazy_static = "1.4.0"
 rand = { version = "0.7.3", features = ["small_rng"] }
 rayon = "1.4.0"
 static_assertions = "1.1.0"
+criterion = "0.3.3"
 
 [build-dependencies]
 cc = { version = "1.0.59", features = ["parallel"] }
+
+[[bench]]
+name = "lz4"
+harness = false
+
+[[bench]]
+name = "lz4_hc"
+harness = false
+
+[[bench]]
+name = "lz4f"
+harness = false
