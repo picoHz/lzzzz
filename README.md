@@ -13,13 +13,17 @@ Full-featured [liblz4](https://github.com/lz4/lz4) binding for Rust
 
 ---
 
+## About
+
+This crate provides carefully-designed Rust APIs for the [LZ4](https://lz4.github.io/lz4/) compression algorithm.
+
 ## Usage
 
 Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-lzzzz = "0.6"
+lzzzz = "0.7"
 ```
 
 [API Documentation](https://docs.rs/lzzzz)
@@ -109,7 +113,3 @@ let mut r = ReadDecompressor::new(&mut f)?;
 let mut buf = Vec::new();
 r.read_to_end(&mut buf)?;
 ```
-
-
-## License
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FpicoHz%2Flzzzz.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2FpicoHz%2Flzzzz?ref=badge_large)
