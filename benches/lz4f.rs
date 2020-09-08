@@ -1,8 +1,9 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use lzzzz::lz4f;
-use std::i32;
-use std::io::Read;
-use std::io::Write;
+use std::{
+    i32,
+    io::{Read, Write},
+};
 
 fn lz4f_compress(prefs: &lz4f::Preferences, data: &[u8]) {
     let mut buf = [0u8; 4096];
