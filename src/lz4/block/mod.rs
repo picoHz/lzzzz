@@ -58,7 +58,7 @@ pub fn compress(src: &[u8], dst: &mut [u8], acc: i32) -> Result<usize> {
     if len > 0 {
         Ok(len)
     } else {
-        Err(Error::new(ErrorKind::DecompressionFailed))
+        Err(Error::new(ErrorKind::CompressionFailed))
     }
 }
 
