@@ -33,11 +33,14 @@ cc = { version = "1.0.59", features = ["parallel"] }
 [[bench]]
 name = "lz4"
 harness = false
+path = "benches"
 
 [[bench]]
 name = "lz4_hc"
 harness = false
+path = "benches"
 
 [[bench]]
 name = "lz4f"
 harness = false
+path = "benches"
