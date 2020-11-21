@@ -9,7 +9,7 @@ use std::{
     os::raw::{c_char, c_int, c_void},
 };
 
-const LZ4_MAX_INPUT_SIZE: usize = 0x7E_000_000;
+const LZ4_MAX_INPUT_SIZE: usize = 0x7E00_0000;
 
 pub const fn compress_bound(input_size: usize) -> usize {
     (input_size <= LZ4_MAX_INPUT_SIZE) as usize * (input_size + (input_size / 255) + 16)
