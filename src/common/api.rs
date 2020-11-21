@@ -8,7 +8,7 @@ use std::ffi::CStr;
 /// # Example
 ///
 /// ```
-/// assert_eq!(lzzzz::version_number(), 10902); // 1.9.2
+/// assert_eq!(lzzzz::version_number(), 10903); // 1.9.3
 /// ```
 pub fn version_number() -> u32 {
     unsafe { binding::LZ4_versionNumber() as u32 }
@@ -19,7 +19,7 @@ pub fn version_number() -> u32 {
 /// # Example
 ///
 /// ```
-/// assert_eq!(lzzzz::version_string(), "1.9.2");
+/// assert_eq!(lzzzz::version_string(), "1.9.3");
 /// ```
 pub fn version_string() -> &'static str {
     unsafe {

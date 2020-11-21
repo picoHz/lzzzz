@@ -44,7 +44,6 @@ pub fn compress(src: &[u8], dst: &mut [u8], acc: i32) -> Result<usize> {
         return Ok(0);
     }
 
-    // Workaround for https://github.com/lz4/lz4/issues/876
     let acc = cmp::min(acc, 33_554_431);
 
     let len = ExtState::with(|state, reset| {
