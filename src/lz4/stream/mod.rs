@@ -63,9 +63,6 @@ impl<'a> Compressor<'a> {
     /// Returns the number of bytes written into the destination buffer.
     pub fn next(&mut self, src: &[u8], dst: &mut [u8], acc: i32) -> Result<usize> {
         let src_is_empty = src.is_empty();
-
-        // Workaround for https://github.com/lz4/lz4/issues/876
-        let acc = cmp::min(acc, 33_554_431);
         let dst_len = self.ctx.next(&src, dst, acc);
 
         self.save_dict();
