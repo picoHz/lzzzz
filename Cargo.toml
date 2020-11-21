@@ -19,16 +19,16 @@ rustdoc-args = ["--cfg", "docsrs"]
 
 [dev-dependencies]
 assert_fs = "1.0.0"
-base64 = "0.12.3"
-bytes = "0.5.6"
+base64 = "0.13.0"
+bytes = "0.6.0"
 lazy_static = "1.4.0"
 rand = { version = "0.7.3", features = ["small_rng"] }
-rayon = "1.4.0"
+rayon = "1.5.0"
 static_assertions = "1.1.0"
 criterion = "0.3.3"
 
 [build-dependencies]
-cc = { version = "1.0.59", features = ["parallel"] }
+cc = { version = "1.0.65", features = ["parallel"] }
 
 [[bench]]
 name = "lzzzz"
