@@ -7,7 +7,6 @@ Full-featured [liblz4](https://github.com/lz4/lz4) binding for Rust
 [![GitHub license](https://img.shields.io/github/license/picoHz/lzzzz.svg)](https://github.com/picoHz/lzzzz/blob/master/LICENSE)
 [![Rustdoc](https://img.shields.io/badge/doc-rustdoc-green.svg)](https://docs.rs/lzzzz)
 ![Rust](https://github.com/picoHz/lzzzz/workflows/Rust/badge.svg)
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FpicoHz%2Flzzzz.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2FpicoHz%2Flzzzz?ref=badge_shield)
 
 </div>
 
@@ -15,7 +14,7 @@ Full-featured [liblz4](https://github.com/lz4/lz4) binding for Rust
 
 ## About
 
-This crate provides carefully-designed Rust APIs for the [LZ4](https://lz4.github.io/lz4/) compression algorithm.
+Rust APIs for the [LZ4](https://lz4.github.io/lz4/) compression algorithm.
 
 ## Usage
 
@@ -23,7 +22,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-lzzzz = "0.7"
+lzzzz = "0.8"
 ```
 
 [API Documentation](https://docs.rs/lzzzz)
