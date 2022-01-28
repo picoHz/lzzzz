@@ -2,7 +2,7 @@
 name = "lzzzz"
 version = "0.8.0"
 authors = ["picoHz <picoHz@outlook.com>"]
-edition = "2018"
+edition = "2021"
 description = "Full-featured liblz4 binding for Rust."
 keywords = ["lz4", "lz4f", "lz4-hc", "compression", "decompression"]
 categories = ["compression", "api-bindings"]
