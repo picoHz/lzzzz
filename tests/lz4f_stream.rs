@@ -51,7 +51,7 @@ mod write_compressor {
 
                 while offset < src.len() {
                     let len = w
-                        .write(&src[offset..][..rng.gen_range(0, src.len() - offset + 1)])
+                        .write(&src[offset..][..rng.gen_range(0..=src.len() - offset)])
                         .unwrap();
                     offset += len;
                 }
@@ -103,7 +103,7 @@ mod read_compressor {
                     if offset >= comp_buf.len() {
                         comp_buf.resize_with(offset + 1024, Default::default);
                     }
-                    let len = rng.gen_range(0, comp_buf.len() - offset + 1);
+                    let len = rng.gen_range(0..=comp_buf.len() - offset);
                     let dst = &mut comp_buf[offset..][..len];
                     let len = r.read(dst).unwrap();
                     if !dst.is_empty() && len == 0 {
@@ -159,7 +159,7 @@ mod bufread_compressor {
                     if offset >= comp_buf.len() {
                         comp_buf.resize_with(offset + 1024, Default::default);
                     }
-                    let len = rng.gen_range(0, comp_buf.len() - offset + 1);
+                    let len = rng.gen_range(0..=comp_buf.len() - offset);
                     let dst = &mut comp_buf[offset..][..len];
                     let len = r.read(dst).unwrap();
                     if !dst.is_empty() && len == 0 {
@@ -268,7 +268,7 @@ mod write_decompressor {
                 let mut rng = SmallRng::seed_from_u64(0);
 
                 while offset < comp_buf.len() {
-                    let src = &comp_buf[offset..][..rng.gen_range(0, comp_buf.len() - offset + 1)];
+                    let src = &comp_buf[offset..][..rng.gen_range(0..=comp_buf.len() - offset)];
                     let len = w.write(src).unwrap();
                     assert!(src.is_empty() || len > 0);
                     offset += len;
@@ -381,7 +381,7 @@ mod read_decompressor {
 
                 let dst_len = decomp_buf.len();
                 while offset < dst_len {
-                    let dst = &mut decomp_buf[offset..][..rng.gen_range(0, dst_len - offset + 1)];
+                    let dst = &mut decomp_buf[offset..][..rng.gen_range(0..=dst_len - offset)];
                     let len = r.read(dst).unwrap();
                     assert!(dst.is_empty() || len > 0);
                     offset += len;
@@ -468,7 +468,7 @@ mod bufread_decompressor {
 
                 let dst_len = decomp_buf.len();
                 while offset < dst_len {
-                    let dst = &mut decomp_buf[offset..][..rng.gen_range(0, dst_len - offset + 1)];
+                    let dst = &mut decomp_buf[offset..][..rng.gen_range(0..=dst_len - offset)];
                     let len = r.read(dst).unwrap();
                     assert!(dst.is_empty() || len > 0);
                     offset += len;
