@@ -82,11 +82,7 @@ pub fn compress(src: &[u8], dst: &mut [u8], acc: i32) -> Result<usize> {
 /// ```
 pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, acc: i32) -> Result<usize> {
     let orig_len = dst.len();
-    dst.reserve(max_compressed_size(src.len()));
-    #[allow(unsafe_code)]
-    unsafe {
-        dst.set_len(dst.capacity());
-    };
+    dst.resize_with(orig_len + max_compressed_size(src.len()), Default::default);
     let result = compress(src, &mut dst[orig_len..], acc);
     dst.resize_with(orig_len + result.as_ref().unwrap_or(&0), Default::default);
     result

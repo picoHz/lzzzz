@@ -119,11 +119,10 @@ where
 /// ```
 pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, level: i32) -> Result<usize> {
     let orig_len = dst.len();
-    dst.reserve(lz4::max_compressed_size(src.len()));
-    #[allow(unsafe_code)]
-    unsafe {
-        dst.set_len(dst.capacity());
-    }
+    dst.resize_with(
+        orig_len + lz4::max_compressed_size(src.len()),
+        Default::default,
+    );
     let result = compress(src, &mut dst[orig_len..], level);
     dst.resize_with(orig_len + result.as_ref().unwrap_or(&0), Default::default);
     result

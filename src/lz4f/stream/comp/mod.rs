@@ -39,9 +39,10 @@ impl Compressor {
         if let State::Created = self.state {
             assert!(self.buffer.is_empty());
             self.state = State::Active;
-            self.buf_resize(LZ4F_HEADER_SIZE_MAX);
+            self.buffer
+                .resize_with(LZ4F_HEADER_SIZE_MAX, Default::default);
             let len = self.ctx.begin(&mut self.buffer, &self.prefs)?;
-            self.buf_resize(len);
+            self.buffer.resize_with(len, Default::default);
         }
         Ok(())
     }
@@ -52,7 +53,7 @@ impl Compressor {
         let len = self
             .ctx
             .update(&mut self.buffer[offset..], src, stable_src)?;
-        self.buf_resize(offset + len);
+        self.buffer.resize_with(offset + len, Default::default);
         if len == 0 {
             self.flush(stable_src)
         } else {
@@ -64,7 +65,7 @@ impl Compressor {
         self.begin()?;
         let offset = self.buf_extend_bound(0);
         let len = self.ctx.flush(&mut self.buffer[offset..], stable_src)?;
-        self.buf_resize(offset + len);
+        self.buffer.resize_with(offset + len, Default::default);
         Ok(())
     }
 
@@ -74,7 +75,7 @@ impl Compressor {
             self.state = State::Finished;
             let offset = self.buf_extend_bound(0);
             let len = self.ctx.end(&mut self.buffer[offset..], stable_src)?;
-            self.buf_resize(offset + len);
+            self.buffer.resize_with(offset + len, Default::default);
         }
         Ok(())
     }
@@ -87,20 +88,10 @@ impl Compressor {
         self.buffer.clear();
     }
 
-    fn buf_resize(&mut self, size: usize) {
-        if self.buffer.capacity() < size {
-            self.buffer.reserve(size - self.buffer.len());
-        }
-        #[allow(unsafe_code)]
-        unsafe {
-            self.buffer.set_len(size);
-        }
-    }
-
     fn buf_extend_bound(&mut self, src_size: usize) -> usize {
         let len = CompressionContext::compress_bound(src_size, &self.prefs);
         let old_len = self.buffer.len();
-        self.buf_resize(old_len + len);
+        self.buffer.resize_with(old_len + len, Default::default);
         old_len
     }
 }

@@ -18,7 +18,7 @@ use crate::{
     },
     Error, ErrorKind,
 };
-use std::{borrow::Cow, cmp, mem, mem::MaybeUninit, pin::Pin, ptr};
+use std::{borrow::Cow, cmp, pin::Pin, ptr};
 
 #[derive(Clone, Copy, PartialEq)]
 struct DictPtr(*const u8, usize);
@@ -47,16 +47,13 @@ pub(crate) struct Decompressor<'a> {
 
 impl<'a> Decompressor<'a> {
     pub fn new() -> Result<Self> {
-        let header = MaybeUninit::<[MaybeUninit<u8>; LZ4F_HEADER_SIZE_MAX]>::uninit();
-        #[allow(unsafe_code)]
-        let header = unsafe { mem::transmute(header.assume_init()) };
         Ok(Self {
             ctx: DecompressionContext::new()?,
             state: State::Header {
-                header,
+                header: [0; LZ4F_HEADER_SIZE_MAX],
                 header_len: 0,
             },
-            buffer: Vec::with_capacity(DEFAULT_BUF_SIZE),
+            buffer: Vec::new(),
             dict: Pin::new(Cow::Borrowed(&[])),
             header_only: false,
         })
@@ -139,9 +136,8 @@ impl<'a> Decompressor<'a> {
             }
 
             let len = self.buffer.len();
-            #[allow(unsafe_code)]
-            unsafe {
-                self.buffer.set_len(self.buffer.capacity());
+            if len < DEFAULT_BUF_SIZE {
+                self.buffer.resize_with(DEFAULT_BUF_SIZE, Default::default)
             }
             let (src_len, dst_len, _) =
                 self.ctx

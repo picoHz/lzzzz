@@ -77,11 +77,10 @@ pub fn compress(src: &[u8], dst: &mut [u8], prefs: &Preferences) -> Result<usize
 /// ```
 pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, prefs: &Preferences) -> Result<usize> {
     let orig_len = dst.len();
-    dst.reserve(max_compressed_size(src.len(), prefs));
-    #[allow(unsafe_code)]
-    unsafe {
-        dst.set_len(dst.capacity());
-    }
+    dst.resize_with(
+        orig_len + max_compressed_size(src.len(), prefs),
+        Default::default,
+    );
     let result = compress(src, &mut dst[orig_len..], prefs);
     dst.resize_with(orig_len + result.as_ref().unwrap_or(&0), Default::default);
     result
@@ -118,11 +117,7 @@ pub fn decompress_to_vec(src: &[u8], dst: &mut Vec<u8>) -> Result<usize> {
         let mut ctx = ctx.borrow_mut();
         ctx.reset();
         loop {
-            dst.reserve(DEFAULT_BUF_SIZE);
-            #[allow(unsafe_code)]
-            unsafe {
-                dst.set_len(dst.capacity());
-            }
+            dst.resize_with(dst.len() + DEFAULT_BUF_SIZE, Default::default);
             match ctx.decompress_dict(&src[src_offset..], &mut dst[dst_offset..], &[], false) {
                 Ok((src_len, dst_len, expected)) => {
                     src_offset += src_len;
