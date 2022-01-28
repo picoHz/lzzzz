@@ -14,7 +14,7 @@ pub const fn max_compressed_size(original_size: usize) -> usize {
 
 /// Performs LZ4 block compression.
 ///
-/// Ensure that the destination slice have enough capacity.
+/// Ensure that the destination slice has enough capacity.
 /// If `dst.len()` is smaller than `lz4::max_compressed_size(src.len())`,
 /// this function may fail.
 ///

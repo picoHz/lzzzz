@@ -20,7 +20,7 @@ pub fn max_compressed_size(original_size: usize, prefs: &Preferences) -> usize {
 
 /// Performs LZ4F compression.
 ///
-/// Ensure that the destination slice have enough capacity.
+/// Ensure that the destination slice has enough capacity.
 /// If `dst.len()` is smaller than `lz4f::max_compressed_size(src.len())`,
 /// this function may fail.
 ///
