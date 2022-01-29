@@ -35,14 +35,18 @@ use std::{cmp, io::Cursor};
 /// # Ok::<(), std::io::Error>(())
 /// ```
 pub fn compress(src: &[u8], dst: &mut [u8], level: i32) -> Result<usize> {
+    compress_to_ptr(src, dst.as_mut_ptr(), dst.len(), level)
+}
+
+fn compress_to_ptr(src: &[u8], dst: *mut u8, dst_len: usize, level: i32) -> Result<usize> {
     if src.is_empty() {
         return Ok(0);
     }
     let len = ExtState::with(|state, reset| {
         if reset {
-            api::compress_ext_state_fast_reset(&mut state.borrow_mut(), src, dst, level)
+            api::compress_ext_state_fast_reset(&mut state.borrow_mut(), src, dst, dst_len, level)
         } else {
-            api::compress_ext_state(&mut state.borrow_mut(), src, dst, level)
+            api::compress_ext_state(&mut state.borrow_mut(), src, dst, dst_len, level)
         }
     });
     if len > 0 {
@@ -119,11 +123,16 @@ where
 /// ```
 pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, level: i32) -> Result<usize> {
     let orig_len = dst.len();
-    dst.resize_with(
-        orig_len + lz4::max_compressed_size(src.len()),
-        Default::default,
-    );
-    let result = compress(src, &mut dst[orig_len..], level);
-    dst.resize_with(orig_len + result.as_ref().unwrap_or(&0), Default::default);
-    result
+    dst.reserve(lz4::max_compressed_size(src.len()));
+    #[allow(unsafe_code)]
+    unsafe {
+        let result = compress_to_ptr(
+            src,
+            dst.as_mut_ptr().add(orig_len),
+            dst.capacity() - orig_len,
+            level,
+        );
+        dst.set_len(orig_len + result.as_ref().unwrap_or(&0));
+        result
+    }
 }
