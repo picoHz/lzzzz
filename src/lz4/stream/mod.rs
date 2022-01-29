@@ -173,13 +173,20 @@ impl<'a> Decompressor<'a> {
         }
 
         let back = self.cache.back_mut().unwrap();
-        let len = back.len();
-        back.resize_with(len + original_size, Default::default);
+        let orig_len = back.len();
 
-        let dst_len = self.ctx.decompress(src, &mut back[len..])?;
+        #[allow(unsafe_code)]
+        unsafe {
+            let dst_len = self.ctx.decompress(
+                src,
+                back.as_mut_ptr().add(orig_len),
+                back.capacity() - orig_len,
+            )?;
+            back.set_len(orig_len + dst_len);
+            self.cache_len += dst_len;
+        }
         self.last_len = original_size;
 
-        self.cache_len += dst_len;
         while let Some(len) = self
             .cache
             .front()
