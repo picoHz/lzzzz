@@ -87,7 +87,7 @@ impl<'a> Decompressor<'a> {
         {
             if *header_len < LZ4F_MIN_SIZE_TO_KNOW_HEADER_LENGTH {
                 let len = cmp::min(LZ4F_MIN_SIZE_TO_KNOW_HEADER_LENGTH - *header_len, src.len());
-                (&mut header[*header_len..*header_len + len]).copy_from_slice(&src[..len]);
+                header[*header_len..*header_len + len].copy_from_slice(&src[..len]);
                 *header_len += len;
                 header_consumed += len;
             }
@@ -99,7 +99,7 @@ impl<'a> Decompressor<'a> {
                 let src = &src[header_consumed..];
                 if *header_len < exact_header_len {
                     let len = cmp::min(exact_header_len - *header_len, src.len());
-                    (&mut header[*header_len..*header_len + len]).copy_from_slice(&src[..len]);
+                    header[*header_len..*header_len + len].copy_from_slice(&src[..len]);
                     *header_len += len;
                     header_consumed += len;
                 }
