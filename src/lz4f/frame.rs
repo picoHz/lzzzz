@@ -47,11 +47,15 @@ pub fn max_compressed_size(original_size: usize, prefs: &Preferences) -> usize {
 /// # Ok::<(), std::io::Error>(())
 /// ```
 pub fn compress(src: &[u8], dst: &mut [u8], prefs: &Preferences) -> Result<usize> {
+    compress_to_ptr(src, dst.as_mut_ptr(), dst.len(), prefs)
+}
+
+fn compress_to_ptr(src: &[u8], dst: *mut u8, dst_len: usize, prefs: &Preferences) -> Result<usize> {
     let mut prefs = *prefs;
     if prefs.frame_info().content_size() > 0 {
         prefs.set_content_size(src.len());
     }
-    api::compress(src, dst, &prefs)
+    api::compress(src, dst, dst_len, &prefs)
 }
 
 /// Appends a compressed frame to Vec<u8>.
@@ -77,13 +81,18 @@ pub fn compress(src: &[u8], dst: &mut [u8], prefs: &Preferences) -> Result<usize
 /// ```
 pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, prefs: &Preferences) -> Result<usize> {
     let orig_len = dst.len();
-    dst.resize_with(
-        orig_len + max_compressed_size(src.len(), prefs),
-        Default::default,
-    );
-    let result = compress(src, &mut dst[orig_len..], prefs);
-    dst.resize_with(orig_len + result.as_ref().unwrap_or(&0), Default::default);
-    result
+    dst.reserve(max_compressed_size(src.len(), prefs));
+    #[allow(unsafe_code)]
+    unsafe {
+        let result = compress_to_ptr(
+            src,
+            dst.as_mut_ptr().add(orig_len),
+            dst.capacity() - orig_len,
+            prefs,
+        );
+        dst.set_len(orig_len + result.as_ref().unwrap_or(&0));
+        result
+    }
 }
 
 /// Decompresses an LZ4 frame.

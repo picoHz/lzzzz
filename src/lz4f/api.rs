@@ -201,11 +201,11 @@ pub fn header_size(src: &[u8]) -> usize {
     unsafe { binding::LZ4F_headerSize(src.as_ptr() as *const c_void, src.len()) as usize }
 }
 
-pub fn compress(src: &[u8], dst: &mut [u8], prefs: &Preferences) -> Result<usize> {
+pub fn compress(src: &[u8], dst: *mut u8, dst_len: usize, prefs: &Preferences) -> Result<usize> {
     let code = unsafe {
         binding::LZ4F_compressFrame(
-            dst.as_mut_ptr() as *mut c_void,
-            dst.len(),
+            dst as *mut c_void,
+            dst_len,
             src.as_ptr() as *const c_void,
             src.len(),
             prefs as *const Preferences,
