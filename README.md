@@ -26,7 +26,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-lzzzz = "1"
+lzzzz = "1.0.1"
 ```
 
 [API Documentation](https://docs.rs/lzzzz)
