@@ -88,7 +88,7 @@ pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, acc: i32) -> Result<usize>
     result
 }
 
-/// Decompresses a LZ4 block.
+/// Decompresses an LZ4 block.
 ///
 /// The length of the destination slice must be equal to the original data length.
 ///
@@ -118,7 +118,7 @@ pub fn decompress(src: &[u8], dst: &mut [u8]) -> Result<usize> {
     api::decompress_safe(src, dst)
 }
 
-/// Decompresses a LZ4 block until the destination slice fills up.
+/// Decompresses an LZ4 block until the destination slice fills up.
 ///
 /// Returns the number of bytes written into the destination buffer.
 ///
@@ -143,7 +143,7 @@ pub fn decompress_partial(src: &[u8], dst: &mut [u8], original_size: usize) -> R
     api::decompress_safe_partial(src, dst, original_size)
 }
 
-/// Decompresses a LZ4 block with a dictionary.
+/// Decompresses an LZ4 block with a dictionary.
 ///
 /// Returns the number of bytes written into the destination buffer.
 ///

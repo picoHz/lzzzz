@@ -17,7 +17,7 @@ Full-featured [liblz4](https://github.com/lz4/lz4) binding for Rust
 Rust APIs for the [LZ4](https://lz4.github.io/lz4/) compression algorithm.
 
 - Supports almost all liblz4 features
-- Zero dependencies except libz4
+- Zero dependencies except liblz4
 - Tested on Windows / macOS / Linux
 
 ## Usage

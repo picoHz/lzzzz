@@ -8,7 +8,7 @@ use std::{cell::RefCell, ops::Deref};
 ///
 /// If `original_size` is too large to compress, this returns `0`.
 ///
-/// Returned values are reliable only for [`compress`] or [`compress_to_vec`].
+/// Returned values are reliable only for [`compress`] and [`compress_to_vec`].
 /// Streaming compressors may produce larger compressed frames.
 ///
 /// [`compress`]: fn.compress.html
@@ -86,7 +86,7 @@ pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, prefs: &Preferences) -> Re
     result
 }
 
-/// Decompresses a LZ4 frame.
+/// Decompresses an LZ4 frame.
 ///
 /// Returns the number of bytes appended to the given `Vec<u8>`.
 ///

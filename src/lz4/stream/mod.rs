@@ -148,7 +148,7 @@ impl<'a> Decompressor<'a> {
         Ok(decomp)
     }
 
-    /// Decompresses a LZ4 block.
+    /// Decompresses an LZ4 block.
     pub fn next(&mut self, src: &[u8], original_size: usize) -> Result<&[u8]> {
         if self
             .cache

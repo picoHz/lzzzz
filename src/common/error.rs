@@ -10,11 +10,11 @@ pub enum ErrorKind {
     CompressionFailed,
     /// The decompression failed for some reason.
     DecompressionFailed,
-    /// A frame header had an invalid value.
+    /// The frame header had an invalid value.
     FrameHeaderInvalid,
     /// The decompressor reached unexpected EOF.
     CompressedDataIncomplete,
-    /// Dictionary data were not consistent during the streaming decompression.
+    /// Dictionary data was not consistent during the streaming decompression.
     DictionaryChangedDuringDecompression,
 }
 
