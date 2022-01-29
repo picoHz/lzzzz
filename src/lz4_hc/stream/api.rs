@@ -56,7 +56,7 @@ impl CompressionContext {
         }
     }
 
-    pub fn next(&mut self, src: &[u8], dst: &mut [u8]) -> Result<usize> {
+    pub fn next(&mut self, src: &[u8], dst: *mut u8, dst_len: usize) -> Result<usize> {
         if src.is_empty() {
             return Ok(0);
         }
@@ -64,9 +64,9 @@ impl CompressionContext {
             binding::LZ4_compress_HC_continue(
                 self.stream.as_ptr(),
                 src.as_ptr() as *const c_char,
-                dst.as_mut_ptr() as *mut c_char,
+                dst as *mut c_char,
                 src.len() as c_int,
-                dst.len() as c_int,
+                dst_len as c_int,
             ) as usize
         };
         if dst_len > 0 {

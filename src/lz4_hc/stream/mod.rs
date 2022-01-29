@@ -70,7 +70,11 @@ impl<'a> Compressor<'a> {
     ///
     /// Returns the number of bytes written into the destination buffer.
     pub fn next(&mut self, src: &[u8], dst: &mut [u8]) -> Result<usize> {
-        let result = self.ctx.next(src, dst)?;
+        self.next_to_ptr(src, dst.as_mut_ptr(), dst.len())
+    }
+
+    fn next_to_ptr(&mut self, src: &[u8], dst: *mut u8, dst_len: usize) -> Result<usize> {
+        let result = self.ctx.next(src, dst, dst_len)?;
         self.save_dict();
         Ok(result)
     }
@@ -96,13 +100,17 @@ impl<'a> Compressor<'a> {
     /// Returns the number of bytes appended to the given `Vec<u8>`.
     pub fn next_to_vec(&mut self, src: &[u8], dst: &mut Vec<u8>) -> Result<usize> {
         let orig_len = dst.len();
-        dst.resize_with(
-            orig_len + lz4::max_compressed_size(src.len()),
-            Default::default,
-        );
-        let result = self.next(src, &mut dst[orig_len..]);
-        dst.resize_with(orig_len + result.as_ref().unwrap_or(&0), Default::default);
-        result
+        dst.reserve(lz4::max_compressed_size(src.len()));
+        #[allow(unsafe_code)]
+        unsafe {
+            let result = self.next_to_ptr(
+                src,
+                dst.as_mut_ptr().add(orig_len),
+                dst.capacity() - orig_len,
+            );
+            dst.set_len(orig_len + result.as_ref().unwrap_or(&0));
+            result
+        }
     }
 
     fn save_dict(&mut self) {
