@@ -22,16 +22,17 @@ pub const fn size_of_state() -> usize {
 pub fn compress_fast_ext_state(
     state: &mut [u8],
     src: &[u8],
-    dst: &mut [u8],
+    dst: *mut u8,
+    dst_len: usize,
     acceleration: i32,
 ) -> usize {
     unsafe {
         binding::LZ4_compress_fast_extState(
             state.as_mut_ptr() as *mut c_void,
             src.as_ptr() as *const c_char,
-            dst.as_mut_ptr() as *mut c_char,
+            dst as *mut i8,
             src.len() as c_int,
-            dst.len() as c_int,
+            dst_len as c_int,
             acceleration as c_int,
         ) as usize
     }
@@ -40,16 +41,17 @@ pub fn compress_fast_ext_state(
 pub fn compress_fast_ext_state_fast_reset(
     state: &mut [u8],
     src: &[u8],
-    dst: &mut [u8],
+    dst: *mut u8,
+    dst_len: usize,
     acceleration: i32,
 ) -> usize {
     unsafe {
         binding::LZ4_compress_fast_extState_fastReset(
             state.as_mut_ptr() as *mut c_void,
             src.as_ptr() as *const c_char,
-            dst.as_mut_ptr() as *mut c_char,
+            dst as *mut i8,
             src.len() as c_int,
-            dst.len() as c_int,
+            dst_len as c_int,
             acceleration as c_int,
         ) as usize
     }

@@ -40,6 +40,10 @@ pub const fn max_compressed_size(original_size: usize) -> usize {
 /// # Ok::<(), std::io::Error>(())
 /// ```
 pub fn compress(src: &[u8], dst: &mut [u8], acc: i32) -> Result<usize> {
+    compress_to_ptr(src, dst.as_mut_ptr(), dst.len(), acc)
+}
+
+fn compress_to_ptr(src: &[u8], dst: *mut u8, dst_len: usize, acc: i32) -> Result<usize> {
     if src.is_empty() {
         return Ok(0);
     }
@@ -49,9 +53,9 @@ pub fn compress(src: &[u8], dst: &mut [u8], acc: i32) -> Result<usize> {
     let len = ExtState::with(|state, reset| {
         let mut state = state.borrow_mut();
         if reset {
-            api::compress_fast_ext_state_fast_reset(&mut state, src, dst, acc)
+            api::compress_fast_ext_state_fast_reset(&mut state, src, dst, dst_len, acc)
         } else {
-            api::compress_fast_ext_state(&mut state, src, dst, acc)
+            api::compress_fast_ext_state(&mut state, src, dst, dst_len, acc)
         }
     });
     if len > 0 {
@@ -82,10 +86,18 @@ pub fn compress(src: &[u8], dst: &mut [u8], acc: i32) -> Result<usize> {
 /// ```
 pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, acc: i32) -> Result<usize> {
     let orig_len = dst.len();
-    dst.resize_with(orig_len + max_compressed_size(src.len()), Default::default);
-    let result = compress(src, &mut dst[orig_len..], acc);
-    dst.resize_with(orig_len + result.as_ref().unwrap_or(&0), Default::default);
-    result
+    dst.reserve(max_compressed_size(src.len()));
+    #[allow(unsafe_code)]
+    unsafe {
+        let result = compress_to_ptr(
+            src,
+            dst.as_mut_ptr().add(orig_len),
+            dst.capacity() - orig_len,
+            acc,
+        );
+        dst.set_len(orig_len + result.as_ref().unwrap_or(&0));
+        result
+    }
 }
 
 /// Decompresses an LZ4 block.
