@@ -52,14 +52,14 @@ impl CompressionContext {
         }
     }
 
-    pub fn next(&mut self, src: &[u8], dst: &mut [u8], acceleration: i32) -> usize {
+    pub fn next(&mut self, src: &[u8], dst: *mut u8, dst_len: usize, acceleration: i32) -> usize {
         unsafe {
             binding::LZ4_compress_fast_continue(
                 self.get_ptr(),
                 src.as_ptr() as *const c_char,
-                dst.as_mut_ptr() as *mut c_char,
+                dst as *mut c_char,
                 src.len() as c_int,
-                dst.len() as c_int,
+                dst_len as c_int,
                 acceleration as c_int,
             ) as usize
         }
