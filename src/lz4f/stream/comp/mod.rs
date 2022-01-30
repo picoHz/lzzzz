@@ -27,7 +27,7 @@ impl Compressor {
             ctx: CompressionContext::new(dict)?,
             prefs,
             state: State::Created,
-            buffer: Vec::new(),
+            buffer: Vec::with_capacity(LZ4F_HEADER_SIZE_MAX),
         })
     }
 
@@ -39,33 +39,55 @@ impl Compressor {
         if let State::Created = self.state {
             assert!(self.buffer.is_empty());
             self.state = State::Active;
-            self.buffer
-                .resize_with(LZ4F_HEADER_SIZE_MAX, Default::default);
-            let len = self.ctx.begin(&mut self.buffer, &self.prefs)?;
-            self.buffer.resize_with(len, Default::default);
+            let len = self.ctx.begin(
+                self.buffer.as_mut_ptr(),
+                self.buffer.capacity(),
+                &self.prefs,
+            )?;
+            #[allow(unsafe_code)]
+            unsafe {
+                self.buffer.set_len(len);
+            }
         }
         Ok(())
     }
 
     pub fn update(&mut self, src: &[u8], stable_src: bool) -> Result<()> {
         self.begin()?;
-        let offset = self.buf_extend_bound(src.len());
-        let len = self
-            .ctx
-            .update(&mut self.buffer[offset..], src, stable_src)?;
-        self.buffer.resize_with(offset + len, Default::default);
-        if len == 0 {
-            self.flush(stable_src)
-        } else {
-            Ok(())
+        let ext_len = CompressionContext::compress_bound(src.len(), &self.prefs);
+        self.buffer.reserve(ext_len);
+        let offset = self.buffer.len();
+        #[allow(unsafe_code)]
+        unsafe {
+            let len = self.ctx.update(
+                self.buffer.as_mut_ptr().add(offset),
+                self.buffer.capacity() - offset,
+                src,
+                stable_src,
+            )?;
+            self.buffer.set_len(offset + len);
+            if len == 0 {
+                self.flush(stable_src)
+            } else {
+                Ok(())
+            }
         }
     }
 
     pub fn flush(&mut self, stable_src: bool) -> Result<()> {
         self.begin()?;
-        let offset = self.buf_extend_bound(0);
-        let len = self.ctx.flush(&mut self.buffer[offset..], stable_src)?;
-        self.buffer.resize_with(offset + len, Default::default);
+        let ext_len = CompressionContext::compress_bound(0, &self.prefs);
+        self.buffer.reserve(ext_len);
+        let offset = self.buffer.len();
+        #[allow(unsafe_code)]
+        unsafe {
+            let len = self.ctx.flush(
+                self.buffer.as_mut_ptr().add(offset),
+                self.buffer.capacity() - offset,
+                stable_src,
+            )?;
+            self.buffer.set_len(offset + len);
+        }
         Ok(())
     }
 
@@ -73,9 +95,18 @@ impl Compressor {
         self.begin()?;
         if let State::Active = self.state {
             self.state = State::Finished;
-            let offset = self.buf_extend_bound(0);
-            let len = self.ctx.end(&mut self.buffer[offset..], stable_src)?;
-            self.buffer.resize_with(offset + len, Default::default);
+            let ext_len = CompressionContext::compress_bound(0, &self.prefs);
+            self.buffer.reserve(ext_len);
+            let offset = self.buffer.len();
+            #[allow(unsafe_code)]
+            unsafe {
+                let len = self.ctx.end(
+                    self.buffer.as_mut_ptr().add(offset),
+                    self.buffer.capacity() - offset,
+                    stable_src,
+                )?;
+                self.buffer.set_len(offset + len);
+            }
         }
         Ok(())
     }
@@ -86,13 +117,6 @@ impl Compressor {
 
     pub fn clear_buf(&mut self) {
         self.buffer.clear();
-    }
-
-    fn buf_extend_bound(&mut self, src_size: usize) -> usize {
-        let len = CompressionContext::compress_bound(src_size, &self.prefs);
-        let old_len = self.buffer.len();
-        self.buffer.resize_with(old_len + len, Default::default);
-        old_len
     }
 }
 

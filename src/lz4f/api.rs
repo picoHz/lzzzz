@@ -40,35 +40,36 @@ impl CompressionContext {
         }
     }
 
-    pub fn begin(&mut self, dst: &mut [u8], prefs: &Preferences) -> Result<usize> {
+    pub fn begin(&mut self, dst: *mut u8, dst_len: usize, prefs: &Preferences) -> Result<usize> {
         let code = unsafe {
             if let Some(dict) = &self.dict {
                 binding::LZ4F_compressBegin_usingCDict(
                     self.ctx.as_ptr(),
-                    dst.as_mut_ptr() as *mut c_void,
-                    dst.len(),
+                    dst as *mut c_void,
+                    dst_len,
                     (*dict.handle()).0.as_ptr(),
                     prefs as *const Preferences,
                 )
             } else {
-                binding::LZ4F_compressBegin(
-                    self.ctx.as_ptr(),
-                    dst.as_mut_ptr() as *mut c_void,
-                    dst.len(),
-                    prefs,
-                )
+                binding::LZ4F_compressBegin(self.ctx.as_ptr(), dst as *mut c_void, dst_len, prefs)
             }
         } as usize;
         result_from_code(code).map(|_| code)
     }
 
-    pub fn update(&mut self, dst: &mut [u8], src: &[u8], stable_src: bool) -> Result<usize> {
+    pub fn update(
+        &mut self,
+        dst: *mut u8,
+        dst_len: usize,
+        src: &[u8],
+        stable_src: bool,
+    ) -> Result<usize> {
         let opt = LZ4FCompressionOptions::stable(stable_src);
         let code = unsafe {
             binding::LZ4F_compressUpdate(
                 self.ctx.as_ptr(),
-                dst.as_mut_ptr() as *mut c_void,
-                dst.len(),
+                dst as *mut c_void,
+                dst_len,
                 src.as_ptr() as *const c_void,
                 src.len(),
                 &opt as *const LZ4FCompressionOptions,
@@ -77,26 +78,26 @@ impl CompressionContext {
         result_from_code(code).map(|_| code)
     }
 
-    pub fn flush(&mut self, dst: &mut [u8], stable_src: bool) -> Result<usize> {
+    pub fn flush(&mut self, dst: *mut u8, dst_len: usize, stable_src: bool) -> Result<usize> {
         let opt = LZ4FCompressionOptions::stable(stable_src);
         let code = unsafe {
             binding::LZ4F_flush(
                 self.ctx.as_ptr(),
-                dst.as_mut_ptr() as *mut c_void,
-                dst.len(),
+                dst as *mut c_void,
+                dst_len,
                 &opt as *const LZ4FCompressionOptions,
             )
         } as usize;
         result_from_code(code).map(|_| code)
     }
 
-    pub fn end(&mut self, dst: &mut [u8], stable_src: bool) -> Result<usize> {
+    pub fn end(&mut self, dst: *mut u8, dst_len: usize, stable_src: bool) -> Result<usize> {
         let opt = LZ4FCompressionOptions::stable(stable_src);
         let code = unsafe {
             binding::LZ4F_compressEnd(
                 self.ctx.as_ptr(),
-                dst.as_mut_ptr() as *mut c_void,
-                dst.len(),
+                dst as *mut c_void,
+                dst_len,
                 &opt as *const LZ4FCompressionOptions,
             )
         } as usize;
