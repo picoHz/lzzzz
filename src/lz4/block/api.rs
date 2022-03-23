@@ -30,7 +30,7 @@ pub fn compress_fast_ext_state(
         binding::LZ4_compress_fast_extState(
             state.as_mut_ptr() as *mut c_void,
             src.as_ptr() as *const c_char,
-            dst as *mut i8,
+            dst as *mut c_char,
             src.len() as c_int,
             dst_len as c_int,
             acceleration as c_int,
@@ -49,7 +49,7 @@ pub fn compress_fast_ext_state_fast_reset(
         binding::LZ4_compress_fast_extState_fastReset(
             state.as_mut_ptr() as *mut c_void,
             src.as_ptr() as *const c_char,
-            dst as *mut i8,
+            dst as *mut c_char,
             src.len() as c_int,
             dst_len as c_int,
             acceleration as c_int,
