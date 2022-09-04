@@ -47,7 +47,7 @@ impl CompressionContext {
                     self.ctx.as_ptr(),
                     dst as *mut c_void,
                     dst_len,
-                    (*dict.handle()).0.as_ptr(),
+                    dict.handle().0.as_ptr(),
                     prefs as *const Preferences,
                 )
             } else {
