@@ -55,7 +55,15 @@ extern "C" {
         dict_start: *const c_char,
         dict_size: c_int,
     ) -> c_int;
-
+    pub fn LZ4_decompress_safe_partial_usingDict(
+        src: *const c_char,
+        dst: *mut c_char,
+        compressed_size: c_int,
+        target_output_size: c_int,
+        dst_capacity: c_int,
+        dict_start: *const c_char,
+        dict_size: c_int,
+    ) -> c_int;
     pub fn LZ4_createStream() -> *mut LZ4Stream;
     pub fn LZ4_freeStream(ptr: *mut LZ4Stream) -> c_int;
     pub fn LZ4_initStream(buffer: *mut c_void, size: usize) -> *mut LZ4Stream;

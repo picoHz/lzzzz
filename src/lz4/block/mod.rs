@@ -182,3 +182,36 @@ pub fn decompress_partial(src: &[u8], dst: &mut [u8], original_size: usize) -> R
 pub fn decompress_with_dict(src: &[u8], dst: &mut [u8], dict: &[u8]) -> Result<usize> {
     api::decompress_safe_using_dict(src, dst, dict)
 }
+
+/// Decompresses an LZ4 block with a dictionary until the destination slice fills up.
+///
+/// Returns the number of bytes written into the destination buffer.
+///
+/// # Example
+///
+/// ```
+/// use lzzzz::lz4;
+///
+/// const ORIGINAL_SIZE: usize = 44;
+/// const COMPRESSED_DATA: &str = "DywAFFAgZG9nLg==";
+/// const DICT_DATA: &[u8] = b"The quick brown fox jumps over the lazy cat.";
+///
+/// let data = base64::decode(COMPRESSED_DATA).unwrap();
+/// let mut buf = [0u8; 24];
+///
+/// lz4::decompress_partial_with_dict(&data[..], &mut buf[..], ORIGINAL_SIZE, DICT_DATA)?;
+///
+/// assert_eq!(
+///     &buf[..],
+///     &b"The quick brown fox jump"[..]
+/// );
+/// # Ok::<(), std::io::Error>(())
+/// ```
+pub fn decompress_partial_with_dict(
+    src: &[u8],
+    dst: &mut [u8],
+    original_size: usize,
+    dict: &[u8],
+) -> Result<usize> {
+    api::decompress_safe_partial_using_dict(src, dst, original_size, dict)
+}
