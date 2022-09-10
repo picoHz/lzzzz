@@ -21,12 +21,14 @@ impl CompressionContext {
             .map(|stream| Self { stream })
     }
 
+    #[cfg(not(feature = "system-liblz4"))]
     pub fn set_compression_level(&mut self, compression_level: i32) {
         unsafe {
             binding::LZ4_setCompressionLevel(self.stream.as_ptr(), compression_level as c_int)
         }
     }
 
+    #[cfg(not(feature = "system-liblz4"))]
     pub fn set_favor_dec_speed(&mut self, flag: bool) {
         unsafe {
             binding::LZ4_favorDecompressionSpeed(

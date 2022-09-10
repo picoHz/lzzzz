@@ -51,6 +51,7 @@ impl LZ4FDecompressionOptions {
     }
 }
 
+#[link(name = "lz4")]
 extern "C" {
     pub fn LZ4F_getVersion() -> c_uint;
     pub fn LZ4F_compressBound(src_size: size_t, prefs: *const Preferences) -> size_t;
@@ -62,6 +63,17 @@ extern "C" {
         src_size: size_t,
         prefs: *const Preferences,
     ) -> size_t;
+
+    pub fn LZ4F_decompress(
+        ctx: *mut LZ4FDecompressionCtx,
+        dst_buffer: *mut c_void,
+        dst_size_ptr: *mut size_t,
+        src_buffer: *const c_void,
+        src_size_ptr: *mut size_t,
+        opt: *const LZ4FDecompressionOptions,
+    ) -> size_t;
+
+    #[cfg(not(feature = "system-liblz4"))]
     pub fn LZ4F_decompress_usingDict(
         ctx: *mut LZ4FDecompressionCtx,
         dst_buffer: *mut c_void,
@@ -72,10 +84,14 @@ extern "C" {
         dict_size: size_t,
         opt: *const LZ4FDecompressionOptions,
     ) -> size_t;
+
+    #[cfg(not(feature = "system-liblz4"))]
     pub fn LZ4F_createCDict(
         dict_buffer: *const c_void,
         dict_size: size_t,
     ) -> *mut LZ4FCompressionDict;
+
+    #[cfg(not(feature = "system-liblz4"))]
     pub fn LZ4F_freeCDict(dict: *mut LZ4FCompressionDict);
 
     pub fn LZ4F_createCompressionContext(
@@ -89,6 +105,8 @@ extern "C" {
         dst_capacity: size_t,
         prefs: *const Preferences,
     ) -> size_t;
+
+    #[cfg(not(feature = "system-liblz4"))]
     pub fn LZ4F_compressBegin_usingCDict(
         ctx: *mut LZ4FCompressionCtx,
         dst_buffer: *mut c_void,
@@ -96,6 +114,7 @@ extern "C" {
         dist: *const LZ4FCompressionDict,
         prefs: *const Preferences,
     ) -> size_t;
+
     pub fn LZ4F_compressUpdate(
         ctx: *mut LZ4FCompressionCtx,
         dst_buffer: *mut c_void,

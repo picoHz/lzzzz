@@ -17,6 +17,7 @@ pub struct LZ4DecStream {
     _private: [u8; 0],
 }
 
+#[link(name = "lz4")]
 extern "C" {
     pub fn LZ4_compress_fast_extState(
         state: *mut c_void,
@@ -26,6 +27,8 @@ extern "C" {
         dst_capacity: c_int,
         acceleration: c_int,
     ) -> c_int;
+
+    #[cfg(not(feature = "system-liblz4"))]
     pub fn LZ4_compress_fast_extState_fastReset(
         state: *mut c_void,
         src: *const c_char,

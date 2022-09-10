@@ -38,6 +38,7 @@ pub fn compress_fast_ext_state(
     }
 }
 
+#[cfg(not(feature = "system-liblz4"))]
 pub fn compress_fast_ext_state_fast_reset(
     state: &mut [u8],
     src: &[u8],

@@ -11,6 +11,7 @@ pub struct LZ4StreamHC {
     _private: [u8; 0],
 }
 
+#[link(name = "lz4")]
 extern "C" {
     pub fn LZ4_compress_HC_extStateHC(
         state: *mut c_void,
@@ -20,6 +21,8 @@ extern "C" {
         dst_capacity: c_int,
         compression_level: c_int,
     ) -> c_int;
+
+    #[cfg(not(feature = "system-liblz4"))]
     pub fn LZ4_compress_HC_extStateHC_fastReset(
         state: *mut c_void,
         src: *const c_char,
@@ -28,6 +31,7 @@ extern "C" {
         dst_capacity: c_int,
         compression_level: c_int,
     ) -> c_int;
+
     pub fn LZ4_compress_HC_destSize(
         state: *mut c_void,
         src: *const c_char,
@@ -63,6 +67,10 @@ extern "C" {
         src_size_ptr: *mut c_int,
         target_dst_size: c_int,
     ) -> c_int;
+
+    #[cfg(not(feature = "system-liblz4"))]
     pub fn LZ4_setCompressionLevel(ptr: *mut LZ4StreamHC, compression_level: c_int);
+
+    #[cfg(not(feature = "system-liblz4"))]
     pub fn LZ4_favorDecompressionSpeed(ptr: *mut LZ4StreamHC, favor: c_int);
 }

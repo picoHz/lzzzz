@@ -34,3 +34,6 @@ cc = { version = "1.0.72", features = ["parallel"] }
 name = "lzzzz"
 harness = false
 path = "benches/lzzzz.rs"
+
+[features]
+system-liblz4 = []

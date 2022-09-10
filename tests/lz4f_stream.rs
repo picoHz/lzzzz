@@ -1,5 +1,5 @@
-use lzzzz::{lz4f, lz4f::*};
-use rand::{distributions::Standard, rngs::SmallRng, Rng, SeedableRng};
+use lzzzz::lz4f;
+use rand::{rngs::SmallRng, Rng, SeedableRng};
 use rayon::{iter::ParallelBridge, prelude::*};
 use static_assertions::assert_impl_all;
 use std::{
@@ -179,7 +179,7 @@ mod bufread_compressor {
 
 mod write_decompressor {
     use super::*;
-    use lzzzz::lz4f::{Dictionary, WriteCompressor, WriteDecompressor};
+    use lzzzz::lz4f::WriteDecompressor;
 
     #[test]
     fn default() {
@@ -226,7 +226,11 @@ mod write_decompressor {
     }
 
     #[test]
+    #[cfg(not(feature = "system-liblz4"))]
     fn dictionary() {
+        use lzzzz::lz4f::{Dictionary, WriteCompressor, WriteDecompressor};
+        use rand::distributions::Standard;
+
         lz4f_test_set().par_bridge().for_each(|(src, prefs)| {
             let mut comp_buf = Vec::new();
             let mut decomp_buf = Vec::new();
@@ -307,7 +311,7 @@ mod write_decompressor {
 
 mod read_decompressor {
     use super::*;
-    use lzzzz::lz4f::{ReadDecompressor, WriteCompressor};
+    use lzzzz::lz4f::ReadDecompressor;
 
     #[test]
     fn default() {
@@ -332,7 +336,12 @@ mod read_decompressor {
     }
 
     #[test]
+    #[cfg(not(feature = "system-liblz4"))]
     fn dictionary() {
+        use crate::lz4f::*;
+        use lzzzz::lz4f::{ReadDecompressor, WriteCompressor};
+        use rand::distributions::Standard;
+
         lz4f_test_set().par_bridge().for_each(|(src, prefs)| {
             let mut comp_buf = Vec::new();
             let mut decomp_buf = Vec::new();
@@ -394,7 +403,7 @@ mod read_decompressor {
 
 mod bufread_decompressor {
     use super::*;
-    use lzzzz::lz4f::{BufReadDecompressor, WriteCompressor};
+    use lzzzz::lz4f::BufReadDecompressor;
 
     #[test]
     fn default() {
@@ -419,7 +428,12 @@ mod bufread_decompressor {
     }
 
     #[test]
+    #[cfg(not(feature = "system-liblz4"))]
     fn dictionary() {
+        use crate::lz4f::WriteCompressor;
+        use crate::lz4f::*;
+        use rand::distributions::Standard;
+
         lz4f_test_set().par_bridge().for_each(|(src, prefs)| {
             let mut comp_buf = Vec::new();
             let mut decomp_buf = Vec::new();

@@ -44,7 +44,23 @@ fn compress_to_ptr(src: &[u8], dst: *mut u8, dst_len: usize, level: i32) -> Resu
     }
     let len = ExtState::with(|state, reset| {
         if reset {
-            api::compress_ext_state_fast_reset(&mut state.borrow_mut(), src, dst, dst_len, level)
+            // TODO
+
+            #[cfg(not(feature = "system-liblz4"))]
+            {
+                api::compress_ext_state_fast_reset(
+                    &mut state.borrow_mut(),
+                    src,
+                    dst,
+                    dst_len,
+                    level,
+                )
+            }
+
+            #[cfg(feature = "system-liblz4")]
+            {
+                api::compress_ext_state(&mut state.borrow_mut(), src, dst, dst_len, level)
+            }
         } else {
             api::compress_ext_state(&mut state.borrow_mut(), src, dst, dst_len, level)
         }

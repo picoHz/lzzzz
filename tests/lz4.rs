@@ -67,6 +67,7 @@ mod decompress {
     }
 
     #[test]
+    #[cfg(not(feature = "system-liblz4"))]
     fn with_dict() {
         lz4_test_set().par_bridge().for_each(|(src, mode)| {
             let mut comp_buf = Vec::new();

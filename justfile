@@ -1,13 +1,13 @@
 test:
-    cargo test --release --all-features
+    cargo test --release
 
 bench:
-    cargo bench --all-features
+    cargo bench
 
 fmt:
     cargo +nightly fmt
 
 doc:
-    cargo +nightly doc --all-features
+    cargo +nightly doc
 
 export RUSTDOCFLAGS := "--cfg docsrs"

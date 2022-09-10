@@ -1,0 +1,34 @@
+name: Rust
+
+on: [push, pull_request]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/cache@v2
+      with:
+        path: |
+          ~/.rustup/toolchains/*
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-${{ matrix.toolchain }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+    - name: Download liblz4
+      run: wget https://github.com/lz4/lz4/archive/refs/tags/v1.9.4.tar.gz
+    - name: Extract liblz4
+      run: tar xzvf v1.9.4.tar.gz
+    - name: Install liblz4
+      run: cd lz4-1.9.4 && make -j4 && sudo make install
+    - name: Run clippy
+      run: cargo clippy --release --features system-liblz4 --verbose
+    - name: Run tests
+      run: cargo test --release --features system-liblz4 --verbose

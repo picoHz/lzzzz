@@ -27,4 +27,4 @@ jobs:
       run: rustup install nightly
       if: matrix.toolchain == 'nightly'
     - name: Run bench
-      run: cargo +${{ matrix.toolchain }} bench --all-features 
+      run: cargo +${{ matrix.toolchain }} bench

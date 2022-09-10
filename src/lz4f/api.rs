@@ -17,6 +17,7 @@ pub const LZ4F_HEADER_SIZE_MAX: usize = 19;
 
 pub struct CompressionContext {
     ctx: NonNull<LZ4FCompressionCtx>,
+    #[allow(dead_code)]
     dict: Option<Dictionary>,
 }
 
@@ -34,6 +35,7 @@ impl CompressionContext {
                 Ok(Self {
                     ctx: NonNull::new(ctx.assume_init())
                         .ok_or_else(|| crate::Error::new(crate::ErrorKind::InitializationFailed))?,
+
                     dict,
                 })
             })
@@ -42,6 +44,7 @@ impl CompressionContext {
 
     pub fn begin(&mut self, dst: *mut u8, dst_len: usize, prefs: &Preferences) -> Result<usize> {
         let code = unsafe {
+            #[cfg(not(feature = "system-liblz4"))]
             if let Some(dict) = &self.dict {
                 binding::LZ4F_compressBegin_usingCDict(
                     self.ctx.as_ptr(),
@@ -53,6 +56,8 @@ impl CompressionContext {
             } else {
                 binding::LZ4F_compressBegin(self.ctx.as_ptr(), dst as *mut c_void, dst_len, prefs)
             }
+            #[cfg(feature = "system-liblz4")]
+            binding::LZ4F_compressBegin(self.ctx.as_ptr(), dst as *mut c_void, dst_len, prefs)
         } as usize;
         result_from_code(code).map(|_| code)
     }
@@ -154,6 +159,29 @@ impl DecompressionContext {
         result_from_code(code).map(|_| (unsafe { info.assume_init() }, src_len as usize))
     }
 
+    pub fn decompress(
+        &mut self,
+        src: &[u8],
+        dst: &mut [u8],
+        stable_dst: bool,
+    ) -> Result<(usize, usize, usize)> {
+        let mut dst_len = dst.len();
+        let mut src_len = src.len();
+        let opt = LZ4FDecompressionOptions::stable(stable_dst);
+        let code = unsafe {
+            binding::LZ4F_decompress(
+                self.ctx.as_ptr(),
+                dst.as_mut_ptr() as *mut c_void,
+                &mut dst_len as *mut usize,
+                src.as_ptr() as *const c_void,
+                &mut src_len as *mut usize,
+                &opt as *const LZ4FDecompressionOptions,
+            )
+        };
+        result_from_code(code).map(|_| (src_len as usize, dst_len as usize, code as usize))
+    }
+
+    #[cfg(not(feature = "system-liblz4"))]
     pub fn decompress_dict(
         &mut self,
         src: &[u8],
@@ -246,6 +274,7 @@ unsafe impl Send for DictionaryHandle {}
 unsafe impl Sync for DictionaryHandle {}
 
 impl DictionaryHandle {
+    #[cfg(not(feature = "system-liblz4"))]
     pub fn new(data: &[u8]) -> Result<Self> {
         let dict = unsafe { binding::LZ4F_createCDict(data.as_ptr() as *const c_void, data.len()) };
         NonNull::new(dict)
@@ -256,6 +285,7 @@ impl DictionaryHandle {
 
 impl Drop for DictionaryHandle {
     fn drop(&mut self) {
+        #[cfg(not(feature = "system-liblz4"))]
         unsafe {
             binding::LZ4F_freeCDict(self.0.as_ptr());
         }

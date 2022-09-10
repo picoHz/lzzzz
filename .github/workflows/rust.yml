@@ -29,6 +29,6 @@ jobs:
     - name : Install clippy
       run: rustup component add clippy --toolchain ${{ matrix.toolchain }}
     - name: Run clippy
-      run: cargo +${{ matrix.toolchain }} clippy --release --all-features --verbose
+      run: cargo +${{ matrix.toolchain }} clippy --release --verbose
     - name: Run tests
-      run: cargo +${{ matrix.toolchain }} test --release --all-features --verbose
+      run: cargo +${{ matrix.toolchain }} test --release --verbose

@@ -1,6 +1,6 @@
 mod api;
 
-use crate::{common::DICTIONARY_SIZE, lz4, lz4_hc::FavorDecSpeed, Result};
+use crate::{common::DICTIONARY_SIZE, lz4, Result};
 use api::CompressionContext;
 use std::{borrow::Cow, cmp, io::Cursor, pin::Pin};
 
@@ -56,14 +56,16 @@ impl<'a> Compressor<'a> {
     }
 
     /// Sets the compression level.
+    #[cfg(not(feature = "system-liblz4"))]
     pub fn set_compression_level(&mut self, level: i32) {
         self.ctx.set_compression_level(level);
     }
 
     /// Sets the decompression speed mode flag.
-    pub fn set_favor_dec_speed(&mut self, dec_speed: FavorDecSpeed) {
+    #[cfg(not(feature = "system-liblz4"))]
+    pub fn set_favor_dec_speed(&mut self, dec_speed: crate::lz4_hc::FavorDecSpeed) {
         self.ctx
-            .set_favor_dec_speed(dec_speed == FavorDecSpeed::Enabled);
+            .set_favor_dec_speed(dec_speed == crate::lz4_hc::FavorDecSpeed::Enabled);
     }
 
     /// Performs LZ4_HC streaming compression.

@@ -1,3 +1,4 @@
+#[cfg(not(feature = "system-liblz4"))]
 fn main() -> Result<(), cc::Error> {
     let sources = &["lz4.c", "lz4hc.c", "lz4frame.c", "xxhash.c"][..];
     let dir = std::path::Path::new("vendor/liblz4");
@@ -5,3 +6,6 @@ fn main() -> Result<(), cc::Error> {
         .files(sources.iter().map(|file| dir.join(file)))
         .try_compile("lz4")
 }
+
+#[cfg(feature = "system-liblz4")]
+fn main() {}

@@ -50,6 +50,7 @@ fn compress_to_ptr(src: &[u8], dst: *mut u8, dst_len: usize, acc: i32) -> Result
 
     let acc = cmp::min(acc, 33_554_431);
 
+    #[cfg(not(feature = "system-liblz4"))]
     let len = ExtState::with(|state, reset| {
         let mut state = state.borrow_mut();
         if reset {
@@ -58,6 +59,13 @@ fn compress_to_ptr(src: &[u8], dst: *mut u8, dst_len: usize, acc: i32) -> Result
             api::compress_fast_ext_state(&mut state, src, dst, dst_len, acc)
         }
     });
+
+    #[cfg(feature = "system-liblz4")]
+    let len = ExtState::with(|state, _| {
+        let mut state = state.borrow_mut();
+        api::compress_fast_ext_state(&mut state, src, dst, dst_len, acc)
+    });
+
     if len > 0 {
         Ok(len)
     } else {

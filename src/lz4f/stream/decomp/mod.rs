@@ -139,9 +139,16 @@ impl<'a> Decompressor<'a> {
             if len < DEFAULT_BUF_SIZE {
                 self.buffer.resize_with(DEFAULT_BUF_SIZE, Default::default)
             }
+
+            #[cfg(not(feature = "system-liblz4"))]
             let (src_len, dst_len, _) =
                 self.ctx
                     .decompress_dict(src, &mut self.buffer[len..], &self.dict, false)?;
+
+            #[cfg(feature = "system-liblz4")]
+            // TODO
+            let (src_len, dst_len, _) = self.ctx.decompress(src, &mut self.buffer[len..], false)?;
+
             self.buffer.resize_with(len + dst_len, Default::default);
             Ok(src_len + header_consumed)
         } else {

@@ -127,7 +127,7 @@ pub fn decompress_to_vec(src: &[u8], dst: &mut Vec<u8>) -> Result<usize> {
         ctx.reset();
         loop {
             dst.resize_with(dst.len() + DEFAULT_BUF_SIZE, Default::default);
-            match ctx.decompress_dict(&src[src_offset..], &mut dst[dst_offset..], &[], false) {
+            match ctx.decompress(&src[src_offset..], &mut dst[dst_offset..], false) {
                 Ok((src_len, dst_len, expected)) => {
                     src_offset += src_len;
                     dst_offset += dst_len;
