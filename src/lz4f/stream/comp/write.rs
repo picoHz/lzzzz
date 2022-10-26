@@ -98,6 +98,7 @@ impl<W: Write> Write for WriteCompressor<W> {
     fn flush(&mut self) -> std::io::Result<()> {
         self.comp.flush(false)?;
         self.inner.as_mut().unwrap().write_all(self.comp.buf())?;
+        self.comp.clear_buf();
         self.inner.as_mut().unwrap().flush()
     }
 }

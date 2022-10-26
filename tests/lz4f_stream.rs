@@ -29,6 +29,7 @@ mod write_compressor {
             {
                 let mut w = WriteCompressor::new(&mut comp_buf, prefs).unwrap();
                 w.write_all(&src).unwrap();
+                w.flush().unwrap();
             }
             assert_eq!(
                 lz4f::decompress_to_vec(&comp_buf, &mut decomp_buf).unwrap(),
@@ -53,6 +54,7 @@ mod write_compressor {
                     let len = w
                         .write(&src[offset..][..rng.gen_range(0..=src.len() - offset)])
                         .unwrap();
+                    w.flush().unwrap();
                     offset += len;
                 }
             }
