@@ -26,8 +26,7 @@ mod compress_partial {
     #[test]
     fn default() {
         lz4_hc_test_set()
-            .map(|(src, level)| (0..20).map(move |n| (src.clone(), level, 16 << n)))
-            .flatten()
+            .flat_map(|(src, level)| (0..20).map(move |n| (src.clone(), level, 16 << n)))
             .par_bridge()
             .for_each(|(src, level, len)| {
                 let mut comp_buf = vec![0; len];

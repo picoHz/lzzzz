@@ -30,7 +30,7 @@ impl CompressionContext {
         unsafe {
             let ptr = binding::LZ4_initStream(
                 stream.as_mut_ptr() as *mut c_void,
-                size_of::<LZ4Stream>() as usize,
+                size_of::<LZ4Stream>(),
             );
             if !ptr.is_null() {
                 return Ok(Self {
@@ -134,7 +134,7 @@ impl DecompressionContext {
                 dst as *mut c_char,
                 src.len() as c_int,
                 dst_len as c_int,
-            ) as i32
+            )
         };
         if result < 0 {
             Err(Error::new(ErrorKind::DecompressionFailed))

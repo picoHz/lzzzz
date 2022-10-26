@@ -57,7 +57,7 @@ impl Preferences {
 
     /// Returns the compression level.
     pub const fn compression_level(&self) -> i32 {
-        self.compression_level as i32
+        self.compression_level
     }
 
     /// Returns the auto flush mode flag.

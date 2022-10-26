@@ -53,7 +53,7 @@ impl CompressionContext {
             } else {
                 binding::LZ4F_compressBegin(self.ctx.as_ptr(), dst as *mut c_void, dst_len, prefs)
             }
-        } as usize;
+        };
         result_from_code(code).map(|_| code)
     }
 
@@ -74,7 +74,7 @@ impl CompressionContext {
                 src.len(),
                 &opt as *const LZ4FCompressionOptions,
             )
-        } as usize;
+        };
         result_from_code(code).map(|_| code)
     }
 
@@ -87,7 +87,7 @@ impl CompressionContext {
                 dst_len,
                 &opt as *const LZ4FCompressionOptions,
             )
-        } as usize;
+        };
         result_from_code(code).map(|_| code)
     }
 
@@ -100,12 +100,12 @@ impl CompressionContext {
                 dst_len,
                 &opt as *const LZ4FCompressionOptions,
             )
-        } as usize;
+        };
         result_from_code(code).map(|_| code)
     }
 
     pub fn compress_bound(src_size: usize, prefs: &Preferences) -> usize {
-        unsafe { binding::LZ4F_compressBound(src_size as usize, prefs as *const Preferences) }
+        unsafe { binding::LZ4F_compressBound(src_size, prefs as *const Preferences) }
     }
 }
 
@@ -151,7 +151,7 @@ impl DecompressionContext {
                 &mut src_len as *mut usize,
             )
         };
-        result_from_code(code).map(|_| (unsafe { info.assume_init() }, src_len as usize))
+        result_from_code(code).map(|_| (unsafe { info.assume_init() }, src_len))
     }
 
     pub fn decompress_dict(
@@ -176,7 +176,7 @@ impl DecompressionContext {
                 &opt as *const LZ4FDecompressionOptions,
             )
         };
-        result_from_code(code).map(|_| (src_len as usize, dst_len as usize, code as usize))
+        result_from_code(code).map(|_| (src_len, dst_len, code))
     }
 
     pub fn reset(&mut self) {
@@ -195,11 +195,11 @@ impl Drop for DecompressionContext {
 }
 
 pub fn compress_frame_bound(src_size: usize, prefs: &Preferences) -> usize {
-    unsafe { binding::LZ4F_compressFrameBound(src_size as usize, prefs as *const Preferences) }
+    unsafe { binding::LZ4F_compressFrameBound(src_size, prefs as *const Preferences) }
 }
 
 pub fn header_size(src: &[u8]) -> usize {
-    unsafe { binding::LZ4F_headerSize(src.as_ptr() as *const c_void, src.len()) as usize }
+    unsafe { binding::LZ4F_headerSize(src.as_ptr() as *const c_void, src.len()) }
 }
 
 pub fn compress(src: &[u8], dst: *mut u8, dst_len: usize, prefs: &Preferences) -> Result<usize> {
@@ -210,7 +210,7 @@ pub fn compress(src: &[u8], dst: *mut u8, dst_len: usize, prefs: &Preferences) -
             src.as_ptr() as *const c_void,
             src.len(),
             prefs as *const Preferences,
-        ) as usize
+        )
     };
     result_from_code(code).map(|_| code)
 }

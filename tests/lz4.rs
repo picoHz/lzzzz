@@ -54,8 +54,7 @@ mod decompress {
     #[test]
     fn partial() {
         lz4_test_set()
-            .map(|(src, mode)| (0..20).map(move |n| (src.clone(), mode, 16 << n)))
-            .flatten()
+            .flat_map(|(src, mode)| (0..20).map(move |n| (src.clone(), mode, 16 << n)))
             .par_bridge()
             .for_each(|(src, mode, len)| {
                 let mut comp_buf = Vec::new();

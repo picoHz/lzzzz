@@ -64,7 +64,7 @@ pub fn decompress_safe(src: &[u8], dst: &mut [u8]) -> Result<usize> {
             dst.as_mut_ptr() as *mut c_char,
             src.len() as c_int,
             dst.len() as c_int,
-        ) as i32
+        )
     };
     if result < 0 {
         Err(Error::new(ErrorKind::DecompressionFailed))
@@ -81,7 +81,7 @@ pub fn decompress_safe_partial(src: &[u8], dst: &mut [u8], original_size: usize)
             src.len() as c_int,
             original_size as c_int,
             dst.len() as c_int,
-        ) as i32
+        )
     };
     if result < 0 {
         Err(Error::new(ErrorKind::DecompressionFailed))
@@ -99,7 +99,7 @@ pub fn decompress_safe_using_dict(src: &[u8], dst: &mut [u8], dict: &[u8]) -> Re
             dst.len() as c_int,
             dict.as_ptr() as *const c_char,
             dict.len() as c_int,
-        ) as i32
+        )
     };
     if result < 0 {
         Err(Error::new(ErrorKind::DecompressionFailed))
@@ -123,7 +123,7 @@ pub fn decompress_safe_partial_using_dict(
             dst.len() as c_int,
             dict.as_ptr() as *const c_char,
             dict.len() as c_int,
-        ) as i32
+        )
     };
     if result < 0 {
         Err(Error::new(ErrorKind::DecompressionFailed))

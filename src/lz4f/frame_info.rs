@@ -115,7 +115,7 @@ impl FrameInfo {
 
     /// Returns the dictionary id.
     pub const fn dict_id(&self) -> u32 {
-        self.dict_id as u32
+        self.dict_id
     }
 
     /// Returns the block checksum.

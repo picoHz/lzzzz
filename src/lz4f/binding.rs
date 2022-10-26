@@ -29,7 +29,7 @@ pub struct LZ4FCompressionOptions {
 impl LZ4FCompressionOptions {
     pub fn stable(stable: bool) -> Self {
         Self {
-            stable_src: if stable { 1 } else { 0 },
+            stable_src: u32::from(stable),
             ..Default::default()
         }
     }
@@ -45,7 +45,7 @@ pub struct LZ4FDecompressionOptions {
 impl LZ4FDecompressionOptions {
     pub fn stable(stable: bool) -> Self {
         Self {
-            stable_dst: if stable { 1 } else { 0 },
+            stable_dst: u32::from(stable),
             ..Default::default()
         }
     }

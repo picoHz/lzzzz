@@ -70,8 +70,7 @@ fn preferences_set() -> impl Iterator<Item = Preferences> {
 
 pub fn lz4f_test_set() -> impl Iterator<Item = (Bytes, Preferences)> {
     generate_data()
-        .map(|data| preferences_set().map(move |prefs| (data.clone(), prefs)))
-        .flatten()
+        .flat_map(|data| preferences_set().map(move |prefs| (data.clone(), prefs)))
 }
 
 fn compression_acc_set() -> impl Iterator<Item = i32> {
@@ -80,8 +79,7 @@ fn compression_acc_set() -> impl Iterator<Item = i32> {
 
 pub fn lz4_test_set() -> impl Iterator<Item = (Bytes, i32)> {
     generate_data()
-        .map(|data| compression_acc_set().map(move |acc| (data.clone(), acc)))
-        .flatten()
+        .flat_map(|data| compression_acc_set().map(move |acc| (data.clone(), acc)))
 }
 
 pub fn lz4_stream_test_set() -> impl Iterator<Item = (Vec<Bytes>, i32)> {
@@ -102,8 +100,7 @@ fn compression_level_set() -> impl Iterator<Item = i32> {
 
 pub fn lz4_hc_test_set() -> impl Iterator<Item = (Bytes, i32)> {
     generate_data()
-        .map(|data| compression_level_set().map(move |level| (data.clone(), level)))
-        .flatten()
+        .flat_map(|data| compression_level_set().map(move |level| (data.clone(), level)))
 }
 
 pub fn lz4_hc_stream_test_set() -> impl Iterator<Item = (Vec<Bytes>, i32)> {
