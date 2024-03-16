@@ -1,6 +1,6 @@
 [package]
 name = "lzzzz"
-version = "1.0.4"
+version = "1.0.5"
 authors = ["picoHz <picoHz@outlook.com>"]
 edition = "2021"
 description = "Full-featured liblz4 binding for Rust."
@@ -11,7 +11,7 @@ homepage = "https://github.com/picoHz/lzzzz"
 documentation = "https://docs.rs/lzzzz"
 license = "MIT"
 readme = "README.md"
-include = ["src/**/*", "build.rs", "vendor/liblz4/*", "Cargo.toml","LICENSE"]
+include = ["src/**/*", "build.rs", "vendor/liblz4/*", "Cargo.toml", "LICENSE"]
 
 [package.metadata.docs.rs]
 all-features = true
