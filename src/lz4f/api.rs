@@ -146,7 +146,7 @@ impl DecompressionContext {
         let code = unsafe {
             binding::LZ4F_getFrameInfo(
                 self.ctx.as_ptr(),
-                info.as_mut_ptr() as *mut FrameInfo,
+                info.as_mut_ptr(),
                 src.as_ptr() as *const c_void,
                 &mut src_len as *mut usize,
             )
