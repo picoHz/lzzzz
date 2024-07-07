@@ -79,9 +79,43 @@ impl<'a> Compressor<'a> {
         Ok(result)
     }
 
+    /// Performs LZ4_HC streaming compression to fill `dst`.
+    ///
+    /// This function either compresses the entire `src` buffer into `dst` if it's
+    /// large enough, or will fill `dst` with as much data as possible from `src`.
+    ///
+    /// Returns a pair `(read, wrote)` giving the number of bytes read from `src`
+    /// and the number of bytes written to `dst`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use lzzzz::{lz4, lz4_hc};
+    ///
+    /// let data = b"The quick brown fox jumps over the lazy dog.";
+    ///
+    /// let mut smallbuf = [0u8; 32];
+    /// assert!(smallbuf.len() < lz4::max_compressed_size(data.len()));
+    ///
+    /// let mut comp = lz4_hc::Compressor::new()?;
+    /// let (read, wrote) = comp.next_fill(data, &mut smallbuf)?;
+    /// let remaining_data = &data[read..];
+    ///
+    /// # let mut buf = [0u8; 256];
+    /// # let len = lz4::decompress(&smallbuf, &mut buf)?;
+    /// # assert_eq!(&buf[..len], &data[..read]);
+    /// # Ok::<(), std::io::Error>(())
+    /// ```
+    pub fn next_fill(&mut self, src: &[u8], dst: &mut [u8]) -> Result<(usize, usize)> {
+        let (src_len, dst_len) = self.ctx.next_partial(src, dst)?;
+        self.save_dict();
+        Ok((src_len, dst_len))
+    }
+
     /// Compresses data until the destination slice fills up.
     ///
     /// Returns the number of bytes written into the destination buffer.
+    #[deprecated(since = "1.1.0", note = "Use next_fill instead.")]
     pub fn next_partial<T>(&mut self, src: &mut Cursor<T>, dst: &mut [u8]) -> Result<usize>
     where
         T: AsRef<[u8]>,

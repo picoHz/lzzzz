@@ -1,6 +1,5 @@
 use lzzzz::{lz4, lz4_hc};
 use rayon::{iter::ParallelBridge, prelude::*};
-use std::io::Cursor;
 
 mod common;
 use common::lz4_hc_test_set;
@@ -36,7 +35,7 @@ mod compress {
     }
 }
 
-mod compress_partial {
+mod compress_fill {
     use super::*;
 
     #[test]
@@ -47,13 +46,12 @@ mod compress_partial {
             .for_each(|(src, level, len)| {
                 let mut comp_buf = vec![0; len];
                 let mut decomp_buf = Vec::new();
-                let mut src = Cursor::new(src);
-                let pos = src.get_ref().len() / 2;
-                src.set_position(pos as u64);
-                let dst_len = lz4_hc::compress_partial(&mut src, &mut comp_buf, level).unwrap();
-                decomp_buf.resize(src.position() as usize - pos, 0);
+                let pos = src.len() / 2;
+                let (src_len, dst_len) =
+                    lz4_hc::compress_fill(&src[pos..], &mut comp_buf, level).unwrap();
+                decomp_buf.resize(src_len, 0);
                 lz4::decompress(&comp_buf[..dst_len], &mut decomp_buf).unwrap();
-                assert!(src.get_ref()[pos..].starts_with(&decomp_buf));
+                assert!(src[pos..].starts_with(&decomp_buf));
             });
     }
 }
