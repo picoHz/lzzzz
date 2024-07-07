@@ -98,7 +98,7 @@ fn compress_to_ptr(src: &[u8], dst: *mut u8, dst_len: usize, level: i32) -> Resu
 /// ```
 pub fn compress_fill(src: &[u8], dst: &mut [u8], level: i32) -> Result<(usize, usize)> {
     if src.is_empty() {
-        return Ok((0,0))
+        return Ok((0, 0));
     }
     let (read, wrote) = ExtState::with(|state, _reset| {
         api::compress_dest_size(&mut state.borrow_mut(), src, dst, level)
@@ -135,6 +135,7 @@ pub fn compress_fill(src: &[u8], dst: &mut [u8], level: i32) -> Result<(usize, u
 /// # assert_eq!(&buf[..len], &data[..src.position() as usize]);
 /// # Ok::<(), std::io::Error>(())
 /// ```
+#[deprecated(since = "1.1.0", note = "Use compress_fill instead.")]
 pub fn compress_partial<T>(src: &mut Cursor<T>, dst: &mut [u8], level: i32) -> Result<usize>
 where
     T: AsRef<[u8]>,

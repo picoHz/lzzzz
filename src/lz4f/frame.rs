@@ -58,7 +58,7 @@ fn compress_to_ptr(src: &[u8], dst: *mut u8, dst_len: usize, prefs: &Preferences
     api::compress(src, dst, dst_len, &prefs)
 }
 
-/// Appends a compressed frame to Vec<u8>.
+/// Appends a compressed frame to `Vec<u8>`.
 ///
 /// Returns the number of bytes appended to the given `Vec<u8>`.
 ///
