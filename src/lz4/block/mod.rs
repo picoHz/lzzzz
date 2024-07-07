@@ -100,6 +100,50 @@ pub fn compress_to_vec(src: &[u8], dst: &mut Vec<u8>, acc: i32) -> Result<usize>
     }
 }
 
+/// Compress data to fill `dst`.
+///
+/// This function either compresses the entire `src` buffer into `dst` if it's
+/// large enough, or will fill `dst` with as much data as possible from `src`.
+///
+/// Returns a pair `(read, wrote)` giving the number of bytes read from `src`
+/// and the number of bytes written to `dst`.
+///
+/// # Example
+///
+/// ```
+/// use lzzzz::lz4;
+///
+/// let data = b"The quick brown fox jumps over the lazy dog.";
+/// let mut buf = [0u8; 256];
+///
+/// // This slice should have enough capacity.
+/// assert!(buf.len() >= lz4::max_compressed_size(data.len()));
+///
+/// let (read, wrote) = lz4::compress_fill(data, &mut buf)?;
+/// assert_eq!(read, data.len());
+/// let compressed = &buf[..wrote];
+///
+/// # let mut buf = [0u8; 256];
+/// # let len = lz4::decompress(compressed, &mut buf[..data.len()])?;
+/// # assert_eq!(&buf[..len], &data[..]);
+///
+/// // This slice doesn't have enough capacity, but we can fill it.
+/// let mut smallbuf = [0u8; 32];
+/// assert!(smallbuf.len() < lz4::max_compressed_size(data.len()));
+///
+/// let (read, wrote) = lz4::compress_fill(data, &mut smallbuf)?;
+/// assert_eq!(wrote, smallbuf.len());
+/// let remaining_data = &data[read..];
+///
+/// # let mut buf = [0u8; 256];
+/// # let len = lz4::decompress(&smallbuf, &mut buf)?;
+/// # assert_eq!(&buf[..len], &data[..read]);
+/// # Ok::<(), std::io::Error>(())
+/// ```
+pub fn compress_fill(src: &[u8], dst: &mut [u8]) -> Result<(usize, usize)> {
+    api::compress_dest_size(src, dst)
+}
+
 /// Decompresses an LZ4 block.
 ///
 /// The length of the destination slice must be equal to the original data length.

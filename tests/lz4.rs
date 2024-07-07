@@ -18,6 +18,22 @@ mod compress {
             assert_eq!(decomp_buf, src);
         });
     }
+
+    #[test]
+    fn fill() {
+        lz4_test_set()
+            .flat_map(|(src, mode)| (0..20).map(move |n| (src.clone(), mode, 16 << n)))
+            .par_bridge()
+            .for_each(|(src, _mode, len)| {
+                let mut comp_buf = vec![0; len];
+                let mut decomp_buf = Vec::new();
+                let (read, wrote) = lz4::compress_fill(&src, &mut comp_buf).unwrap();
+                decomp_buf.resize(read, 0);
+                let len = lz4::decompress(&comp_buf[..wrote], &mut decomp_buf).unwrap();
+                assert_eq!(len, read);
+                assert!(src.starts_with(&decomp_buf));
+            });
+    }
 }
 
 mod compress_to_vec {
