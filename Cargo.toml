@@ -1,6 +1,6 @@
 [package]
 name = "lzzzz"
-version = "1.0.5"
+version = "1.1.0"
 authors = ["picoHz <picoHz@outlook.com>"]
 edition = "2021"
 description = "Full-featured liblz4 binding for Rust."
