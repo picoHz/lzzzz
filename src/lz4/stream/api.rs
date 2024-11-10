@@ -94,6 +94,19 @@ impl CompressionContext {
             );
         }
     }
+
+    pub fn attach_dict(&mut self, dict_stream: Option<&mut CompressionContext>) {
+        unsafe {
+            if dict_stream.is_none() {
+                // Note(sewer56): When detaching dictionary, we need to reset the stream state
+                // This behaviour is consistent with what the LZ4 library itself does internally.
+                binding::LZ4_resetStream_fast(self.get_ptr());
+            }
+
+            let dict_ptr = dict_stream.map(|ctx| ctx.get_ptr()).unwrap_or(std::ptr::null_mut());
+            binding::LZ4_attach_dictionary(self.get_ptr(), dict_ptr);
+        }
+    }
 }
 
 impl Drop for CompressionContext {

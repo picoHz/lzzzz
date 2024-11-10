@@ -118,6 +118,49 @@ impl<'a> Compressor<'a> {
         self.safe_buf.resize(DICTIONARY_SIZE, 0);
         self.ctx.save_dict(&mut self.safe_buf);
     }
+
+    /// Attaches a dictionary stream for efficient dictionary reuse.
+    ///
+    /// This allows efficient re-use of a static dictionary multiple times by referencing
+    /// the dictionary stream in-place rather than copying it.
+    ///
+    /// # Arguments
+    ///
+    /// * `dict_stream` - The dictionary stream to attach, or None to unset any existing dictionary
+    ///
+    /// # Notes
+    ///
+    /// - The dictionary stream must have been prepared using `with_dict()` or `with_dict_slow()`
+    /// - The dictionary will only remain attached through the first compression call
+    /// - The dictionary stream (and its source buffer) must remain valid through the compression session
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use lzzzz::lz4;
+    ///
+    /// let dict_data = b"some dictionary data";
+    /// let data = b"data to compress";
+    ///
+    /// // Create dictionary stream
+    /// let mut dict_comp = lz4::Compressor::with_dict(dict_data)?;
+    ///
+    /// // Create working stream and attach dictionary
+    /// let mut comp = lz4::Compressor::new()?;
+    /// comp.attach_dict(Some(&mut dict_comp));
+    ///
+    /// // Compress data using the attached dictionary
+    /// let mut buf = [0u8; 256];
+    /// let len = comp.next(data, &mut buf, lz4::ACC_LEVEL_DEFAULT)?;
+    /// # Ok::<(), std::io::Error>(())
+    /// ```
+    pub fn attach_dict(&mut self, dict_stream: Option<&mut Compressor<'a>>) {
+        if let Some(dict) = dict_stream {
+            self.ctx.attach_dict(Some(&mut dict.ctx));
+        } else {
+            self.ctx.attach_dict(None);
+        }
+    }
 }
 
 /// Streaming LZ4 decompressor.

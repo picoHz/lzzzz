@@ -60,4 +60,35 @@ mod compressor {
                 }
             });
     }
+
+    #[test]
+    fn attach_dictionary() {
+        // Basic test data
+        let data = b"The quick brown fox jumps over the lazy dog";
+
+        // Create dictionary stream
+        let mut dict_comp = lz4::Compressor::with_dict(data).unwrap();
+        
+        // Create working stream and attach dictionary
+        let mut comp = lz4::Compressor::new().unwrap();
+
+        // Compress with attached dictionary
+        comp.attach_dict(Some(&mut dict_comp));
+        let mut output_attached_dict = Vec::new();
+        comp.next_to_vec(data, &mut output_attached_dict, lz4::ACC_LEVEL_DEFAULT).unwrap();
+
+        // Compress with no dictionary
+        comp.attach_dict(None);
+        let mut output_no_dict = Vec::new();
+        comp.next_to_vec(data, &mut output_no_dict, lz4::ACC_LEVEL_DEFAULT).unwrap();
+
+        // Verify the data compresses to same result as regular dictionary compression
+        let mut comp_regular = lz4::Compressor::with_dict(data).unwrap();
+        let mut output_regular_dict = Vec::new();
+        comp_regular.next_to_vec(data, &mut output_regular_dict, lz4::ACC_LEVEL_DEFAULT).unwrap();
+
+        // Results should match
+        assert_eq!(output_attached_dict, output_regular_dict, "Compressed data should match");
+        assert_ne!(output_attached_dict, output_no_dict, "Data with no dict should be different");
+    }
 }

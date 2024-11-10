@@ -102,4 +102,9 @@ extern "C" {
         src_size: c_int,
         dst_capacity: c_int,
     ) -> c_int;
+    pub fn LZ4_attach_dictionary(
+        working_stream: *mut LZ4Stream,
+        dictionary_stream: *const LZ4Stream,
+    );
+    pub fn LZ4_resetStream_fast(streamPtr: *mut LZ4Stream);
 }
