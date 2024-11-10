@@ -10,6 +10,7 @@ use std::{
     mem::{size_of, MaybeUninit},
     os::raw::{c_char, c_int, c_void},
     ptr::NonNull,
+    ptr::null_mut
 };
 
 #[allow(clippy::large_enum_variant)]
@@ -103,7 +104,7 @@ impl CompressionContext {
                 binding::LZ4_resetStream_fast(self.get_ptr());
             }
 
-            let dict_ptr = dict_stream.map(|ctx| ctx.get_ptr()).unwrap_or(std::ptr::null_mut());
+            let dict_ptr = dict_stream.map(|ctx| ctx.get_ptr()).unwrap_or(null_mut());
             binding::LZ4_attach_dictionary(self.get_ptr(), dict_ptr);
         }
     }

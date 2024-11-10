@@ -83,9 +83,9 @@ mod compressor {
         comp.next_to_vec(data, &mut output_no_dict, lz4::ACC_LEVEL_DEFAULT).unwrap();
 
         // Verify the data compresses to same result as regular dictionary compression
-        let mut comp_regular = lz4::Compressor::with_dict(data).unwrap();
+        let mut comp_regular_dict = lz4::Compressor::with_dict(data).unwrap();
         let mut output_regular_dict = Vec::new();
-        comp_regular.next_to_vec(data, &mut output_regular_dict, lz4::ACC_LEVEL_DEFAULT).unwrap();
+        comp_regular_dict.next_to_vec(data, &mut output_regular_dict, lz4::ACC_LEVEL_DEFAULT).unwrap();
 
         // Results should match
         assert_eq!(output_attached_dict, output_regular_dict, "Compressed data should match");
