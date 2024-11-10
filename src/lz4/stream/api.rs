@@ -75,6 +75,16 @@ impl CompressionContext {
         }
     }
 
+    pub fn load_dict_slow(&mut self, dict: &[u8]) {
+        unsafe {
+            binding::LZ4_loadDictSlow(
+                self.get_ptr(),
+                dict.as_ptr() as *const c_char,
+                dict.len() as c_int,
+            );
+        }
+    }
+
     pub fn save_dict(&mut self, dict: &mut [u8]) {
         unsafe {
             binding::LZ4_saveDict(

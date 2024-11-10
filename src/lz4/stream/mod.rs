@@ -58,6 +58,21 @@ impl<'a> Compressor<'a> {
         Ok(comp)
     }
 
+    /// Creates a new `Compressor` with a dictionary.
+    /// This variant which consumes more initialization time to better reference the dictionary,
+    /// resulting in slightly improved compression ratios at expense of time.
+    pub fn with_dict_slow<D>(dict: D) -> Result<Self>
+    where
+        D: Into<Cow<'a, [u8]>>,
+    {
+        let mut comp = Self {
+            dict: Pin::new(dict.into()),
+            ..Self::new()?
+        };
+        comp.ctx.load_dict_slow(&comp.dict);
+        Ok(comp)
+    }
+
     /// Performs LZ4 streaming compression.
     ///
     /// Returns the number of bytes written into the destination buffer.

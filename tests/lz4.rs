@@ -82,14 +82,16 @@ mod decompress {
     }
 
     #[test]
-    fn with_dict() {
+    fn with_dict_and_dict_slow() {
         lz4_test_set().par_bridge().for_each(|(src, mode)| {
-            let mut comp_buf = Vec::new();
-            let mut decomp_buf = vec![0; src.len()];
-            let mut comp = lz4::Compressor::with_dict(src.as_ref()).unwrap();
-            comp.next_to_vec(&src, &mut comp_buf, mode).unwrap();
-            lz4::decompress_with_dict(&comp_buf, &mut decomp_buf, &src).unwrap();
-            assert_eq!(src, &decomp_buf);
+            for with_dict in [lz4::Compressor::with_dict, lz4::Compressor::with_dict_slow] {
+                let mut comp_buf = Vec::new();
+                let mut decomp_buf = vec![0; src.len()];
+                let mut comp = with_dict(src.as_ref()).unwrap();
+                comp.next_to_vec(&src, &mut comp_buf, mode).unwrap();
+                lz4::decompress_with_dict(&comp_buf, &mut decomp_buf, &src).unwrap();
+                assert_eq!(src, &decomp_buf);
+            }
         });
     }
 }
