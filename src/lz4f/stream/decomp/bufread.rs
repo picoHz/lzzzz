@@ -38,7 +38,6 @@ use std::{
 /// ```
 ///
 /// [`BufRead`]: https://doc.rust-lang.org/std/io/trait.BufRead.html
-
 pub struct BufReadDecompressor<'a, R: BufRead> {
     pub(super) inner: R,
     decomp: Decompressor<'a>,

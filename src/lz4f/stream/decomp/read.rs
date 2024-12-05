@@ -34,7 +34,6 @@ use std::{
 /// ```
 ///
 /// [`Read`]: https://doc.rust-lang.org/std/io/trait.Read.html
-
 pub struct ReadDecompressor<'a, R: Read> {
     inner: BufReadDecompressor<'a, BufReader<R>>,
 }

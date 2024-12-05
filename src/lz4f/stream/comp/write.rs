@@ -24,7 +24,6 @@ use std::{fmt, io::Write};
 /// ```
 ///
 /// [`Write`]: https://doc.rust-lang.org/std/io/trait.Write.html
-
 pub struct WriteCompressor<W: Write> {
     inner: Option<W>,
     comp: Compressor,
