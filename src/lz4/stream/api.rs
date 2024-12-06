@@ -10,6 +10,7 @@ use std::{
     mem::{size_of, MaybeUninit},
     os::raw::{c_char, c_int, c_void},
     ptr::NonNull,
+    ptr::null_mut
 };
 
 #[allow(clippy::large_enum_variant)]
@@ -75,6 +76,16 @@ impl CompressionContext {
         }
     }
 
+    pub fn load_dict_slow(&mut self, dict: &[u8]) {
+        unsafe {
+            binding::LZ4_loadDictSlow(
+                self.get_ptr(),
+                dict.as_ptr() as *const c_char,
+                dict.len() as c_int,
+            );
+        }
+    }
+
     pub fn save_dict(&mut self, dict: &mut [u8]) {
         unsafe {
             binding::LZ4_saveDict(
@@ -82,6 +93,19 @@ impl CompressionContext {
                 dict.as_ptr() as *mut c_char,
                 dict.len() as c_int,
             );
+        }
+    }
+
+    pub fn attach_dict(&mut self, dict_stream: Option<&mut CompressionContext>) {
+        unsafe {
+            if dict_stream.is_none() {
+                // Note(sewer56): When detaching dictionary, we need to reset the stream state
+                // This behaviour is consistent with what the LZ4 library itself does internally.
+                binding::LZ4_resetStream_fast(self.get_ptr());
+            }
+
+            let dict_ptr = dict_stream.map(|ctx| ctx.get_ptr()).unwrap_or(null_mut());
+            binding::LZ4_attach_dictionary(self.get_ptr(), dict_ptr);
         }
     }
 }

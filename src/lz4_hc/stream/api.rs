@@ -6,6 +6,7 @@ use crate::{Error, ErrorKind, Result};
 use std::{
     os::raw::{c_char, c_int},
     ptr::NonNull,
+    ptr::null_mut
 };
 
 pub struct CompressionContext {
@@ -89,6 +90,20 @@ impl CompressionContext {
             Ok((src_len as usize, dst_len))
         } else {
             Err(Error::new(ErrorKind::CompressionFailed))
+        }
+    }
+
+    pub fn attach_dict(&mut self, dict_stream: Option<&CompressionContext>, compression_level: i32) {
+        unsafe {
+            if dict_stream.is_none() {
+                // Note(sewer56): When detaching dictionary, we need to reset the stream state
+                // This behaviour is consistent with what the LZ4 library itself does internally.
+                // The LZ4HC API does not have a way to retrieve compression level, so we must pass it manually,
+                // since the HC API differs here.
+                binding::LZ4_resetStreamHC_fast(self.stream.as_ptr(), compression_level);
+            }
+            let dict_ptr = dict_stream.map(|ctx| ctx.stream.as_ptr()).unwrap_or(null_mut());
+            binding::LZ4_attach_HC_dictionary(self.stream.as_ptr(), dict_ptr);
         }
     }
 }

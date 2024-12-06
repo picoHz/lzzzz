@@ -65,4 +65,13 @@ extern "C" {
     ) -> c_int;
     pub fn LZ4_setCompressionLevel(ptr: *mut LZ4StreamHC, compression_level: c_int);
     pub fn LZ4_favorDecompressionSpeed(ptr: *mut LZ4StreamHC, favor: c_int);
+    pub fn LZ4_attach_HC_dictionary(
+        working_stream: *mut LZ4StreamHC,
+        dictionary_stream: *const LZ4StreamHC
+    );
+    
+    pub fn LZ4_resetStreamHC_fast(
+        streamPtr: *mut LZ4StreamHC,
+        compressionLevel: c_int
+    );
 }

@@ -31,7 +31,6 @@ use std::{
 /// ```
 ///
 /// [`Read`]: https://doc.rust-lang.org/std/io/trait.Read.html
-
 pub struct ReadCompressor<R: Read> {
     inner: BufReadCompressor<BufReader<R>>,
 }

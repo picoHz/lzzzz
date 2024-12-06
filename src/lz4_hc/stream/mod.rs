@@ -43,14 +43,22 @@ impl<'a> Compressor<'a> {
     }
 
     /// Creates a new `Compressor` with a dictionary.
-    pub fn with_dict<D>(dict: D) -> Result<Self>
+    pub fn with_dict<D>(dict: D, compression_level: i32) -> Result<Self>
     where
         D: Into<Cow<'a, [u8]>>,
     {
+        // Note(sewer56).
+        // The LZ4 documentation states the following:
+        // - In order for LZ4_loadDictHC() to create the correct data structure,
+        //   it is essential to set the compression level _before_ loading the dictionary.
+        // Therefore this API requires a `compression_level`.
+
         let mut comp = Self {
             dict: Pin::new(dict.into()),
             ..Self::new()?
         };
+
+        comp.ctx.set_compression_level(compression_level);
         comp.ctx.load_dict(&comp.dict);
         Ok(comp)
     }
@@ -150,5 +158,49 @@ impl<'a> Compressor<'a> {
     fn save_dict(&mut self) {
         self.safe_buf.resize(DICTIONARY_SIZE, 0);
         self.ctx.save_dict(&mut self.safe_buf);
+    }
+
+    /// Attaches a dictionary stream for efficient dictionary reuse.
+    ///
+    /// This allows efficient re-use of a static dictionary multiple times by referencing
+    /// the dictionary stream in-place rather than copying it.
+    ///
+    /// # Arguments
+    ///
+    /// * `dict_stream` - The dictionary stream to attach, or None to unset any existing dictionary
+    /// * `compression_level` - The compression level to use (CLEVEL_MIN to CLEVEL_MAX)
+    ///
+    /// # Notes
+    ///
+    /// - The dictionary stream must have been prepared using `with_dict()`
+    /// - The dictionary will only remain attached through the first compression call
+    /// - The dictionary stream (and its source buffer) must remain valid through the compression session
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use lzzzz::lz4_hc;
+    ///
+    /// let dict_data = b"dictionary data";
+    /// let data = b"data to compress";
+    ///
+    /// // Create dictionary stream
+    /// let dict_comp = lz4_hc::Compressor::with_dict(dict_data, lz4_hc::CLEVEL_DEFAULT)?;
+    ///
+    /// // Create working stream and attach dictionary
+    /// let mut comp = lz4_hc::Compressor::new()?;
+    /// comp.attach_dict(Some(&dict_comp), lz4_hc::CLEVEL_DEFAULT);
+    ///
+    /// // Compress data using the attached dictionary
+    /// let mut buf = [0u8; 256];
+    /// let len = comp.next(data, &mut buf)?;
+    /// # Ok::<(), std::io::Error>(())
+    /// ```
+    pub fn attach_dict(&mut self, dict_stream: Option<&Compressor<'a>>, compression_level: i32) {
+        if let Some(dict) = dict_stream {
+            self.ctx.attach_dict(Some(&dict.ctx), compression_level);
+        } else {
+            self.ctx.attach_dict(None, compression_level);
+        }
     }
 }

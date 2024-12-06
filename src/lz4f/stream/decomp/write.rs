@@ -26,7 +26,6 @@ use std::{borrow::Cow, fmt, io::Write};
 /// ```
 ///
 /// [`Write`]: https://doc.rust-lang.org/std/io/trait.Write.html
-
 pub struct WriteDecompressor<'a, W: Write> {
     inner: W,
     decomp: Decompressor<'a>,
